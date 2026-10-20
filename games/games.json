@@ -26,7 +26,7 @@
       "type": "html",
       "path": "kahlekaverit/index.html",
       "cover": "kahlekaverit/cover.jpg",
-      "version": "0.4",
+      "version": "0.5",
       "endButton": "top-left",
       "tags": [
         "Co-op",
@@ -35,10 +35,11 @@
       ],
       "description": "Pate ja Masa on kahlittu toisiinsa ketjulla. Kantakaa särkyvät tavarat kartanosta pakuun ennen aamua, kaksin isot esineet, ja älkää herättäkö Ilkkaa, robotti-imuria.",
       "updates": [
+        "Uutta: huonekaluja voi siirtää kahdestaan, kun ne ovat tiellä",
+        "Korjattu: huonekalut eivät enää tuki ovia",
         "Uutta: nettipeli liittymiskoodilla, kumpikin omalla koneellaan",
         "3D-näkymä ja 20 erilaista esinettä",
-        "Isot esineet vaativat kaksi kantajaa",
-        "Grafiikka: laatu tai suorituskyky (G)"
+        "Isot esineet vaativat kaksi kantajaa"
       ]
     },
     {

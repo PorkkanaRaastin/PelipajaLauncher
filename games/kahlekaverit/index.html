@@ -134,6 +134,7 @@ button:disabled{opacity:.45!important;cursor:default}
     </div>
     <div class="tips">
       <span>Isot esineet, kuten piano, akvaario ja marmoripatsas, nousevat vain kahdella kantajalla. Yksin niitä voi vain raahata.</span>
+      <span>Onko huonekalu tiellä? Tarttukaa siihen molemmat, niin saatte siirrettyä sen.</span>
       <span>Jokainen kova osuma seinään tai toiseen esineeseen syö arvoa. Arvo näkyy esineen päällä.</span>
       <span>Huutakaa yhtä aikaa samaa esinettä kantaessa: HEAVE-HO antaa lisävoimaa.</span>
       <span>Huuto ja kolinat houkuttelevat Ilkan. Paku on turvassa, Ilkka ei mene ulos.</span>
@@ -370,8 +371,10 @@ function buildMap(seed){
   }
   for(let i=0;i<4;i++){const c=Math.floor(R()*COLS),r=Math.floor(R()*ROWS),d=R()<.5?[1,0]:[0,1],c2=c+d[0],r2=r+d[1];if(c2<COLS&&r2<ROWS)conn.add(ckey(cid(c,r),cid(c2,r2)))}
   const W=(x,y,w,h,k)=>walls.push({x,y,w,h,k:k||'wall'});
-  const vWall=(x,y0,y1,gap)=>{if(gap){const m=(y0+y1)/2;W(x-T/2,y0-T/2,T,m-DOOR/2-y0+T/2);W(x-T/2,m+DOOR/2,T,y1-m-DOOR/2+T/2)}else W(x-T/2,y0-T/2,T,y1-y0+T)};
-  const hWall=(y,x0,x1,gap)=>{if(gap){const m=(x0+x1)/2;W(x0-T/2,y-T/2,m-DOOR/2-x0+T/2,T);W(m+DOOR/2,y-T/2,x1-m-DOOR/2+T/2,T)}else W(x0-T/2,y-T/2,x1-x0+T,T)};
+  // oviaukkojen edustat: huonekaluja ei sijoiteta näihin (muuten huoneeseen ei pääsisi)
+  const doors=[];
+  const vWall=(x,y0,y1,gap)=>{if(gap){const m=(y0+y1)/2;doors.push({x:x-110,y:m-DOOR/2-20,w:220,h:DOOR+40});W(x-T/2,y0-T/2,T,m-DOOR/2-y0+T/2);W(x-T/2,m+DOOR/2,T,y1-m-DOOR/2+T/2)}else W(x-T/2,y0-T/2,T,y1-y0+T)};
+  const hWall=(y,x0,x1,gap)=>{if(gap){const m=(x0+x1)/2;doors.push({x:m-DOOR/2-20,y:y-110,w:DOOR+40,h:220});W(x0-T/2,y-T/2,m-DOOR/2-x0+T/2,T);W(m+DOOR/2,y-T/2,x1-m-DOOR/2+T/2,T)}else W(x0-T/2,y-T/2,x1-x0+T,T)};
   for(let r=0;r<ROWS;r++)for(let c=0;c<=COLS;c++){
     const gap=c===0?r===FRONT_ROW:c===COLS?false:conn.has(ckey(cid(c-1,r),cid(c,r)));
     vWall(c*CW,r*CH,(r+1)*CH,gap);
@@ -396,14 +399,18 @@ function buildMap(seed){
       const side=Math.floor(R()*4),kind=KINDS[Math.floor(R()*KINDS.length)];
       const len=100+R()*50,dep=kind==='bed'?70:42+R()*16;
       const horiz=side<2,span=horiz?CW:CH;
-      let off;for(let t=0;t<8;t++){off=60+R()*(span-120-len);if(Math.abs(off+len/2-span/2)>DOOR/2+len/2+20)break}
-      let x,y,w,h;
-      if(side===0){x=cell.x+off;y=cell.y+T/2;w=len;h=dep}
-      else if(side===1){x=cell.x+off;y=cell.y+CH-T/2-dep;w=len;h=dep}
-      else if(side===2){x=cell.x+T/2;y=cell.y+off;w=dep;h=len}
-      else{x=cell.x+CW-T/2-dep;y=cell.y+off;w=dep;h=len}
-      const rc={x,y,w,h,k:kind,side,seed:R()};
-      if(!furn.some(f=>x<f.x+f.w+10&&x+w>f.x-10&&y<f.y+f.h+10&&y+h>f.y-10))furn.push(rc);
+      // haetaan paikka, joka ei ole oven edessä; jos sellaista ei löydy, huonekalu jätetään pois
+      let x,y,w,h,ok=false;
+      for(let t=0;t<8&&!ok;t++){
+        const off=60+R()*(span-120-len);
+        if(side===0){x=cell.x+off;y=cell.y+T/2;w=len;h=dep}
+        else if(side===1){x=cell.x+off;y=cell.y+CH-T/2-dep;w=len;h=dep}
+        else if(side===2){x=cell.x+T/2;y=cell.y+off;w=dep;h=len}
+        else{x=cell.x+CW-T/2-dep;y=cell.y+off;w=dep;h=len}
+        ok=!doors.some(d=>x<d.x+d.w&&x+w>d.x&&y<d.y+d.h&&y+h>d.y);
+      }
+      const rc={id:furn.length,x,y,w,h,k:kind,side,seed:R(),furn:true,vx:0,vy:0,holders:0,lift:0,mesh:null};
+      if(ok&&!furn.some(f=>x<f.x+f.w+10&&x+w>f.x-10&&y<f.y+f.h+10&&y+h>f.y-10))furn.push(rc);
     }
   }
   solids=walls.concat(furn,van);
@@ -542,7 +549,7 @@ function buildWorld(){
     const sk=add(world,new THREE.BoxGeometry(w.w+2,6,w.h+2),mat('#1e1828'),w.x+w.w/2,3,w.y+w.h/2);sk.castShadow=false;
     wallMeshes.push({mesh:m,mats:[side,top],r:w,op:1,extra:[sk]});
   }
-  for(const f of furn){const fm=furnModel(f);world.add(fm);const mats=[];fm.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.userData.own=true;mats.push(o.material)}});if(f.k==='shelf')fadeMeshes.push({mats,r:f,op:1,tall:true})}
+  for(const f of furn){const fm=furnModel(f);f.mesh=fm;world.add(fm);const mats=[];fm.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.transparent=true;o.userData.own=true;mats.push(o.material)}});if(f.k==='shelf')fadeMeshes.push({mats,r:f,op:1,tall:true})}
   buildVan();
   // esineet
   for(const it of items){it.mesh=itemModel(it.t);world.add(it.mesh)}
@@ -733,14 +740,38 @@ function release(p){if(p.hold){p.hold.holders=Math.max(0,p.hold.holders-1);p.hol
 function tryGrab(p){
   let bestIt=null,bd=1e9;
   for(const it of items){if(it.dead)continue;const d=Math.hypot(it.x-p.x,it.y-p.y)-it.r-p.r;if(d<14&&d<bd){bd=d;bestIt=it}}
-  if(!bestIt)return;
+  if(!bestIt){tryGrabFurn(p);return}
   p.hold=bestIt;bestIt.holders++;
   const a=Math.atan2(p.y-bestIt.y,p.x-bestIt.x),L=bestIt.r+p.r-3;p.ox=Math.cos(a)*L;p.oy=Math.sin(a)*L;
   sfx.grab();
   if(TYPES[bestIt.t].heavy&&bestIt.holders<2)addText(bestIt.x,bestIt.y,'Tarvitaan 2 kantajaa!','#efe0b0',15,1.3,90);
   if(TYPES[bestIt.t].heavy&&bestIt.holders===2)addText(bestIt.x,bestIt.y,'NOSTA!','#86e08a',18,1,90);
 }
-function effMass(it){const ty=TYPES[it.t];let m=ty.m;if(ty.heavy&&it.holders<2&&G.heave<=0)m*=10;if(G.heave>0&&it.holders>=2)m*=.5;return m}
+// Huonekalut: tartu kiinni (F / O). Huonekalu liikkuu vasta, kun molemmat pitävät siitä kiinni.
+const FURN_N={shelf:'Kirjahylly',sofa:'Sohva',counter:'Keittiötaso',bed:'Sänky',table:'Pöytä'};
+function tryGrabFurn(p){
+  let best=null,bd=1e9;
+  for(const f of furn){const cx=clamp(p.x,f.x,f.x+f.w),cy=clamp(p.y,f.y,f.y+f.h),d=Math.hypot(p.x-cx,p.y-cy)-p.r;if(d<16&&d<bd){bd=d;best=f}}
+  if(!best)return;
+  p.hold=best;best.holders++;
+  p.ox=p.x-(best.x+best.w/2);p.oy=p.y-(best.y+best.h/2);
+  sfx.grab();
+  addText(best.x+best.w/2,best.y+best.h/2,best.holders<2?'Tarvitaan 2 siirtäjää!':'SIIRRÄ!',best.holders<2?'#efe0b0':'#86e08a',best.holders<2?15:18,1.2,90);
+}
+const furnBlocked=(f)=>{
+  for(const s of solids){if(s===f)continue;if(f.x<s.x+s.w&&f.x+f.w>s.x&&f.y<s.y+s.h&&f.y+f.h>s.y)return true}
+  return false;
+};
+function moveFurn(f,dt){
+  if(f.holders<2){f.vx=f.vy=0;return}
+  f.vx*=Math.exp(-3*dt);f.vy*=Math.exp(-3*dt);
+  const sp=Math.hypot(f.vx,f.vy);if(sp>160){f.vx*=160/sp;f.vy*=160/sp}
+  const dx=f.vx*dt,dy=f.vy*dt;
+  f.x+=dx;if(furnBlocked(f)){f.x-=dx;f.vx=0}
+  f.y+=dy;if(furnBlocked(f)){f.y-=dy;f.vy=0}
+  if((dx||dy)&&Math.random()<dt*6){burst(f.x+f.w/2,f.y+f.h/2,'#8a7a66',1,40,2,true);if(Math.random()<.25)sfx.scrape()}
+}
+function effMass(it){if(it.furn)return it.holders>=2?(G.heave>0?5:10):60;const ty=TYPES[it.t];let m=ty.m;if(ty.heavy&&it.holders<2&&G.heave<=0)m*=10;if(G.heave>0&&it.holders>=2)m*=.5;return m}
 function carryF(p){if(!p.hold)return 1;const it=p.hold;return clamp(1.6/(1+effMass(it)*.35/Math.max(1,it.holders)),.12,1)}
 function yell(p){
   if(!p||p.knocked>0)return;
@@ -802,7 +833,8 @@ function step(dt){
   }
   for(const p of players){
     const it=p.hold;if(!it)continue;
-    const ex=p.x-(it.x+p.ox),ey=p.y-(it.y+p.oy);
+    const bx=it.furn?it.x+it.w/2:it.x,by=it.furn?it.y+it.h/2:it.y;
+    const ex=p.x-(bx+p.ox),ey=p.y-(by+p.oy);
     if(ex*ex+ey*ey>70*70){release(p);addText(p.x,p.y,'Ups!','#fff',15);sfx.drop();continue}
     const me=effMass(it);
     it.vx+=ex*K*dt/me;it.vy+=ey*K*dt/me;
@@ -810,6 +842,7 @@ function step(dt){
     p.vx-=ex*K*dt*.12;p.vy-=ey*K*dt*.12;
   }
   for(const p of players){p.x+=p.vx*dt;p.y+=p.vy*dt}
+  for(const f of furn)moveFurn(f,dt);
   for(const it of items){
     const f=it.holders?1:3.2;it.vx*=Math.exp(-f*dt);it.vy*=Math.exp(-f*dt);
     it.x+=it.vx*dt;it.y+=it.vy*dt;it.hitT=Math.max(0,it.hitT-dt);
@@ -1008,6 +1041,7 @@ function syncScene(now){
     g.rotation.set(wob*.5,-it.a,wob);g.scale.setScalar(pulse);
     if(g.userData.anim)g.userData.anim(tt);
   }
+  for(const f of furn){if(!f.mesh)continue;f.lift+=((f.holders>=2?3:0)-f.lift)*.2;f.mesh.position.set(f.x+f.w/2,f.lift,f.y+f.h/2)}
   if(mon&&mon.mesh){
     const u=mon.mesh.userData;mon.mesh.position.set(mon.x,0,mon.y);mon.mesh.rotation.y=-mon.face;
     u.brushes.forEach((b,i)=>b.rotation.y=(i?1:-1)*mon.brush);
@@ -1059,6 +1093,11 @@ function drawOverlay(){
     if(k<1){g.fillStyle='rgba(255,255,255,.15)';g.fillRect(sx-w/2+6,sy-2,w-12,3);g.fillStyle=col;g.fillRect(sx-w/2+6,sy-2,(w-12)*k,3)}
     if(ty.heavy&&it.holders===1&&G.heave<=0){g.font='15px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('Tarvitaan 2 kantajaa!',sx,sy-28)}
   }
+  for(const f of furn){
+    if(f.holders!==1)continue;
+    const [sx,sy]=project(f.x+f.w/2,90,f.y+f.h/2);
+    g.font='15px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('Tarvitaan 2 siirtäjää!',sx,sy);
+  }
   for(const p of players){
     const [sx,sy]=project(p.x,p.knocked>0?36:70,p.y);
     g.font='13px "Bowlby One", sans-serif';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.6)';g.strokeText(p.name,sx,sy);g.fillStyle=p.col;g.fillText(p.name,sx,sy);
@@ -1093,7 +1132,7 @@ function placeCam(x,y,d){
 let hudCache='';
 function updateHud(){
   const s=Math.ceil(G.time),mm=Math.floor(s/60),ss=String(s%60).padStart(2,'0');
-  const st=p=>p.knocked>0?['Imuroitu! '+Math.ceil(p.knocked)+' s','bad']:p.hold?['Kantaa: '+TYPES[p.hold.t].n,'']:['',''];
+  const st=p=>p.knocked>0?['Imuroitu! '+Math.ceil(p.knocked)+' s','bad']:p.hold?(p.hold.furn?['Siirtää: '+FURN_N[p.hold.k],'']:['Kantaa: '+TYPES[p.hold.t].n,'']):['',''];
   const s1=st(players[0]),s2=st(players[1]);
   const full=G.bank>=G.quota;
   const hint=full?'Kiintiö täynnä · menkää molemmat pakuun lähteäksenne':G.heave>0?'HEAVE-HO! '+Math.ceil(G.heave)+' s':mon.state==='chase'?'ILKKA JAHTAA! Juoskaa pakuun':'';
@@ -1110,7 +1149,7 @@ function updateHud(){
 
 // ================= nettipeli =================
 // Isäntä pyörittää koko pelin. Kaveri lähettää näppäimensä ja saa pelitilanteen 20 kertaa sekunnissa.
-const NET_VER='kk-net-1',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const NET_VER='kk-net-2',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const net={peer:null,conn:null,code:'',remote:{x:0,y:0,g:false},lastIn:0,sendT:0,inT:0,lastSent:'',ping:0,pingT:0,ev:[],connected:false,snapOk:false};
 G.mode='local';
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
@@ -1213,9 +1252,10 @@ function netLost(msg){
 }
 function localYell(){if(G.mode==='host')yell(players[0]);else if(G.mode==='client')netSend({t:'y'})}
 function sendSnap(){
-  const P=players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.fx),r2(p.fy),r2(p.knocked),r2(p.revive),p.hold?p.hold.id:-1,r2(p.yellT),p.bubble]);
+  const P=players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.fx),r2(p.fy),r2(p.knocked),r2(p.revive),p.hold?(p.hold.furn?10000+p.hold.id:p.hold.id):-1,r2(p.yellT),p.bubble]);
+  const F=furn.map(f=>[r1(f.x),r1(f.y),f.holders]);
   const I=items.map(it=>[it.id,r1(it.x),r1(it.y),r2(it.a),Math.round(it.val),it.holders,r2(it.hitT)]);
-  netSend({t:'s',tm:r2(G.time),b:G.bank,h:r2(G.heave),l:r2(G.leaveT),P,I,M:[r1(mon.x),r1(mon.y),r2(mon.face),mon.state,r2(mon.stun)],ev:net.ev});
+  netSend({t:'s',tm:r2(G.time),b:G.bank,h:r2(G.heave),l:r2(G.leaveT),P,I,F,M:[r1(mon.x),r1(mon.y),r2(mon.face),mon.state,r2(mon.stun)],ev:net.ev});
   net.ev=[];
 }
 function clientStart(d){
@@ -1244,14 +1284,15 @@ function applySnap(d){
   for(const a of d.I){const it=byId.get(a[0]);if(!it)continue;alive.add(a[0]);it.tx=a[1];it.ty=a[2];it.a=a[3];it.val=a[4];it.holders=a[5];it.hitT=a[6];if(!net.snapOk){it.x=a[1];it.y=a[2]}}
   let gone=false;for(const it of items)if(!alive.has(it.id)){it.dead=true;gone=true;if(it.mesh){world.remove(it.mesh);it.mesh.traverse(o=>{if(o.geometry)o.geometry.dispose()})}}
   if(gone)items=items.filter(i=>!i.dead);
-  d.P.forEach((a,i)=>{const p=players[i];p.tx=a[0];p.ty=a[1];p.vx=a[2];p.vy=a[3];p.fx=a[4];p.fy=a[5];p.knocked=a[6];p.revive=a[7];p.hold=a[8]>=0?byId.get(a[8])||null:null;p.yellT=a[9];if(a[10])p.bubble=a[10];if(!net.snapOk){p.x=a[0];p.y=a[1]}});
+  d.P.forEach((a,i)=>{const p=players[i];p.tx=a[0];p.ty=a[1];p.vx=a[2];p.vy=a[3];p.fx=a[4];p.fy=a[5];p.knocked=a[6];p.revive=a[7];p.hold=a[8]>=10000?furn[a[8]-10000]||null:a[8]>=0?byId.get(a[8])||null:null;p.yellT=a[9];if(a[10])p.bubble=a[10];if(!net.snapOk){p.x=a[0];p.y=a[1]}});
+  if(d.F)d.F.forEach((a,i)=>{const f=furn[i];if(!f)return;f.tx=a[0];f.ty=a[1];f.holders=a[2];if(!net.snapOk){f.x=a[0];f.y=a[1]}});
   mon.tx=d.M[0];mon.ty=d.M[1];mon.face=d.M[2];mon.state=d.M[3];mon.stun=d.M[4];if(!net.snapOk){mon.x=d.M[0];mon.y=d.M[1]}
   for(const e of d.ev||[])applyEv(e);
   net.snapOk=true;
 }
 function clientFrame(dt){
   const k=Math.min(1,16*dt);
-  for(const b of players.concat(items,[mon]))if(b.tx!=null){b.x+=(b.tx-b.x)*k;b.y+=(b.ty-b.y)*k}
+  for(const b of players.concat(items,furn,[mon]))if(b.tx!=null){b.x+=(b.tx-b.x)*k;b.y+=(b.ty-b.y)*k}
   mon.brush+=dt*14;
   const inp=readInput(1),sig=[inp.x.toFixed(2),inp.y.toFixed(2),inp.g].join(',');
   net.inT-=dt;if(sig!==net.lastSent||net.inT<=0){netSend({t:'in',x:inp.x,y:inp.y,g:inp.g,p:net.ping});net.lastSent=sig;net.inT=.1}
