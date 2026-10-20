@@ -48,18 +48,20 @@
       "type": "html",
       "path": "tunturiin/index.html",
       "cover": "tunturiin/cover.jpg",
-      "version": "1.0",
+      "version": "2.0",
       "endButton": "top-left",
       "tags": [
-        "Co-op",
-        "Online",
-        "Climbing"
+        "Climbing",
+        "Singleplayer",
+        "Online co-op"
       ],
-      "description": "Pate and Masa climb the fells of Lapland with a pack of sausages. Grab the rock, hold hands and reach the summit for a cookout before the sun sets.",
+      "description": "Climb six Lapland fells before sunset. Grip rock, kick up ice chimneys, leap crevasses, dodge falling rocks and hammer pitons to rest. Play alone or online with a friend.",
       "updates": [
-        "New game: two players on one computer or online with a join code",
-        "Three fells to climb",
-        "Hold hands, toss your buddy and get rescued by a reindeer"
+        "Singleplayer, plus online co-op with a join code",
+        "Saves: continue your trip, and keep a list of online trips",
+        "New controls: Shift grip, Space jump and wall jump, E piton",
+        "Six fells with ice chimneys, crumbling rock, crevasses, rockfall and wind",
+        "Cloudberries to find, and all-new graphics with High quality and High performance modes"
       ]
     },
     {

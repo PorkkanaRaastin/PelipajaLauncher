@@ -8,8 +8,15 @@
 //   game.render(dt, now)       piirto (molemmilla)
 //   game.onEvent(name, args)   äänet ja efektit, jotka Coop.emit() välittää myös kaverille
 //
-// Syötteet: inputs[i] = { x, y, a, b, aP, bP }  (x/y -1..1, a/b pohjassa, aP/bP = painettiin juuri)
+// Syötteet: inputs[i] = { x, y, a, b, c, aP, bP, cP }  (x/y -1..1, a/b/c pohjassa, aP/bP/cP = painettiin juuri)
 // Isäntä pyörittää koko pelin. Kaveri lähettää vain näppäimensä.
+//
+// Valinnaiset asetukset (vanhat pelit toimivat ilman niitä):
+//   solo: true        yksinpeli + co-op vain netissä (ei kaksinpeliä samalla koneella)
+//   saves: true       tallennukset: yksinpelillä oma tallennus, nettipelillä lista tallennuksia
+//                     (game.saveData() palauttaa kesken olevan tason tiedot, game.init(seed, level, data) lataa ne)
+//   settings: [...]   valikon asetukset, esim. grafiikkatila: { label, options: [[arvo, nimi]], get(), set(v) }
+//   pad: { a, b, c }  peliohjaimen napit
 (() => {
   "use strict";
   const PREFIX = "rr-pelipaja-";
@@ -20,7 +27,9 @@
   let cfg = null;
   let game = null;
   const C = {
-    mode: "local", // local | host | client
+    mode: "local", // local | solo | host | client
+    slot: null, // tallennuspaikka: { kind: "solo" } tai { kind: "online", sid, name }
+    data: null, // ladattu tallennus (tason keskeltä)
     me: 0, // nettipelissä oma pelaaja (isäntä 0, kaveri 1)
     phase: "menu", // menu | play | pause | end
     level: 1,
@@ -28,25 +37,26 @@
     inputs: [blankInput(), blankInput()],
   };
   function blankInput() {
-    return { x: 0, y: 0, a: false, b: false, ac: 0, bc: 0, aP: false, bP: false };
+    return { x: 0, y: 0, a: false, b: false, c: false, ac: 0, bc: 0, cc: 0, aP: false, bP: false, cP: false };
   }
 
   // ---------- näppäimet ----------
   const down = new Set();
-  const counts = { a: [0, 0], b: [0, 0] };
+  const counts = { a: [0, 0], b: [0, 0], c: [0, 0] };
   let keys = null;
   function keyset(i) {
-    return keys[i];
+    return keys[i] || keys[0];
   }
   function onKey(e, isDown) {
     const tag = e.target && e.target.tagName;
     if (tag === "INPUT") return;
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "Tab"].includes(e.code)) e.preventDefault();
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "Tab"].includes(e.code) && C.phase !== "menu") e.preventDefault();
     if (isDown && !down.has(e.code)) {
       // painallukset lasketaan, ettei lyhyt napautus huku nettipelissä
       for (const i of [0, 1]) {
         if (keyset(i).a.includes(e.code)) counts.a[i]++;
         if (keyset(i).b.includes(e.code)) counts.b[i]++;
+        if ((keyset(i).c || []).includes(e.code)) counts.c[i]++;
       }
       if (e.code === "Escape" && (C.phase === "play" || C.phase === "pause")) setPause(C.phase === "play");
       if (e.code === "KeyM") toggleMute();
@@ -63,7 +73,8 @@
     const ks = merged ? mergedKeys() : keyset(i);
     const x = (any(ks.right) ? 1 : 0) - (any(ks.left) ? 1 : 0);
     const y = (any(ks.down) ? 1 : 0) - (any(ks.up) ? 1 : 0);
-    const inp = { x, y, a: any(ks.a), b: any(ks.b), ac: merged ? counts.a[0] + counts.a[1] : counts.a[i], bc: merged ? counts.b[0] + counts.b[1] : counts.b[i] };
+    const cnt = (k) => (merged ? counts[k][0] + counts[k][1] : counts[k][i]);
+    const inp = { x, y, a: any(ks.a), b: any(ks.b), c: any(ks.c || []), ac: cnt("a"), bc: cnt("b"), cc: cnt("c") };
     // peliohjain: samalla koneella ohjain 1 = pelaaja 1, ohjain 2 = pelaaja 2; netissä ensimmäinen ohjain
     const pad = pads()[merged ? 0 : i];
     if (pad) {
@@ -75,20 +86,25 @@
       if (b(15)) inp.x = 1;
       if (b(12)) inp.y = -1;
       if (b(13)) inp.y = 1;
-      const pa = b(0) || b(5), pb = b(1) || b(2) || b(4);
+      const pm = cfg.pad || { a: [0, 5], b: [1, 2, 4], c: [3] };
+      const pa = pm.a.some(b), pb = pm.b.some(b), pc = (pm.c || []).some(b);
       const key = merged ? 0 : i;
       if (pa && !padPrev.a[key]) counts.a[key]++;
       if (pb && !padPrev.b[key]) counts.b[key]++;
+      if (pc && !padPrev.c[key]) counts.c[key]++;
       padPrev.a[key] = pa;
       padPrev.b[key] = pb;
+      padPrev.c[key] = pc;
       inp.a = inp.a || pa;
       inp.b = inp.b || pb;
-      inp.ac = merged ? counts.a[0] + counts.a[1] : counts.a[i];
-      inp.bc = merged ? counts.b[0] + counts.b[1] : counts.b[i];
+      inp.c = inp.c || pc;
+      inp.ac = cnt("a");
+      inp.bc = cnt("b");
+      inp.cc = cnt("c");
     }
     return inp;
   }
-  const padPrev = { a: [false, false], b: [false, false] };
+  const padPrev = { a: [false, false], b: [false, false], c: [false, false] };
   function pads() {
     try {
       return [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter((p) => p && p.connected);
@@ -97,20 +113,24 @@
     }
   }
   function mergedKeys() {
-    const u = (k) => keys[0][k].concat(keys[1][k]);
-    return { left: u("left"), right: u("right"), up: u("up"), down: u("down"), a: u("a"), b: u("b") };
+    if (keys.length === 1) return keys[0];
+    const u = (k) => (keys[0][k] || []).concat(keys[1][k] || []);
+    return { left: u("left"), right: u("right"), up: u("up"), down: u("down"), a: u("a"), b: u("b"), c: u("c") };
   }
   // painallukset (aP/bP) lasketaan isännällä edellisen askeleen laskureista
-  const prevCounts = [{ ac: 0, bc: 0 }, { ac: 0, bc: 0 }];
+  const prevCounts = [{ ac: 0, bc: 0, cc: 0 }, { ac: 0, bc: 0, cc: 0 }];
   function finishInput(i, raw) {
     const p = prevCounts[i];
-    const out = { x: clamp(+raw.x || 0, -1, 1), y: clamp(+raw.y || 0, -1, 1), a: !!raw.a, b: !!raw.b, ac: raw.ac | 0, bc: raw.bc | 0 };
+    const out = { x: clamp(+raw.x || 0, -1, 1), y: clamp(+raw.y || 0, -1, 1), a: !!raw.a, b: !!raw.b, c: !!raw.c, ac: raw.ac | 0, bc: raw.bc | 0, cc: raw.cc | 0 };
     out.aP = out.ac !== p.ac;
     out.bP = out.bc !== p.bc;
+    out.cP = out.cc !== p.cc;
     p.ac = out.ac;
     p.bc = out.bc;
+    p.cc = out.cc;
     return out;
   }
+  const isNet = () => C.mode === "host" || C.mode === "client";
 
   // ---------- äänet ----------
   let AC = null, master = null, muted = false;
@@ -209,10 +229,45 @@
       text-align:center;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;max-width:90vw}
     #coToast small{display:block;font:700 14px var(--c-font);color:var(--c-muted);margin-top:4px}
     #coToast.on{opacity:1;transform:translate(-50%,0)}
+    .co-ctl.one{grid-template-columns:1fr}
+    .co-set{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:10px 14px;border:1px solid var(--c-line);border-radius:12px;background:rgba(255,255,255,.03)}
+    .co-set>span{font:800 12px var(--c-font);letter-spacing:.12em;text-transform:uppercase;color:var(--c-muted)}
+    .co-seg{display:flex;gap:4px;background:rgba(0,0,0,.25);border-radius:10px;padding:3px}
+    .co-seg button{font:700 14px var(--c-font);border:0;border-radius:8px;padding:7px 12px;background:transparent;color:var(--c-muted);cursor:pointer}
+    .co-seg button.on{background:var(--c-acc);color:var(--c-acc-ink)}
+    .co-saves{display:grid;gap:6px;margin:8px 0 4px;max-height:230px;overflow:auto}
+    .co-save{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--c-line);border-radius:10px;cursor:pointer;background:rgba(255,255,255,.03);text-align:left}
+    .co-save:hover{background:rgba(255,255,255,.07)}
+    .co-save.on{border-color:var(--c-acc);background:rgba(255,255,255,.08)}
+    .co-save input{accent-color:var(--c-acc);margin:0}
+    .co-save div{flex:1;min-width:0;line-height:1.3}
+    .co-save b{display:block;font-size:14px}.co-save small{display:block;color:var(--c-muted);font-size:12px}
+    .co-save .co-del{border:0;background:transparent;color:var(--c-muted);font:700 12px var(--c-font);cursor:pointer;padding:4px 6px;border-radius:6px}
+    .co-save .co-del:hover{color:#ff7a6b;background:rgba(255,255,255,.06)}
+    .co-info{background:rgba(255,255,255,.04);border:1px solid var(--c-line);border-radius:12px;padding:12px 14px;margin:6px 0 16px;line-height:1.5}
+    .co-info b{display:block;font-size:17px}.co-info small{color:var(--c-muted)}
     @media (max-width:640px){.co-ctl{grid-template-columns:1fr}}`;
   }
   function k(list) {
     return list.map((x) => `<kbd>${x}</kbd>`).join("");
+  }
+  function settingsHtml(where) {
+    if (!cfg.settings || !cfg.settings.length) return "";
+    return cfg.settings
+      .map(
+        (st, n) =>
+          `<div class="co-set"><span>${st.label}</span><div class="co-seg" role="group" aria-label="${st.label}">${st.options
+            .map(([v, name]) => `<button type="button" data-set="${n}" data-val="${v}">${name}</button>`)
+            .join("")}</div></div>`
+      )
+      .join("");
+  }
+  function refreshSettings() {
+    if (!cfg.settings) return;
+    document.querySelectorAll("[data-set]").forEach((b) => {
+      const st = cfg.settings[+b.dataset.set];
+      b.classList.toggle("on", String(st.get()) === b.dataset.val);
+    });
   }
   function buildUi() {
     const st = document.createElement("style");
@@ -221,42 +276,58 @@
     const L = cfg.labels;
     const rules = (cfg.rules || []).map((r) => `<li>${r}</li>`).join("");
     const role = (i) => (cfg.roles ? `<div class="r">${cfg.roles[i]}</div>` : "");
+    const solo = !!cfg.solo;
     const wrap = document.createElement("div");
+    const ctl = solo
+      ? `<div class="co-ctl one"><div>${cfg.help[0]}</div></div>`
+      : `<div class="co-ctl">
+        <div><b><i style="background:var(--c-p1)"></i>${cfg.names[0]}</b>${role(0)}${cfg.help[0]}</div>
+        <div><b><i style="background:var(--c-p2)"></i>${cfg.names[1]}</b>${role(1)}${cfg.help[1]}</div>
+      </div>`;
+    const mainBtns = solo
+      ? `<button class="co-btn" id="coSoloBtn">Singleplayer</button>
+        <button class="co-btn ghost" id="coNetBtn">Co-op online</button>`
+      : `<button class="co-btn" id="coLocal">Play on this computer</button>
+        <button class="co-btn ghost" id="coNetBtn">Play online</button>
+        <button class="co-btn ghost co-hide" id="coCont"></button>`;
+    const hostSaves = cfg.saves ? `<div class="co-small" style="margin-top:8px">Choose a trip to continue or start a new one</div><div class="co-saves" id="coSaves"></div>` : "";
     wrap.innerHTML = `
     <div class="co-ov" id="coMenu"><div class="co-card">
       <div class="co-kick">${cfg.kicker || "Co-op · 2 players"}</div>
       <h1>${cfg.title}</h1>
       <p>${cfg.description || ""}</p>
       <ul class="co-rules">${rules}</ul>
-      <div class="co-ctl">
-        <div><b><i style="background:var(--c-p1)"></i>${cfg.names[0]}</b>${role(0)}${cfg.help[0]}</div>
-        <div><b><i style="background:var(--c-p2)"></i>${cfg.names[1]}</b>${role(1)}${cfg.help[1]}</div>
-      </div>
-      <div class="co-row">
-        <button class="co-btn" id="coLocal">Play on this computer</button>
-        <button class="co-btn ghost" id="coNetBtn">Play online</button>
-        <button class="co-btn ghost co-hide" id="coCont"></button>
-      </div>
-      <p class="co-small" style="margin-top:14px">Esc = pause · M = sound · gamepads work too</p>
+      ${ctl}
+      ${settingsHtml()}
+      <div class="co-row">${mainBtns}</div>
+      <p class="co-small" style="margin-top:14px">${cfg.footer || "Esc = pause · M = sound · gamepads work too"}</p>
+    </div></div>
+    <div class="co-ov" id="coSolo" hidden><div class="co-card" style="width:min(520px,100%)">
+      <div class="co-kick">Singleplayer</div><h2>Your trip</h2>
+      <div class="co-info" id="coSoloInfo"></div>
+      <div class="co-row"><button class="co-btn" id="coSoloCont">Continue</button><button class="co-btn ghost" id="coSoloNew">New game</button><button class="co-btn ghost" id="coSoloBack">Back</button></div>
     </div></div>
     <div class="co-ov" id="coNet" hidden><div class="co-card">
       <div class="co-kick">Online · two computers</div>
-      <h2>Play online with a friend</h2>
+      <h2>${solo ? "Co-op with a friend" : "Play online with a friend"}</h2>
       <p>One of you creates a game and gets a join code, the other types the code and joins. You both play on your own computer: ${L.move}, ${L.a} and ${L.b}.</p>
       <div class="co-ctl">
         <div><b><i style="background:var(--c-p1)"></i>Create game</b><div class="r">You play: ${cfg.names[0]}${cfg.roles ? " (" + cfg.roles[0].toLowerCase() + ")" : ""}</div>
+          ${hostSaves}
           <button class="co-btn" id="coHost" style="margin-top:8px">Create game</button>
           <div id="coCodeWrap" hidden><div class="co-small" style="margin-top:10px">Join code</div><div class="co-code" id="coCode">·····</div>
           <button class="co-btn ghost" id="coCopy">Copy code</button></div></div>
         <div><b><i style="background:var(--c-p2)"></i>Join game</b><div class="r">You play: ${cfg.names[1]}${cfg.roles ? " (" + cfg.roles[1].toLowerCase() + ")" : ""}</div>
           <input class="co-in" id="coJoinCode" maxlength="5" placeholder="CODE" autocomplete="off" spellcheck="false" style="margin-top:8px">
-          <button class="co-btn" id="coJoin" style="margin-top:8px">Join</button></div>
+          <button class="co-btn" id="coJoin" style="margin-top:8px">Join</button>
+          ${cfg.saves ? '<div class="co-small" style="margin-top:8px">The trip is saved on your friend\'s computer.</div>' : ""}</div>
       </div>
       <div class="co-status" id="coStatus" role="status"></div>
       <div class="co-row"><button class="co-btn co-hide" id="coNetStart">Start</button><button class="co-btn ghost" id="coNetBack">Back</button></div>
     </div></div>
-    <div class="co-ov" id="coPause" hidden><div class="co-card" style="width:min(460px,100%)">
+    <div class="co-ov" id="coPause" hidden><div class="co-card" style="width:min(520px,100%)">
       <div class="co-kick">Paused</div><h2>Catch your breath</h2><p id="coPauseTxt">The game is waiting.</p>
+      ${settingsHtml()}
       <div class="co-row"><button class="co-btn" id="coResume">Resume</button><button class="co-btn ghost" id="coQuit">Main menu</button></div>
     </div></div>
     <div class="co-ov" id="coResult" hidden><div class="co-card" style="width:min(560px,100%)">
@@ -267,16 +338,47 @@
     </div></div>
     <div id="coToast"></div>`;
     document.body.appendChild(wrap);
-    $("coLocal").onclick = () => {
-      audio();
-      C.mode = "local";
-      begin(1);
-    };
-    $("coCont").onclick = () => {
-      audio();
-      C.mode = "local";
-      begin(savedLevel());
-    };
+    if (solo) {
+      $("coSoloBtn").onclick = () => {
+        audio();
+        openSolo();
+      };
+      $("coSoloBack").onclick = () => show("coMenu");
+      $("coSoloCont").onclick = () => {
+        const s = soloSave();
+        if (!s) return;
+        C.mode = "solo";
+        C.slot = { kind: "solo" };
+        begin(s.level, s.data, s.seed);
+      };
+      let armT = 0;
+      $("coSoloNew").onclick = () => {
+        if (soloSave() && Date.now() - armT > 4000) {
+          armT = Date.now();
+          $("coSoloNew").textContent = "Overwrite save? Click again";
+          setTimeout(() => ($("coSoloNew").textContent = "New game"), 4000);
+          return;
+        }
+        armT = 0;
+        try {
+          localStorage.removeItem(cfg.id + ":solo");
+        } catch {}
+        C.mode = "solo";
+        C.slot = { kind: "solo" };
+        begin(1, null, null);
+      };
+    } else {
+      $("coLocal").onclick = () => {
+        audio();
+        C.mode = "local";
+        begin(1);
+      };
+      $("coCont").onclick = () => {
+        audio();
+        C.mode = "local";
+        begin(savedLevel());
+      };
+    }
     $("coNetBtn").onclick = () => {
       audio();
       openNet();
@@ -293,18 +395,29 @@
         navigator.clipboard.writeText(t).then(() => ($("coCopy").textContent = "Copied!"), () => {});
       } catch {}
     };
-    $("coNetStart").onclick = () => begin(1);
+    $("coNetStart").onclick = startOnline;
     $("coResume").onclick = () => setPause(false);
     $("coQuit").onclick = toMenu;
     $("coResMenu").onclick = toMenu;
     $("coNext").onclick = () => {
       if (C.mode === "client") return;
+      if (cfg.saves && C.slot) {
+        const s = currentSlot();
+        if (s) return begin(s.level, s.data, s.seed);
+      }
       begin(C.result && C.result.ok ? C.level + 1 : C.level);
     };
+    document.querySelectorAll("[data-set]").forEach((b) => {
+      b.onclick = () => {
+        cfg.settings[+b.dataset.set].set(b.dataset.val);
+        refreshSettings();
+      };
+    });
+    refreshSettings();
     refreshMenu();
   }
   function show(id) {
-    for (const x of ["coMenu", "coNet", "coPause", "coResult"]) $(x).hidden = x !== id;
+    for (const x of ["coMenu", "coSolo", "coNet", "coPause", "coResult"]) $(x).hidden = x !== id;
   }
   function savedLevel() {
     try {
@@ -314,10 +427,126 @@
     }
   }
   function refreshMenu() {
+    if (cfg.solo) return;
     const lv = savedLevel();
     const b = $("coCont");
     b.classList.toggle("co-hide", lv < 2);
     b.textContent = `Continue: ${cfg.levelName ? cfg.levelName(lv) : "level " + lv}`;
+  }
+
+  // ---------- tallennukset ----------
+  function readJSON(k, d) {
+    try {
+      const v = JSON.parse(localStorage.getItem(k));
+      return v == null ? d : v;
+    } catch {
+      return d;
+    }
+  }
+  function writeJSON(k, v) {
+    try {
+      localStorage.setItem(k, JSON.stringify(v));
+    } catch {}
+  }
+  function soloSave() {
+    const s = readJSON(cfg.id + ":solo", null);
+    return s && s.level >= 1 ? s : null;
+  }
+  function onlineSaves() {
+    const a = readJSON(cfg.id + ":online", []);
+    return (Array.isArray(a) ? a : []).filter((s) => s && s.sid && s.level >= 1).sort((x, y) => (y.updated || 0) - (x.updated || 0));
+  }
+  function currentSlot() {
+    if (!C.slot) return null;
+    return C.slot.kind === "solo" ? soloSave() : onlineSaves().find((x) => x.sid === C.slot.sid) || null;
+  }
+  function writeSlot(patch) {
+    if (!cfg.saves || !C.slot || C.mode === "client") return;
+    const now = Date.now();
+    if (C.slot.kind === "solo") {
+      writeJSON(cfg.id + ":solo", Object.assign(soloSave() || { created: now }, patch, { updated: now }));
+    } else {
+      const a = onlineSaves();
+      let s = a.find((x) => x.sid === C.slot.sid);
+      if (!s) {
+        s = { sid: C.slot.sid, name: C.slot.name, created: now };
+        a.push(s);
+      }
+      Object.assign(s, patch, { updated: now });
+      writeJSON(cfg.id + ":online", a);
+    }
+  }
+  // tallennetaan kesken oleva taso (yksinpeli ja isäntä)
+  function saveNow() {
+    if (!cfg.saves || !C.slot || !(C.mode === "solo" || C.mode === "host")) return false;
+    if (C.phase !== "play" && C.phase !== "pause") return false;
+    writeSlot({ level: C.level, seed: C.seed, data: game.saveData ? game.saveData() : null });
+    return true;
+  }
+  function ago(t) {
+    const s = (Date.now() - (t || 0)) / 1000;
+    if (s < 90) return "just now";
+    if (s < 3600) return Math.round(s / 60) + " min ago";
+    if (s < 86400) return Math.round(s / 3600) + " h ago";
+    return new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  }
+  function describe(s) {
+    if (cfg.describeSave) return cfg.describeSave(s);
+    return cfg.levelName ? cfg.levelName(s.level) : "Level " + s.level;
+  }
+  function openSolo() {
+    const s = soloSave();
+    $("coSoloInfo").innerHTML = s ? `<b>${describe(s)}</b><small>Saved ${ago(s.updated)}</small>` : `<b>No saved trip yet</b><small>Start a new game. Your progress is saved at every hut and when you quit.</small>`;
+    $("coSoloCont").classList.toggle("co-hide", !s);
+    $("coSoloNew").textContent = "New game";
+    $("coSoloNew").classList.toggle("ghost", !!s);
+    show("coSolo");
+    setTimeout(() => (s ? $("coSoloCont") : $("coSoloNew")).focus(), 30);
+  }
+  let pick = "new";
+  function renderSaves() {
+    const el = $("coSaves");
+    if (!el) return;
+    const list = onlineSaves();
+    if (pick !== "new" && !list.some((s) => s.sid === pick)) pick = list.length ? list[0].sid : "new";
+    const row = (val, title, sub, del) =>
+      `<label class="co-save${pick === val ? " on" : ""}"><input type="radio" name="coSlot" value="${val}"${pick === val ? " checked" : ""}><div><b>${title}</b><small>${sub}</small></div>${del ? `<button type="button" class="co-del" data-del="${val}">Delete</button>` : ""}</label>`;
+    el.innerHTML =
+      row("new", "+ New trip", "Starts from the first fell. Old trips are kept.", false) +
+      list.map((s) => row(s.sid, s.name, describe(s) + " · " + ago(s.updated), true)).join("");
+    el.querySelectorAll("input").forEach((i) => (i.onchange = () => ((pick = i.value), renderSaves())));
+    el.querySelectorAll("[data-del]").forEach((b) => {
+      b.onclick = (e) => {
+        e.preventDefault();
+        if (b.dataset.armed !== "1") {
+          b.dataset.armed = "1";
+          b.textContent = "Sure?";
+          return;
+        }
+        writeJSON(cfg.id + ":online", onlineSaves().filter((s) => s.sid !== b.dataset.del));
+        renderSaves();
+      };
+    });
+  }
+  function startOnline() {
+    if (C.mode !== "host") return;
+    if (cfg.saves) {
+      const list = onlineSaves();
+      const s = pick !== "new" && list.find((x) => x.sid === pick);
+      if (s) {
+        C.slot = { kind: "online", sid: s.sid, name: s.name };
+        return begin(s.level, s.data, s.seed);
+      }
+      let n = 1;
+      for (const x of list) {
+        const m = /^Trip (\d+)$/.exec(x.name || "");
+        if (m) n = Math.max(n, +m[1] + 1);
+      }
+      C.slot = { kind: "online", sid: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: "Trip " + n };
+      pick = C.slot.sid;
+      return begin(1, null, null);
+    }
+    begin(1);
   }
 
   let toastT = 0;
@@ -331,13 +560,15 @@
   }
 
   // ---------- pelin kulku ----------
-  function begin(level) {
+  function begin(level, data, seed) {
     C.level = level;
-    C.seed = (Math.random() * 1e9) | 0;
+    C.seed = seed != null && data ? seed : (Math.random() * 1e9) | 0;
+    C.data = data || null;
     C.result = null;
+    if (cfg.saves && C.slot) writeSlot({ level, seed: C.seed, data: C.data });
     if (C.mode === "host") {
       net.ev = [];
-      send({ t: "start", seed: C.seed, level });
+      send({ t: "start", seed: C.seed, level, data: C.data });
     }
     startLocal();
   }
@@ -346,13 +577,13 @@
     C.inputs = [blankInput(), blankInput()];
     // vanhat painallukset (esim. valikon Enter) eivät saa näkyä pelissä
     if (C.mode === "local") {
-      prevCounts[0] = { ac: counts.a[0], bc: counts.b[0] };
-      prevCounts[1] = { ac: counts.a[1], bc: counts.b[1] };
+      prevCounts[0] = { ac: counts.a[0], bc: counts.b[0], cc: counts.c[0] };
+      prevCounts[1] = { ac: counts.a[1], bc: counts.b[1], cc: counts.c[1] };
     } else {
-      prevCounts[0] = { ac: counts.a[0] + counts.a[1], bc: counts.b[0] + counts.b[1] };
-      prevCounts[1] = { ac: net.remote.ac | 0, bc: net.remote.bc | 0 };
+      prevCounts[0] = { ac: counts.a[0] + counts.a[1], bc: counts.b[0] + counts.b[1], cc: counts.c[0] + counts.c[1] };
+      prevCounts[1] = { ac: net.remote.ac | 0, bc: net.remote.bc | 0, cc: net.remote.cc | 0 };
     }
-    game.init(C.seed, C.level);
+    game.init(C.seed, C.level, C.data);
     C.phase = "play";
     last = performance.now();
     acc = 0;
@@ -360,19 +591,23 @@
   function setPause(on, fromNet) {
     if (on && C.phase !== "play") return;
     if (!on && C.phase !== "pause") return;
-    if (!fromNet && C.mode !== "local") send({ t: on ? "pause" : "resume" });
+    if (!fromNet && isNet()) send({ t: on ? "pause" : "resume" });
     C.phase = on ? "pause" : "play";
-    $("coPauseTxt").textContent = C.mode === "local" ? "The game is waiting." : fromNet ? "Your friend paused the game." : "The game is paused for both of you.";
+    $("coPauseTxt").textContent = !isNet() ? "The game is waiting." : fromNet ? "Your friend paused the game." : "The game is paused for both of you.";
+    $("coQuit").textContent = cfg.saves && C.mode !== "client" ? "Save & main menu" : "Main menu";
+    if (on) refreshSettings();
     show(on ? "coPause" : null);
     last = performance.now();
     if (game.onPause) game.onPause(on);
   }
   function toMenu() {
-    if (C.mode !== "local") {
+    saveNow();
+    if (isNet()) {
       send({ t: "menu" });
       setTimeout(netCleanup, 250);
     }
     C.mode = "local";
+    C.slot = null;
     C.phase = "menu";
     if (game.onMenu) game.onMenu();
     refreshMenu();
@@ -383,7 +618,9 @@
     if (C.phase !== "play") return;
     C.phase = "end";
     C.result = r;
-    if (r.ok) {
+    if (cfg.saves) {
+      if (C.slot) writeSlot({ level: r.ok ? C.level + 1 : C.level, seed: null, data: null });
+    } else if (r.ok) {
       try {
         if (C.level + 1 > savedLevel()) localStorage.setItem(cfg.id + ":level", String(C.level + 1));
       } catch {}
@@ -437,6 +674,7 @@
       acc -= STEP;
       let raw;
       if (C.mode === "local") raw = [readKeys(0, false), readKeys(1, false)];
+      else if (C.mode === "solo") raw = [readKeys(0, true), blankInput()];
       else {
         raw = [null, null];
         raw[0] = readKeys(0, true);
@@ -510,6 +748,7 @@
     $("coJoin").disabled = !on;
   }
   function openNet() {
+    renderSaves();
     show("coNet");
     $("coCodeWrap").hidden = true;
     $("coNetStart").classList.add("co-hide");
@@ -651,7 +890,7 @@
           tone(1320, 0.09, "square", 0.07);
           break;
         case "in":
-          net.remote = { x: +d.x || 0, y: +d.y || 0, a: !!d.a, b: !!d.b, ac: d.ac | 0, bc: d.bc | 0 };
+          net.remote = { x: +d.x || 0, y: +d.y || 0, a: !!d.a, b: !!d.b, c: !!d.c, ac: d.ac | 0, bc: d.bc | 0, cc: d.cc | 0 };
           if (d.p != null) net.ping = d.p;
           break;
         case "ping":
@@ -685,6 +924,7 @@
         case "start":
           C.seed = d.seed;
           C.level = d.level;
+          C.data = d.data || null;
           C.result = null;
           startLocal();
           snapOk = false;
@@ -719,6 +959,8 @@
   }
   let snapOk = false;
   function netLost(msg) {
+    saveNow();
+    C.slot = null;
     netCleanup();
     C.phase = "menu";
     if (game.onMenu) game.onMenu();
@@ -728,10 +970,10 @@
   }
   function clientInput(dt) {
     const inp = readKeys(0, true);
-    const sig = [inp.x.toFixed(2), inp.y.toFixed(2), inp.a, inp.b, inp.ac, inp.bc].join(",");
+    const sig = [inp.x.toFixed(2), inp.y.toFixed(2), inp.a, inp.b, inp.c, inp.ac, inp.bc, inp.cc].join(",");
     net.inT -= dt;
     if (sig !== net.lastSent || net.inT <= 0) {
-      send({ t: "in", x: inp.x, y: inp.y, a: inp.a, b: inp.b, ac: inp.ac, bc: inp.bc, p: net.ping });
+      send({ t: "in", x: inp.x, y: inp.y, a: inp.a, b: inp.b, c: inp.c, ac: inp.ac, bc: inp.bc, cc: inp.cc, p: net.ping });
       net.lastSent = sig;
       net.inT = 0.1;
     }
@@ -756,6 +998,11 @@
   }, 1000);
 
   // ---------- julkinen rajapinta ----------
+  // getterit määritellään suoraan (Object.assign lukisi ne vain kerran)
+  Object.defineProperties(C, {
+    localPlayers: { get: () => (C.mode === "local" ? [0, 1] : C.mode === "solo" ? [0] : [C.me]) },
+    players: { get: () => (C.mode === "solo" ? 1 : 2) },
+  });
   window.Coop = Object.assign(C, {
     tone,
     noise,
@@ -764,9 +1011,8 @@
     end,
     clamp,
     net,
-    get localPlayers() {
-      return C.mode === "local" ? [0, 1] : [C.me];
-    },
+    save: saveNow,
+    refreshSettings: () => refreshSettings(),
     start(config) {
       cfg = Object.assign(
         {
@@ -784,7 +1030,10 @@
       buildUi();
       if (game.preview) game.preview();
       requestAnimationFrame(frame);
-      window.rrSaveGame = () => (game.save ? game.save() : true);
+      window.rrSaveGame = () => {
+        saveNow();
+        return game.save ? game.save() : true;
+      };
     },
   });
 })();
