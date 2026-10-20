@@ -1,5 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Kuutiomaa</title>
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cubeland</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -142,18 +142,18 @@ kbd{font-family:var(--font-display);font-size:13px;color:var(--ink);background:#
 <div id="info" hidden></div>
 <div id="toast"></div>
 <div id="hotbar" hidden></div>
-<div id="resume" hidden>Klikkaa ruutua jatkaaksesi</div>
+<div id="resume" hidden>Click the screen to continue</div>
 <div id="hearts" hidden></div>
 <div id="hunger" hidden></div>
 <div id="hurt"></div>
 <div id="fade"></div>
-<div id="dead" class="overlay" hidden><div class="panel deadCard"><h2>Kuolit</h2><p class="sub" id="deadMsg">Tavarasi jäivät maahan kuolinpaikalle.</p><button class="btn go" id="respawnBtn">Synny uudelleen</button></div></div>
+<div id="dead" class="overlay" hidden><div class="panel deadCard"><h2>You died</h2><p class="sub" id="deadMsg">Your items were left on the ground where you died.</p><button class="btn go" id="respawnBtn">Respawn</button></div></div>
 
 <div id="invWrap" class="overlay" hidden>
   <div class="panel invPanel">
     <div class="invMain">
       <section id="secCraft">
-        <p class="ptitle" id="craftTitle">Craftaus</p>
+        <p class="ptitle" id="craftTitle">Crafting</p>
         <div class="craftRow">
           <div class="grid g2" id="craftGrid"></div>
           <div class="arrow" aria-hidden="true"></div>
@@ -161,25 +161,25 @@ kbd{font-family:var(--font-display);font-size:13px;color:var(--ink);background:#
         </div>
       </section>
       <section id="secFurn" hidden>
-        <p class="ptitle">Uuni</p>
+        <p class="ptitle">Furnace</p>
         <div class="furnRow">
           <div class="fcol"><div id="fIn"></div><div class="flame" aria-hidden="true"><i id="flameFill"></i></div><div id="fFuel"></div></div>
           <div class="arrow prog" aria-hidden="true"><i id="progFill"></i></div>
           <div id="fOut"></div>
         </div>
-        <p class="hint">Ylös sulatettava, alas polttoaine (hiili, puu, lankut, kepit).</p>
+        <p class="hint">Top: item to smelt, bottom: fuel (coal, wood, planks, sticks).</p>
       </section>
       <section id="secTrade" hidden>
         <p class="ptitle" id="tradeTitle"></p>
         <ul class="trades" id="trades"></ul>
       </section>
-      <p class="ptitle">Reppu</p>
+      <p class="ptitle">Inventory</p>
       <div class="grid g9" id="mainGrid"></div>
       <div class="grid g9" id="barGrid"></div>
     </div>
     <div class="book" id="bookWrap">
-      <p class="ptitle">Reseptit</p>
-      <p class="hint">Klikkaa reseptiä, niin aineet siirtyvät ruudukkoon.</p>
+      <p class="ptitle">Recipes</p>
+      <p class="hint">Click a recipe to move the ingredients into the grid.</p>
       <ul id="book"></ul>
     </div>
   </div>
@@ -189,50 +189,50 @@ kbd{font-family:var(--font-display);font-size:13px;color:var(--ink);background:#
 
 <div id="login" class="overlay">
   <form class="panel card" id="loginForm" autocomplete="off">
-    <h1 class="logo">Kuutio<span>maa</span></h1>
+    <h1 class="logo">Cube<span>land</span></h1>
     <div class="field">
-      <label class="ptitle" for="uname">Käyttäjänimi</label>
-      <input id="uname" maxlength="16" spellcheck="false" placeholder="Kirjoita nimesi">
+      <label class="ptitle" for="uname">Username</label>
+      <input id="uname" maxlength="16" spellcheck="false" placeholder="Type your name">
       <p class="err" id="loginErr"></p>
     </div>
-    <p class="hint">Maailma, sijainti, terveys, nälkä ja reppu tallentuvat tämän nimen alle tähän selaimeen. Kirjoita sama nimi myöhemmin, niin pääset jatkamaan.</p>
+    <p class="hint">Your world, position, health, hunger and inventory are saved under this name. Type the same name later to continue.</p>
     <div class="saved" id="savedList"></div>
-    <div class="btns"><button class="btn go" type="submit" id="loginBtn">Jatka</button></div>
+    <div class="btns"><button class="btn go" type="submit" id="loginBtn">Continue</button></div>
   </form>
 </div>
 <div id="menu" class="overlay" hidden>
   <div class="panel card">
-    <h1 class="logo">Kuutio<span>maa</span></h1>
-    <p class="sub">Loputon low poly -kuutiomaailma: kyliä, luolastoja, rotkoja ja laavaa, tasankoja, metsiä, aavikoita ja vuoria. Päivä kestää 10 minuuttia ja yö 10 minuuttia. Öisin liikkuu hirviöitä, ja nälkä kasvaa koko ajan: rakenna suoja, viljele, syö, käy kauppaa kyläläisten kanssa ja selviydy.</p>
-    <p class="mobileNote" id="mobileNote" hidden>Peli tarvitsee hiiren ja näppäimistön. Avaa se tietokoneella.</p>
+    <h1 class="logo">Cube<span>land</span></h1>
+    <p class="sub">An endless low-poly cube world: villages, caves, ravines and lava, plains, forests, deserts and mountains. A day lasts 10 minutes and a night 10 minutes. Monsters roam at night and you keep getting hungry: build a shelter, farm, eat, trade with villagers and survive.</p>
+    <p class="mobileNote" id="mobileNote" hidden>The game needs a mouse and keyboard. Open it on a computer.</p>
     <div class="btns">
-      <button class="btn go" id="playBtn" disabled>Luodaan maailmaa…</button>
-      <button class="btn" id="saveBtn" hidden>Tallenna</button>
-      <button class="btn" id="newBtn">Uusi maailma</button>
-      <button class="btn small" id="logoutBtn">Vaihda käyttäjää</button>
+      <button class="btn go" id="playBtn" disabled>Creating world…</button>
+      <button class="btn" id="saveBtn" hidden>Save</button>
+      <button class="btn" id="newBtn">New world</button>
+      <button class="btn small" id="logoutBtn">Switch user</button>
     </div>
     <p class="meta"><span id="who"></span><span id="saveStatus" aria-live="polite"></span></p>
     <div class="settings">
-      <label for="rd">Näköetäisyys</label><input type="range" id="rd" min="3" max="10" step="1" value="6"><output id="rdOut">6</output>
-      <label for="sens">Hiiren herkkyys</label><input type="range" id="sens" min="1" max="10" step="1" value="5"><output id="sensOut">5</output>
-      <label for="vm">Musiikki</label><input type="range" id="vm" min="0" max="100" step="5" value="50"><output id="vmOut">50 %</output>
-      <label for="vs">Äänet</label><input type="range" id="vs" min="0" max="100" step="5" value="80"><output id="vsOut">80 %</output>
-      <label for="res">Tarkkuus</label><input type="range" id="res" min="50" max="100" step="25" value="100"><output id="resOut">100 %</output>
+      <label for="rd">View distance</label><input type="range" id="rd" min="3" max="10" step="1" value="6"><output id="rdOut">6</output>
+      <label for="sens">Mouse sensitivity</label><input type="range" id="sens" min="1" max="10" step="1" value="5"><output id="sensOut">5</output>
+      <label for="vm">Music</label><input type="range" id="vm" min="0" max="100" step="5" value="50"><output id="vmOut">50 %</output>
+      <label for="vs">Sounds</label><input type="range" id="vs" min="0" max="100" step="5" value="80"><output id="vsOut">80 %</output>
+      <label for="res">Resolution</label><input type="range" id="res" min="50" max="100" step="25" value="100"><output id="resOut">100 %</output>
     </div>
     <ul class="keys">
-      <li><kbd>WASD</kbd> liiku</li>
-      <li><kbd>Välilyönti</kbd> hyppää / ui</li>
-      <li><kbd>Shift</kbd> juokse</li>
-      <li><kbd>Vasen hiiri</kbd> hakkaa / lyö</li>
-      <li><kbd>Oikea hiiri</kbd> aseta, syö, kuokki, kylvä, käy kauppaa</li>
-      <li><kbd>Pidä oikeaa</kbd> jousella: jännitä ja ammu</li>
-      <li><kbd>E</kbd> reppu ja craftaus</li>
-      <li><kbd>1–9</kbd> tai rulla: valitse</li>
-      <li><kbd>Q</kbd> pudota esine</li>
-      <li><kbd>F</kbd> lentotila</li>
-      <li><kbd>H</kbd> tiedot päälle/pois</li>
+      <li><kbd>WASD</kbd> move</li>
+      <li><kbd>Space</kbd> jump / swim</li>
+      <li><kbd>Shift</kbd> sprint</li>
+      <li><kbd>Left mouse</kbd> mine / attack</li>
+      <li><kbd>Right mouse</kbd> place, eat, hoe, plant, trade</li>
+      <li><kbd>Hold right</kbd> with a bow: draw and shoot</li>
+      <li><kbd>E</kbd> inventory and crafting</li>
+      <li><kbd>1–9</kbd> or wheel: select</li>
+      <li><kbd>Q</kbd> drop item</li>
+      <li><kbd>F</kbd> fly mode</li>
+      <li><kbd>H</kbd> info on/off</li>
     </ul>
-    <div class="meta"><span id="seedTxt"></span><span>Versio 0.5</span></div>
+    <div class="meta"><span id="seedTxt"></span><span>Version 0.5</span></div>
   </div>
 </div>
 
@@ -247,44 +247,44 @@ const STICK=100,WPICK=101,SPICK=102,WAXE=103,SAXE=104,WSHOVEL=105,SSHOVEL=106,WS
 const OCEAN=0,BEACH=1,PLAINS=2,FOREST=3,DESERT=4,SNOWY=5,MOUNT=6;
 const BD=[];
 function def(id,o){BD[id]=Object.assign({solid:true,opaque:true,plant:false,liquid:false,glow:false,leaves:false,hard:1,tool:null,need:false,tier:1,drop:id,snd:'stone',jit:0.05},o)}
-def(AIR,{n:'Ilma',solid:false,opaque:false,drop:0,c:[0,0,0]});
-def(GRASS,{n:'Ruoho',c:[132,94,62],top:[104,166,68],strip:[96,156,62],tintTop:true,hard:0.6,tool:'shovel',drop:DIRT,snd:'grass'});
-def(DIRT,{n:'Multa',c:[132,94,62],hard:0.5,tool:'shovel',snd:'dirt'});
-def(STONE,{n:'Kivi',c:[126,126,128],hard:1.5,tool:'pick',need:true,drop:COBBLE,jit:0.06});
-def(SAND,{n:'Hiekka',c:[222,206,156],hard:0.5,tool:'shovel',snd:'sand',jit:0.03});
-def(WATER,{n:'Vesi',c:[52,108,198],solid:false,opaque:false,liquid:true,hard:Infinity,drop:0,jit:0.02});
-def(LOG,{n:'Tammen runko',c:[104,78,48],top:[178,142,92],bottom:[178,142,92],hard:2,tool:'axe',snd:'wood'});
-def(LEAVES,{n:'Tammen lehvät',c:[62,128,48],hard:0.2,drop:0,snd:'grass',leaves:true,jit:0.13});
-def(PLANKS,{n:'Lankut',c:[182,142,90],hard:2,tool:'axe',snd:'wood',jit:0.04});
-def(COBBLE,{n:'Mukulakivi',c:[112,112,112],hard:2,tool:'pick',need:true,jit:0.12});
-def(SNOWGRASS,{n:'Luminen ruoho',c:[132,94,62],top:[238,243,250],strip:[238,243,250],hard:0.6,tool:'shovel',drop:DIRT,snd:'snow',jit:0.03});
-def(SNOW,{n:'Lumi',c:[238,243,250],hard:0.3,tool:'shovel',snd:'snow',jit:0.02});
-def(CACTUS,{n:'Kaktus',c:[72,136,60],top:[108,164,84],bottom:[108,164,84],hard:0.4,snd:'wool'});
-def(TABLE,{n:'Työpöytä',c:[150,110,66],top:[190,148,94],bottom:[150,110,66],front:[118,84,50],hard:2.5,tool:'axe',snd:'wood',jit:0,spot:[70,70,76]});
-def(COAL_ORE,{n:'Hiilimalmi',c:[126,126,128],spot:[30,30,34],hard:3,tool:'pick',need:true,drop:COAL,jit:0.04});
-def(IRON_ORE,{n:'Rautamalmi',c:[126,126,128],spot:[220,166,126],hard:3,tool:'pick',need:true,tier:2,jit:0.04});
-def(SLOG,{n:'Kuusen runko',c:[72,52,34],top:[150,116,74],bottom:[150,116,74],hard:2,tool:'axe',snd:'wood'});
-def(SLEAVES,{n:'Kuusen havut',c:[44,92,62],hard:0.2,drop:0,snd:'grass',leaves:true,jit:0.1});
-def(GRAVEL,{n:'Sora',c:[130,122,118],hard:0.6,tool:'shovel',snd:'sand',jit:0.1});
-def(BEDROCK,{n:'Peruskallio',c:[50,50,52],hard:Infinity,jit:0.2});
-def(WOOL,{n:'Villa',c:[236,236,230],hard:0.8,snd:'wool',jit:0.02});
-def(TALLGRASS,{n:'Heinä',c:[96,156,62],solid:false,opaque:false,plant:true,hard:0,drop:0,snd:'grass'});
-def(POPPY,{n:'Unikko',c:[214,44,40],solid:false,opaque:false,plant:true,hard:0,snd:'grass'});
-def(DANDELION,{n:'Voikukka',c:[246,206,44],solid:false,opaque:false,plant:true,hard:0,snd:'grass'});
-def(FURNACE,{n:'Uuni',c:[118,118,116],top:[134,134,132],front:[104,104,102],hard:3.5,tool:'pick',need:true,jit:0,hole:true});
-def(PATH,{n:'Polku',c:[132,94,62],top:[170,138,88],hard:0.6,tool:'shovel',drop:DIRT,snd:'dirt',jit:0.05});
-def(SANDSTONE,{n:'Hiekkakivi',c:[214,194,140],top:[224,206,154],hard:1.2,tool:'pick',need:true,jit:0.03});
-def(CROP,{n:'Vehnä',c:[204,182,80],solid:false,opaque:false,plant:true,hard:0,drop:WHEAT,snd:'grass'});
-def(HAY,{n:'Heinäpaali',c:[206,176,62],top:[224,196,82],bottom:[224,196,82],hard:0.5,snd:'grass',jit:0.03});
-def(LAVA,{n:'Laava',c:[255,112,26],solid:false,opaque:false,liquid:true,glow:true,hard:Infinity,drop:0,jit:0.1});
-def(LAMP,{n:'Lyhty',c:[255,212,118],hard:0.3,glow:true,snd:'wood',jit:0});
-def(ROOF,{n:'Kattotiili',c:[156,74,52],hard:1.5,tool:'pick',jit:0.07});
-def(FARMLAND,{n:'Viljelymaa',c:[120,84,54],top:[94,64,40],furrow:[70,46,28],hard:0.6,tool:'shovel',drop:DIRT,snd:'dirt',jit:0.03});
-def(CROP0,{n:'Vehnän taimi',c:[110,170,60],solid:false,opaque:false,plant:true,hard:0,drop:SEEDS,snd:'grass'});
-def(CROP1,{n:'Vehnän taimi',c:[110,170,60],solid:false,opaque:false,plant:true,hard:0,drop:SEEDS,snd:'grass'});
-def(CROP2,{n:'Vehnän taimi',c:[110,170,60],solid:false,opaque:false,plant:true,hard:0,drop:SEEDS,snd:'grass'});
-def(BED,{n:'Sänky',c:[150,110,66],top:[186,46,46],pillow:[236,232,224],hard:0.4,tool:'axe',snd:'wool',jit:0});
-def(STONEBRICK,{n:'Kivitiili',c:[124,124,126],bricks:[84,84,86],hard:1.5,tool:'pick',need:true,jit:0.03});
+def(AIR,{n:'Air',solid:false,opaque:false,drop:0,c:[0,0,0]});
+def(GRASS,{n:'Grass',c:[132,94,62],top:[104,166,68],strip:[96,156,62],tintTop:true,hard:0.6,tool:'shovel',drop:DIRT,snd:'grass'});
+def(DIRT,{n:'Dirt',c:[132,94,62],hard:0.5,tool:'shovel',snd:'dirt'});
+def(STONE,{n:'Stone',c:[126,126,128],hard:1.5,tool:'pick',need:true,drop:COBBLE,jit:0.06});
+def(SAND,{n:'Sand',c:[222,206,156],hard:0.5,tool:'shovel',snd:'sand',jit:0.03});
+def(WATER,{n:'Water',c:[52,108,198],solid:false,opaque:false,liquid:true,hard:Infinity,drop:0,jit:0.02});
+def(LOG,{n:'Oak log',c:[104,78,48],top:[178,142,92],bottom:[178,142,92],hard:2,tool:'axe',snd:'wood'});
+def(LEAVES,{n:'Oak leaves',c:[62,128,48],hard:0.2,drop:0,snd:'grass',leaves:true,jit:0.13});
+def(PLANKS,{n:'Planks',c:[182,142,90],hard:2,tool:'axe',snd:'wood',jit:0.04});
+def(COBBLE,{n:'Cobblestone',c:[112,112,112],hard:2,tool:'pick',need:true,jit:0.12});
+def(SNOWGRASS,{n:'Snowy grass',c:[132,94,62],top:[238,243,250],strip:[238,243,250],hard:0.6,tool:'shovel',drop:DIRT,snd:'snow',jit:0.03});
+def(SNOW,{n:'Snow',c:[238,243,250],hard:0.3,tool:'shovel',snd:'snow',jit:0.02});
+def(CACTUS,{n:'Cactus',c:[72,136,60],top:[108,164,84],bottom:[108,164,84],hard:0.4,snd:'wool'});
+def(TABLE,{n:'Crafting table',c:[150,110,66],top:[190,148,94],bottom:[150,110,66],front:[118,84,50],hard:2.5,tool:'axe',snd:'wood',jit:0,spot:[70,70,76]});
+def(COAL_ORE,{n:'Coal ore',c:[126,126,128],spot:[30,30,34],hard:3,tool:'pick',need:true,drop:COAL,jit:0.04});
+def(IRON_ORE,{n:'Iron ore',c:[126,126,128],spot:[220,166,126],hard:3,tool:'pick',need:true,tier:2,jit:0.04});
+def(SLOG,{n:'Spruce log',c:[72,52,34],top:[150,116,74],bottom:[150,116,74],hard:2,tool:'axe',snd:'wood'});
+def(SLEAVES,{n:'Spruce needles',c:[44,92,62],hard:0.2,drop:0,snd:'grass',leaves:true,jit:0.1});
+def(GRAVEL,{n:'Gravel',c:[130,122,118],hard:0.6,tool:'shovel',snd:'sand',jit:0.1});
+def(BEDROCK,{n:'Bedrock',c:[50,50,52],hard:Infinity,jit:0.2});
+def(WOOL,{n:'Wool',c:[236,236,230],hard:0.8,snd:'wool',jit:0.02});
+def(TALLGRASS,{n:'Tall grass',c:[96,156,62],solid:false,opaque:false,plant:true,hard:0,drop:0,snd:'grass'});
+def(POPPY,{n:'Poppy',c:[214,44,40],solid:false,opaque:false,plant:true,hard:0,snd:'grass'});
+def(DANDELION,{n:'Dandelion',c:[246,206,44],solid:false,opaque:false,plant:true,hard:0,snd:'grass'});
+def(FURNACE,{n:'Furnace',c:[118,118,116],top:[134,134,132],front:[104,104,102],hard:3.5,tool:'pick',need:true,jit:0,hole:true});
+def(PATH,{n:'Path',c:[132,94,62],top:[170,138,88],hard:0.6,tool:'shovel',drop:DIRT,snd:'dirt',jit:0.05});
+def(SANDSTONE,{n:'Sandstone',c:[214,194,140],top:[224,206,154],hard:1.2,tool:'pick',need:true,jit:0.03});
+def(CROP,{n:'Wheat',c:[204,182,80],solid:false,opaque:false,plant:true,hard:0,drop:WHEAT,snd:'grass'});
+def(HAY,{n:'Hay bale',c:[206,176,62],top:[224,196,82],bottom:[224,196,82],hard:0.5,snd:'grass',jit:0.03});
+def(LAVA,{n:'Lava',c:[255,112,26],solid:false,opaque:false,liquid:true,glow:true,hard:Infinity,drop:0,jit:0.1});
+def(LAMP,{n:'Lantern',c:[255,212,118],hard:0.3,glow:true,snd:'wood',jit:0});
+def(ROOF,{n:'Roof tile',c:[156,74,52],hard:1.5,tool:'pick',jit:0.07});
+def(FARMLAND,{n:'Farmland',c:[120,84,54],top:[94,64,40],furrow:[70,46,28],hard:0.6,tool:'shovel',drop:DIRT,snd:'dirt',jit:0.03});
+def(CROP0,{n:'Wheat sprout',c:[110,170,60],solid:false,opaque:false,plant:true,hard:0,drop:SEEDS,snd:'grass'});
+def(CROP1,{n:'Wheat sprout',c:[110,170,60],solid:false,opaque:false,plant:true,hard:0,drop:SEEDS,snd:'grass'});
+def(CROP2,{n:'Wheat sprout',c:[110,170,60],solid:false,opaque:false,plant:true,hard:0,drop:SEEDS,snd:'grass'});
+def(BED,{n:'Bed',c:[150,110,66],top:[186,46,46],pillow:[236,232,224],hard:0.4,tool:'axe',snd:'wool',jit:0});
+def(STONEBRICK,{n:'Stone bricks',c:[124,124,126],bricks:[84,84,86],hard:1.5,tool:'pick',need:true,jit:0.03});
 const OPQ=new Uint8Array(256),SOLID=new Uint8Array(256);BD.forEach((d,i)=>{if(d&&d.opaque)OPQ[i]=1;if(d&&d.solid)SOLID[i]=1});
 
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -556,19 +556,19 @@ const {CS,H,SEA,AIR,GRASS,DIRT,STONE,SAND,WATER,LOG,LEAVES,PLANKS,COBBLE,SNOWGRA
   STICK,WPICK,SPICK,WAXE,SAXE,WSHOVEL,SSHOVEL,WSWORD,SSWORD,COAL,PORK,BEEF,MUTTON,CHICKEN,LEATHER,FEATHER,WHEAT,
   OCEAN,BEACH,PLAINS,FOREST,DESERT,SNOWY,MOUNT,BD,OPQ,SOLID,FACES,SHADE,grassTint,faceColor,mulberry32,hash2,hash3}=S;
 const BREAD=118,CPORK=119,CBEEF=120,CMUTTON=121,CCHICKEN=122,IRON=123,IPICK=124,IAXE=125,ISHOVEL=126,ISWORD=127,WHOE=128,SHOE=129,IHOE=130,BOW=131,ARROW=132,STRING=133,BONE=134,BONEMEAL=135,FLESH=136,COIN=137;
-const BIOME_NAMES=['Valtameri','Ranta','Tasanko','Metsä','Aavikko','Lumitundra','Vuoristo'];
+const BIOME_NAMES=['Ocean','Beach','Plains','Forest','Desert','Snowy tundra','Mountains'];
 const ITEM={
-  [STICK]:{n:'Keppi'},
-  [WPICK]:{n:'Puuhakku',tool:'pick',tier:1,speed:2,dmg:2,stack:1},[SPICK]:{n:'Kivihakku',tool:'pick',tier:2,speed:4,dmg:3,stack:1},[IPICK]:{n:'Rautahakku',tool:'pick',tier:3,speed:6,dmg:4,stack:1},
-  [WAXE]:{n:'Puukirves',tool:'axe',tier:1,speed:2,dmg:3,stack:1},[SAXE]:{n:'Kivikirves',tool:'axe',tier:2,speed:4,dmg:4,stack:1},[IAXE]:{n:'Rautakirves',tool:'axe',tier:3,speed:6,dmg:5,stack:1},
-  [WSHOVEL]:{n:'Puulapio',tool:'shovel',tier:1,speed:2,dmg:1.5,stack:1},[SSHOVEL]:{n:'Kivilapio',tool:'shovel',tier:2,speed:4,dmg:2,stack:1},[ISHOVEL]:{n:'Rautalapio',tool:'shovel',tier:3,speed:6,dmg:3,stack:1},
-  [WSWORD]:{n:'Puumiekka',tool:'sword',tier:1,speed:1,dmg:4,stack:1},[SSWORD]:{n:'Kivimiekka',tool:'sword',tier:2,speed:1,dmg:5,stack:1},[ISWORD]:{n:'Rautamiekka',tool:'sword',tier:3,speed:1,dmg:6,stack:1},
-  [WHOE]:{n:'Puukuokka',tool:'hoe',tier:1,speed:1,dmg:1,stack:1},[SHOE]:{n:'Kivikuokka',tool:'hoe',tier:2,speed:1,dmg:1,stack:1},[IHOE]:{n:'Rautakuokka',tool:'hoe',tier:3,speed:1,dmg:1,stack:1},
-  [BOW]:{n:'Jousi',tool:'bow',tier:1,dmg:1,stack:1},[ARROW]:{n:'Nuoli'},[STRING]:{n:'Lanka'},[BONE]:{n:'Luu'},[BONEMEAL]:{n:'Luujauho'},[COIN]:{n:'Kolikko'},
-  [COAL]:{n:'Hiili'},[IRON]:{n:'Rautaharkko'},[SEEDS]:{n:'Vehnän siemenet'},[WHEAT]:{n:'Vehnä'},[LEATHER]:{n:'Nahka'},[FEATHER]:{n:'Höyhen'},
-  [PORK]:{n:'Raaka porsaankyljys',food:3},[BEEF]:{n:'Raaka naudanliha',food:3},[MUTTON]:{n:'Raaka lampaanliha',food:2},[CHICKEN]:{n:'Raaka kana',food:2},
-  [CPORK]:{n:'Paistettu porsaankyljys',food:8},[CBEEF]:{n:'Pihvi',food:8},[CMUTTON]:{n:'Paistettu lampaanliha',food:6},[CCHICKEN]:{n:'Paistettu kana',food:6},
-  [BREAD]:{n:'Leipä',food:5},[FLESH]:{n:'Mätä liha',food:2}};
+  [STICK]:{n:'Stick'},
+  [WPICK]:{n:'Wooden pickaxe',tool:'pick',tier:1,speed:2,dmg:2,stack:1},[SPICK]:{n:'Stone pickaxe',tool:'pick',tier:2,speed:4,dmg:3,stack:1},[IPICK]:{n:'Iron pickaxe',tool:'pick',tier:3,speed:6,dmg:4,stack:1},
+  [WAXE]:{n:'Wooden axe',tool:'axe',tier:1,speed:2,dmg:3,stack:1},[SAXE]:{n:'Stone axe',tool:'axe',tier:2,speed:4,dmg:4,stack:1},[IAXE]:{n:'Iron axe',tool:'axe',tier:3,speed:6,dmg:5,stack:1},
+  [WSHOVEL]:{n:'Wooden shovel',tool:'shovel',tier:1,speed:2,dmg:1.5,stack:1},[SSHOVEL]:{n:'Stone shovel',tool:'shovel',tier:2,speed:4,dmg:2,stack:1},[ISHOVEL]:{n:'Iron shovel',tool:'shovel',tier:3,speed:6,dmg:3,stack:1},
+  [WSWORD]:{n:'Wooden sword',tool:'sword',tier:1,speed:1,dmg:4,stack:1},[SSWORD]:{n:'Stone sword',tool:'sword',tier:2,speed:1,dmg:5,stack:1},[ISWORD]:{n:'Iron sword',tool:'sword',tier:3,speed:1,dmg:6,stack:1},
+  [WHOE]:{n:'Wooden hoe',tool:'hoe',tier:1,speed:1,dmg:1,stack:1},[SHOE]:{n:'Stone hoe',tool:'hoe',tier:2,speed:1,dmg:1,stack:1},[IHOE]:{n:'Iron hoe',tool:'hoe',tier:3,speed:1,dmg:1,stack:1},
+  [BOW]:{n:'Bow',tool:'bow',tier:1,dmg:1,stack:1},[ARROW]:{n:'Arrow'},[STRING]:{n:'String'},[BONE]:{n:'Bone'},[BONEMEAL]:{n:'Bone meal'},[COIN]:{n:'Coin'},
+  [COAL]:{n:'Coal'},[IRON]:{n:'Iron ingot'},[SEEDS]:{n:'Wheat seeds'},[WHEAT]:{n:'Wheat'},[LEATHER]:{n:'Leather'},[FEATHER]:{n:'Feather'},
+  [PORK]:{n:'Raw porkchop',food:3},[BEEF]:{n:'Raw beef',food:3},[MUTTON]:{n:'Raw mutton',food:2},[CHICKEN]:{n:'Raw chicken',food:2},
+  [CPORK]:{n:'Cooked porkchop',food:8},[CBEEF]:{n:'Steak',food:8},[CMUTTON]:{n:'Cooked mutton',food:6},[CCHICKEN]:{n:'Cooked chicken',food:6},
+  [BREAD]:{n:'Bread',food:5},[FLESH]:{n:'Rotten flesh',food:2}};
 const nameOf=id=>id<100?BD[id].n:ITEM[id].n;
 const maxStack=id=>(id>=100&&ITEM[id].stack)||64;
 const isPlaceable=id=>id>0&&id<100&&!BD[id].liquid;
@@ -936,10 +936,10 @@ function clickSlot(kind,i,btn,shift){
   refreshUI()}
 function countHave(){const m={};for(const s of inv.concat(craft))if(s)m[s.id]=(m[s.id]||0)+s.count;return m}
 function needOf(R){const m={};for(const row of R.p)for(const ch of row)if(ch!==' '){const id=R.k[ch];m[id]=(m[id]||0)+1}return m}
-function autoFill(R){if(R.h>craftSize||R.w>craftSize){toast('Tämä resepti vaatii työpöydän');return}
+function autoFill(R){if(R.h>craftSize||R.w>craftSize){toast('This recipe needs a crafting table');return}
   for(let i=0;i<craft.length;i++)if(craft[i]){const left=addItem(craft[i].id,craft[i].count);craft[i]=left?{id:craft[i].id,count:left}:null}
   if(craft.some(Boolean)){refreshUI();return}
-  const need=needOf(R),have=countHave();for(const id in need)if((have[id]||0)<need[id]){toast('Aineet eivät riitä');refreshUI();return}
+  const need=needOf(R),have=countHave();for(const id in need)if((have[id]||0)<need[id]){toast('Not enough ingredients');refreshUI();return}
   for(let r=0;r<R.h;r++)for(let c=0;c<R.w;c++){const ch=R.p[r][c];if(ch===' ')continue;const id=R.k[ch];
     for(let j=0;j<36;j++)if(inv[j]&&inv[j].id===id){inv[j].count--;if(!inv[j].count)inv[j]=null;break}craft[r*craftSize+c]={id,count:1}}
   refreshUI()}
@@ -953,11 +953,11 @@ function tickFurnaces(dt){for(const f of furnaces.values()){const s=f.s,out=s[0]
   else f.prog=Math.max(0,f.prog-dt*0.5)}}
 // trading
 const PROFS={
-  farmer:{n:'maanviljelijä',robe:[128,90,52],offers:[[[[WHEAT,12]],[COIN,1]],[[[COIN,1]],[BREAD,4]],[[[COIN,1]],[SEEDS,10]],[[[COIN,2]],[BONEMEAL,10]],[[[COIN,3]],[IHOE,1]]]},
-  smith:{n:'seppä',robe:[70,70,74],offers:[[[[COAL,10]],[COIN,1]],[[[IRON,3]],[COIN,1]],[[[COIN,3]],[IRON,2]],[[[COIN,7]],[IPICK,1]],[[[COIN,8]],[ISWORD,1]]]},
-  butcher:{n:'teurastaja',robe:[214,210,200],offers:[[[[PORK,6]],[COIN,1]],[[[BEEF,6]],[COIN,1]],[[[CHICKEN,6]],[COIN,1]],[[[COIN,1]],[CPORK,5]],[[[COIN,1]],[CBEEF,5]]]},
-  shepherd:{n:'paimen',robe:[70,112,62],offers:[[[[WOOL,8]],[COIN,1]],[[[COIN,1]],[WOOL,3]],[[[COIN,3]],[BED,1]],[[[STRING,10]],[COIN,1]]]},
-  fletcher:{n:'jousiseppä',robe:[110,64,120],offers:[[[[STICK,24]],[COIN,1]],[[[FEATHER,8]],[COIN,1]],[[[COIN,1]],[ARROW,12]],[[[COIN,3]],[BOW,1]],[[[FLESH,10]],[COIN,1]]]}};
+  farmer:{n:'farmer',robe:[128,90,52],offers:[[[[WHEAT,12]],[COIN,1]],[[[COIN,1]],[BREAD,4]],[[[COIN,1]],[SEEDS,10]],[[[COIN,2]],[BONEMEAL,10]],[[[COIN,3]],[IHOE,1]]]},
+  smith:{n:'blacksmith',robe:[70,70,74],offers:[[[[COAL,10]],[COIN,1]],[[[IRON,3]],[COIN,1]],[[[COIN,3]],[IRON,2]],[[[COIN,7]],[IPICK,1]],[[[COIN,8]],[ISWORD,1]]]},
+  butcher:{n:'butcher',robe:[214,210,200],offers:[[[[PORK,6]],[COIN,1]],[[[BEEF,6]],[COIN,1]],[[[CHICKEN,6]],[COIN,1]],[[[COIN,1]],[CPORK,5]],[[[COIN,1]],[CBEEF,5]]]},
+  shepherd:{n:'shepherd',robe:[70,112,62],offers:[[[[WOOL,8]],[COIN,1]],[[[COIN,1]],[WOOL,3]],[[[COIN,3]],[BED,1]],[[[STRING,10]],[COIN,1]]]},
+  fletcher:{n:'fletcher',robe:[110,64,120],offers:[[[[STICK,24]],[COIN,1]],[[[FEATHER,8]],[COIN,1]],[[[COIN,1]],[ARROW,12]],[[[COIN,3]],[BOW,1]],[[[FLESH,10]],[COIN,1]]]}};
 const PROF_KEYS=Object.keys(PROFS);const NAMES=['Aino','Eero','Helmi','Ilmari','Kerttu','Lauri','Martta','Onni','Saara','Toivo','Vilho','Elli','Hilja','Urho'];
 
 // ---------------- UI ----------------
@@ -987,13 +987,13 @@ function renderBook(){const have=countHave();bookEl.innerHTML='';
   RECIPES.forEach((R,ri)=>{const need=needOf(R),enough=Object.keys(need).every(id=>(have[id]||0)>=need[id]),fits=R.h<=craftSize&&R.w<=craftSize;
     const li=document.createElement('li');li.dataset.r=ri;if(!enough||!fits)li.className='no';
     const ings=Object.keys(need).map(id=>'<img alt="" src="'+iconURL(+id)+'" title="'+nameOf(+id)+' ×'+need[id]+'">').join('');
-    li.innerHTML='<img alt="" src="'+iconURL(R.out[0])+'"><span class="nm">'+nameOf(R.out[0])+(R.out[1]>1?' ×'+R.out[1]:'')+(fits?'':'<span class="tag">Vaatii työpöydän</span>')+'</span><span class="ing">'+ings+'</span>';
+    li.innerHTML='<img alt="" src="'+iconURL(R.out[0])+'"><span class="nm">'+nameOf(R.out[0])+(R.out[1]>1?' ×'+R.out[1]:'')+(fits?'':'<span class="tag">Needs a crafting table</span>')+'</span><span class="ing">'+ings+'</span>';
     bookEl.appendChild(li)});
-  const sm=document.createElement('li');sm.className='smelt';sm.innerHTML='<span class="nm"><span class="tag">Uunissa</span>'+Object.keys(SMELT).map(k=>nameOf(+k)+' → '+nameOf(SMELT[k])).join(', ')+'</span>';bookEl.appendChild(sm)}
+  const sm=document.createElement('li');sm.className='smelt';sm.innerHTML='<span class="nm"><span class="tag">In the furnace</span>'+Object.keys(SMELT).map(k=>nameOf(+k)+' → '+nameOf(SMELT[k])).join(', ')+'</span>';bookEl.appendChild(sm)}
 function renderTrades(){const a=curTrader,P=PROFS[a.prof],ul=$('trades');ul.innerHTML='';
   P.offers.forEach((o,i)=>{const ok=o[0].every(([id,n])=>countOf(id)>=n);const li=document.createElement('li');
     const it=([id,n])=>'<span class="ti" title="'+nameOf(id)+'"><img alt="" src="'+iconURL(id)+'"><b>'+n+'</b></span>';
-    li.innerHTML='<span class="give">'+o[0].map(it).join('')+'</span><span class="to" aria-hidden="true">→</span><span class="get">'+it(o[1])+'</span><button class="tbtn" data-t="'+i+'"'+(ok?'':' disabled')+'>Vaihda</button>';ul.appendChild(li)})}
+    li.innerHTML='<span class="give">'+o[0].map(it).join('')+'</span><span class="to" aria-hidden="true">→</span><span class="get">'+it(o[1])+'</span><button class="tbtn" data-t="'+i+'"'+(ok?'':' disabled')+'>Trade</button>';ul.appendChild(li)})}
 $('trades').addEventListener('mousedown',e=>{const b=e.target.closest('.tbtn');if(!b||b.disabled)return;e.preventDefault();const o=PROFS[curTrader.prof].offers[+b.dataset.t];
   if(!o[0].every(([id,n])=>countOf(id)>=n))return;for(const[id,n]of o[0])removeItem(id,n);giveOrDrop(o[1][0],o[1][1]);sfx('coin');voiceAt('villager',curTrader.pos,1.15,0.8);refreshUI()});
 bookEl.addEventListener('mousedown',e=>{const li=e.target.closest('li');if(!li||li.dataset.r===undefined)return;e.preventDefault();autoFill(RECIPES[+li.dataset.r])});
@@ -1003,10 +1003,10 @@ $('invWrap').addEventListener('mousedown',e=>{const sl=e.target.closest('.slot')
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('mousemove',e=>{if(!uiOpen&&!cursor)return;cursorEl.style.transform='translate('+(e.clientX-22)+'px,'+(e.clientY-22)+'px)';
   if(uiOpen){const sl=e.target.closest&&e.target.closest('.slot');let s=null;if(sl){const k=sl.dataset.kind,i=+sl.dataset.i;if(k==='inv')s=inv[i];else if(k==='craft')s=craft[i];else if(k==='furn')s=curFurn&&curFurn.s[i];else if(k==='result'){const R=matchRecipe();if(R)s={id:R.out[0]}}}
-    if(s&&!cursor){tipEl.hidden=false;tipEl.textContent=nameOf(s.id)+(ITEM[s.id]&&ITEM[s.id].food?' (ruokaa +'+ITEM[s.id].food+')':'');tipEl.style.left=(e.clientX+16)+'px';tipEl.style.top=(e.clientY-30)+'px'}else tipEl.hidden=true}});
+    if(s&&!cursor){tipEl.hidden=false;tipEl.textContent=nameOf(s.id)+(ITEM[s.id]&&ITEM[s.id].food?' (food +'+ITEM[s.id].food+')':'');tipEl.style.left=(e.clientX+16)+'px';tipEl.style.top=(e.clientY-30)+'px'}else tipEl.hidden=true}});
 function openUI(mode,arg){uiOpen=true;uiMode=mode;
   $('secCraft').hidden=mode!=='craft';$('secFurn').hidden=mode!=='furnace';$('secTrade').hidden=mode!=='trade';$('bookWrap').hidden=mode!=='craft';
-  if(mode==='craft'){craftSize=arg;craft=new Array(arg*arg).fill(null);buildCraftGrid();$('craftTitle').textContent=arg===3?'Työpöytä':'Craftaus'}
+  if(mode==='craft'){craftSize=arg;craft=new Array(arg*arg).fill(null);buildCraftGrid();$('craftTitle').textContent=arg===3?'Crafting table':'Crafting'}
   if(mode==='furnace')curFurn=arg;
   if(mode==='trade'){curTrader=arg;arg.moving=false;arg.timer=4;$('tradeTitle').textContent=arg.name+', '+PROFS[arg.prof].n;voiceAt('villager',arg.pos,1,1)}
   $('invWrap').hidden=false;mouseL=mouseR=false;bowDraw=-1;for(const k in keys)keys[k]=false;if(document.exitPointerLock)document.exitPointerLock();refreshUI()}
@@ -1225,8 +1225,8 @@ function breakBlock(x,y,z){const b=getBlock(x,y,z);if(!b||b===BEDROCK||BD[b].liq
   else if(b===FURNACE){const f=furnaces.get(fkey(x,y,z));if(f){for(const s of f.s)if(s)dropItem(s.id,s.count,at);furnaces.delete(fkey(x,y,z))}if(canHarvest(b,heldId()))dropItem(FURNACE,1,at)}
   else if(canHarvest(b,heldId())){let drop=d.drop;if(d.leaves&&Math.random()<0.08)drop=STICK;if(drop)dropItem(drop,1,at)}
   const above=getBlock(x,y+1,z);if(above&&(BD[above].plant||above===CACTUS))breakBlock(x,y+1,z)}
-function tryEat(){const id=heldId(),it=ITEM[id];if(!it||!it.food)return false;if(food>=20){toast('Et ole nälkäinen');return true}
-  food=Math.min(20,food+it.food);updateHunger();if(id===FLESH&&Math.random()<0.6){exhaust+=6;toast('Yäk! Mätä liha vei nälkää')}useHeld();sfx('eat');swing();for(let i=0;i<5;i++){const d=lookDir();const p=eyePos().addScaledVector(d,0.5);spawnPart(p.x,p.y-0.2,p.z,[200,160,110],rnd(-1,1),rnd(0.5,1.5),rnd(-1,1),0.4,false)}return true}
+function tryEat(){const id=heldId(),it=ITEM[id];if(!it||!it.food)return false;if(food>=20){toast('You\'re not hungry');return true}
+  food=Math.min(20,food+it.food);updateHunger();if(id===FLESH&&Math.random()<0.6){exhaust+=6;toast('Yuck! The rotten flesh made you hungry')}useHeld();sfx('eat');swing();for(let i=0;i<5;i++){const d=lookDir();const p=eyePos().addScaledVector(d,0.5);spawnPart(p.x,p.y-0.2,p.z,[200,160,110],rnd(-1,1),rnd(0.5,1.5),rnd(-1,1),0.4,false)}return true}
 function useAction(){const h=pick();
   if(h&&h.animal){if(h.animal.type==='villager'&&!h.animal.dead){openUI('trade',h.animal);return}if(tryEat())return;return}
   if(h&&!keys.ShiftLeft){
@@ -1248,11 +1248,11 @@ function useAction(){const h=pick();
     for(const a of animals){const aw=a.w/2;if(tx+1>a.pos.x-aw&&tx<a.pos.x+aw&&tz+1>a.pos.z-aw&&tz<a.pos.z+aw&&ty+1>a.pos.y&&ty<a.pos.y+a.h)return}}
   setBlock(tx,ty,tz,id);sfx(BD[id].snd,0.8);swing();useHeld()}
 function sleep(h){spawnPoint={x:h.x,y:h.y+1,z:h.z};
-  if(!isNight()){toast('Syntymäpiste asetettu. Nukkua voi vain yöllä.');return}
-  for(const a of animals)if(a.cfg.hostile&&!a.dead&&a.pos.distanceTo(player.pos)<10){toast('Et voi nukkua, hirviöitä on lähellä');return}
-  $('fade').classList.add('on');setTimeout(()=>{dayT=0.01;$('fade').classList.remove('on');toast('Hyvää huomenta!')},900)}
+  if(!isNight()){toast('Spawn point set. You can only sleep at night.');return}
+  for(const a of animals)if(a.cfg.hostile&&!a.dead&&a.pos.distanceTo(player.pos)<10){toast('You can\'t sleep, there are monsters nearby');return}
+  $('fade').classList.add('on');setTimeout(()=>{dayT=0.01;$('fade').classList.remove('on');toast('Good morning!')},900)}
 function attack(){swing();if(attackCd>0)return;const h=pick();if(h&&h.animal){tire(0.15);const it=ITEM[heldId()];let dmg=(it&&it.dmg)||1;if(!player.onGround&&player.vel.y<-1)dmg*=1.5;damageMob(h.animal,dmg,player.pos);attackCd=0.35}}
-function fireBow(){if(bowDraw<0)return;const charge=Math.min(1,bowDraw/0.9);bowDraw=-1;if(charge<0.15)return;if(countOf(ARROW)<1){toast('Ei nuolia');return}
+function fireBow(){if(bowDraw<0)return;const charge=Math.min(1,bowDraw/0.9);bowDraw=-1;if(charge<0.15)return;if(countOf(ARROW)<1){toast('No arrows');return}
   removeItem(ARROW,1);refreshUI();const d=lookDir(),from=eyePos().addScaledVector(d,0.5);shootArrow(from,d.multiplyScalar(12+24*charge),2+5*charge,'player');sfx('bow');swingT=0.5}
 function dropHeld(all){const s=inv[sel];if(!s)return;const n=all?s.count:1;s.count-=n;if(!s.count)inv[sel]=null;const d=lookDir();dropItem(s.id,n,eyePos().addScaledVector(d,0.4).add(new T.Vector3(0,-0.3,0)),d.multiplyScalar(6).add(new T.Vector3(0,1.5,0)));swing();refreshUI()}
 
@@ -1279,7 +1279,7 @@ addEventListener('keydown',e=>{if(state!=='play')return;
   keys[e.code]=true;if(e.code==='Space'||e.code.startsWith('Arrow'))e.preventDefault();
   if(e.code.startsWith('Digit')){const n=+e.code.slice(5);if(n>=1&&n<=9)selectSlot(n-1)}
   if(e.code==='KeyQ')dropHeld(e.ctrlKey);
-  if(e.code==='KeyF'){player.fly=!player.fly;player.vel.y=0;toast(player.fly?'Lentotila päällä':'Lentotila pois')}
+  if(e.code==='KeyF'){player.fly=!player.fly;player.vel.y=0;toast(player.fly?'Flying on':'Flying off')}
   if(e.code==='KeyH')$('info').hidden=!$('info').hidden});
 addEventListener('keyup',e=>{keys[e.code]=false});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;mouseL=mouseR=false;bowDraw=-1});
@@ -1302,11 +1302,11 @@ playBtn.addEventListener('click',()=>{if(!ready)return;initAudio();if(AC&&AC.sta
     fallStart=player.pos.y;updateHearts();updateHunger();autoSaveT=180}
   state='play';menu.hidden=true;$('saveBtn').hidden=true;['cross','hotbar','info','hearts','hunger'].forEach(i=>$(i).hidden=false);refreshUI();lockPointer()});
 let newArm=0;
-$('newBtn').addEventListener('click',()=>{if(hasSave&&Date.now()-newArm>4000){newArm=Date.now();$('newBtn').textContent='Korvaa tallennus?';setTimeout(()=>{$('newBtn').textContent='Uusi maailma'},4000);return}
-  newArm=0;$('newBtn').textContent='Uusi maailma';startWorld(null)});
+$('newBtn').addEventListener('click',()=>{if(hasSave&&Date.now()-newArm>4000){newArm=Date.now();$('newBtn').textContent='Overwrite save?';setTimeout(()=>{$('newBtn').textContent='New world'},4000);return}
+  newArm=0;$('newBtn').textContent='New world';startWorld(null)});
 $('saveBtn').addEventListener('click',()=>saveGame(false));
 $('logoutBtn').addEventListener('click',async()=>{if(state==='paused')await saveGame(true);clearWorld();state='login';menu.hidden=true;$('login').hidden=false;['cross','hotbar','info','hearts','hunger'].forEach(i=>$(i).hidden=true);renderSavedList();$('uname').value='';$('uname').focus()});
-function pause(){if(state!=='play')return;state='paused';menu.hidden=false;playBtn.textContent='Jatka peliä';$('saveBtn').hidden=false;mouseL=mouseR=false;bowDraw=-1;for(const k in keys)keys[k]=false}
+function pause(){if(state!=='play')return;state='paused';menu.hidden=false;playBtn.textContent='Resume game';$('saveBtn').hidden=false;mouseL=mouseR=false;bowDraw=-1;for(const k in keys)keys[k]=false}
 menu.addEventListener('click',e=>{if(e.target===menu&&state==='paused')playBtn.click()});
 function clearWorld(){
   for(const ch of chunks.values())disposeMeshes(ch);chunks.clear();genPending.clear();applyQueue.length=0;genQueue=[];meshQueue=[];
@@ -1318,13 +1318,13 @@ function startWorld(save){
   seed=save?save.seed:(Math.random()*2147483647)|0;world=S.makeWorld(seed);broadcastSeed();dayT=0.04;
   if(save)applySave(save);else{spawn=findSpawn();hasSave=false}
   focus=loadedPlayer?{x:Math.floor(loadedPlayer.x),y:Math.floor(loadedPlayer.y),z:Math.floor(loadedPlayer.z)}:spawn;
-  state='title';ready=false;playBtn.disabled=true;playBtn.textContent='Luodaan maailmaa…';menu.hidden=false;$('saveBtn').hidden=true;['cross','hotbar','info','hearts','hunger'].forEach(i=>$(i).hidden=true);
-  $('seedTxt').textContent='Siemen '+seed;$('who').textContent='Pelaaja: '+username;$('saveStatus').textContent=save?'Tallennettu '+fmtDate(save.savedAt):'Uusi maailma';
+  state='title';ready=false;playBtn.disabled=true;playBtn.textContent='Creating world…';menu.hidden=false;$('saveBtn').hidden=true;['cross','hotbar','info','hearts','hunger'].forEach(i=>$(i).hidden=true);
+  $('seedTxt').textContent='Seed '+seed;$('who').textContent='Player: '+username;$('saveStatus').textContent=save?'Saved '+fmtDate(save.savedAt):'New world';
   titleAng=0;needScan=true;updateHearts();updateHunger();refreshUI()}
 
 // ---------------- Saving (per username, in this browser) ----------------
 let username='',userKey='',hasSave=false,loadedPlayer=null,focus=null,autoSaveT=180;
-const fmtDate=ts=>{try{return new Date(ts).toLocaleString('fi-FI',{day:'numeric',month:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
+const fmtDate=ts=>{try{return new Date(ts).toLocaleString('en-GB',{day:'numeric',month:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
 function rle(u8){const out=[];let i=0;while(i<u8.length){const v=u8[i];let n=1;while(i+n<u8.length&&u8[i+n]===v&&n<255)n++;out.push(v,n);i+=n}return Uint8Array.from(out)}
 function unrle(r,len){const o=new Uint8Array(len);let p=0;for(let i=0;i+1<r.length;i+=2){o.fill(r[i],p,p+r[i+1]);p+=r[i+1]}return o}
 const toB64=u8=>{let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)};
@@ -1352,17 +1352,17 @@ function applySave(sv){
   for(const g of sv.growing||[])growing.set(fkey(g.x,g.y,g.z),{x:g.x,y:g.y,z:g.z,t:time+(g.r||0)})}
 let saving=false;
 async function saveGame(silent){if(saving||!userKey||!spawn||(state!=='play'&&state!=='paused')||hp<=0)return false;saving=true;
-  const st=$('saveStatus');if(!silent)st.textContent='Tallennetaan…';
+  const st=$('saveStatus');if(!silent)st.textContent='Saving…';
   try{const data=collectSave();await Store.put(userKey,data);await writeIndex({key:userKey,name:username,savedAt:data.savedAt});hasSave=true;
-    st.textContent='Tallennettu '+fmtDate(data.savedAt);if(!silent&&state==='play')toast('Peli tallennettu');saving=false;return true}
-  catch(e){st.textContent='Tallennus epäonnistui: selaimen tallennustila on täynnä tai estetty';saving=false;return false}}
+    st.textContent='Saved '+fmtDate(data.savedAt);if(!silent&&state==='play')toast('Game saved');saving=false;return true}
+  catch(e){st.textContent='Saving failed: the browser storage is full or blocked';saving=false;return false}}
 async function renderSavedList(){const el=$('savedList');el.innerHTML='';const list=await readIndex();if(!list.length)return;
-  const h=document.createElement('p');h.className='ptitle';h.textContent='Tallennetut pelaajat';el.appendChild(h);
+  const h=document.createElement('p');h.className='ptitle';h.textContent='Saved players';el.appendChild(h);
   for(const e of list){const b=document.createElement('button');b.type='button';b.innerHTML='<b></b><span></span>';b.querySelector('b').textContent=e.name;b.querySelector('span').textContent=fmtDate(e.savedAt);
     b.addEventListener('click',()=>{$('uname').value=e.name;doLogin()});el.appendChild(b)}}
 async function doLogin(){const raw=$('uname').value.trim();const err=$('loginErr');
-  if(!raw){err.textContent='Kirjoita käyttäjänimi.';return}
-  if(!/^[\p{L}\p{N}_\- ]{1,16}$/u.test(raw)){err.textContent='Käytä vain kirjaimia, numeroita, väliviivaa tai alaviivaa (enintään 16 merkkiä).';return}
+  if(!raw){err.textContent='Type a username.';return}
+  if(!/^[\p{L}\p{N}_\- ]{1,16}$/u.test(raw)){err.textContent='Use only letters, numbers, hyphens or underscores (max 16 characters).';return}
   err.textContent='';$('loginBtn').disabled=true;username=raw;userKey='user:'+raw.toLowerCase();
   const sv=await Store.get(userKey);$('loginBtn').disabled=false;$('login').hidden=true;startWorld(sv)}
 $('loginForm').addEventListener('submit',e=>{e.preventDefault();doLogin()});
@@ -1430,7 +1430,7 @@ function update(dt){
   time+=dt;updatePlayer(dt);invuln=Math.max(0,invuln-dt);attackCd=Math.max(0,attackCd-dt);
   tire(dt*0.045);
   if(hp<20&&hp>0&&food>=16&&time-lastHurt>4){regenT+=dt;if(regenT>2.5){regenT=0;heal(1);tire(1.5)}}
-  if(food<=0&&hp>0){starveT+=dt;if(starveT>=1){starveT=0;invuln=0;hurtPlayer(1,null);if(hp<=0)toast('Kuolit nälkään')}}else starveT=0;
+  if(food<=0&&hp>0){starveT+=dt;if(starveT>=1){starveT=0;invuln=0;hurtPlayer(1,null);if(hp<=0)toast('You starved')}}else starveT=0;
   const bob=Math.sin(bobPhase*Math.PI)*0.045;shake=Math.max(0,shake-dt);
   camera.position.set(player.pos.x,player.pos.y+EYE+Math.abs(bob)*0.8,player.pos.z);camera.rotation.set(player.pitch,player.yaw,shake>0?Math.sin(time*60)*shake*0.25:0);
   const h=pick();
@@ -1477,7 +1477,7 @@ function frame(now){
   scheduleChunks(cx,cz,dt);
   if(state==='title'){
     if(!ready){const R=Math.min(renderDist,4),pcx=focus.x>>4,pcz=focus.z>>4;let tot=0,done=0;for(let dz=-R;dz<=R;dz++)for(let dx=-R;dx<=R;dx++){tot++;const c=getChunk(pcx+dx,pcz+dz);if(c&&c.meshed)done++}
-      playBtn.textContent=(hasSave?'Ladataan maailmaa… ':'Luodaan maailmaa… ')+Math.round(done/tot*100)+' %';if(done===tot&&(loadedPlayer||fixSpawnY())){ready=true;playBtn.disabled=false;playBtn.textContent=hasSave?'Jatka maailmaa':'Aloita peli';if(!loadedPlayer)focus=spawn}}
+      playBtn.textContent=(hasSave?'Loading world… ':'Creating world… ')+Math.round(done/tot*100)+' %';if(done===tot&&(loadedPlayer||fixSpawnY())){ready=true;playBtn.disabled=false;playBtn.textContent=hasSave?'Continue world':'Start game';if(!loadedPlayer)focus=spawn}}
     titleAng+=dt*0.05;camera.position.set(focus.x+Math.cos(titleAng)*36,focus.y+22,focus.z+Math.sin(titleAng)*36);camera.lookAt(focus.x,focus.y+1,focus.z);
     time+=dt;for(let i=animals.length-1;i>=0;i--)if(animals[i])updateAnimal(animals[i],dt,time,true)}
   else if(state==='play'&&!uiOpen)update(dt);
@@ -1491,7 +1491,7 @@ function frame(now){
   renderer.setClearColor(scene.fog.color);
   if(state!=='title'&&++infoT%20===0&&!hud.hidden){const p=player.pos,c=getChunk(Math.floor(p.x)>>4,Math.floor(p.z)>>4);const bio=c?BIOME_NAMES[c.biome[(Math.floor(p.x)&15)+(Math.floor(p.z)&15)*16]]:'–';
     const hr=(6+dayT*24)%24,hh=Math.floor(hr),mm=Math.floor((hr-hh)*60);
-    hud.textContent='XYZ '+Math.floor(p.x)+' / '+Math.floor(p.y)+' / '+Math.floor(p.z)+'\n'+bio+' · klo '+String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+(isNight()?' · yö':' · päivä')+'\n'+fps+' FPS'+(player.fly?' · lento':'')}
+    hud.textContent='XYZ '+Math.floor(p.x)+' / '+Math.floor(p.y)+' / '+Math.floor(p.z)+'\n'+bio+' · '+String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+(isNight()?' · night':' · day')+'\n'+fps+' FPS'+(player.fly?' · flying':'')}
   renderer.clear();renderer.render(scene,camera);
   if(state==='play'||state==='paused'){renderer.clearDepth();renderer.render(handScene,handCam)}}
 

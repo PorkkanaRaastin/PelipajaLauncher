@@ -1,22 +1,21 @@
 PELIPAJA
 ========
 
-Käynnistys: tuplaklikkaa "Pelipaja.exe". Mitään ei tarvitse asentaa.
-Vinkki: klikkaa exeä hiiren oikealla -> Lähetä -> Työpöytä (pikakuvake).
+Start: double-click "Pelipaja.exe". Nothing needs to be installed.
+Tip: right-click the exe -> Send to -> Desktop (create shortcut).
 
-Jos Windows näyttää "Windows suojasi tietokoneesi" -ilmoituksen,
-valitse "Lisätietoja" ja "Suorita silti" (vain omalla koneella).
+If Windows shows "Windows protected your PC", choose "More info" and
+"Run anyway" (only on your own computer).
 
-Tilit ovat pilvessä: samalla käyttäjänimellä/sähköpostilla ja salasanalla
-pääset sisään millä tahansa koneella, ja peliajat kulkevat mukana.
+Accounts live in the cloud: sign in with the same username/email and
+password on any computer and your playtime comes with you.
 
-Tilin luonti: käyttäjänimi + sähköposti -> sähköpostiin tulee 6-numeroinen
-koodi (katso myös roskaposti) -> salasana.
+Creating an account: username + email -> a 6-digit code arrives by email
+(check your spam folder too) -> password.
 
-Tilisi, peliaikasi ja tallennuksesi ovat pilvessä ja kansiossa
-%APPDATA%\pelipaja, joten ne säilyvät, vaikka lataisit Pelipajan uudelleen.
+Your account, playtime and saves are in the cloud and in the folder
+%APPDATA%\pelipaja, so they stay even if you download Pelipaja again.
 
-Päivitykset: Pelipaja tarkistaa käynnistyessään, onko GitHubissa uudempi
-versio, ja lataa sen itse. Kun päivitys on valmis, sivupalkkiin tulee
-"Käynnistä uudelleen" -nappi. Päivitykset on allekirjoitettu, joten
-Pelipaja asentaa vain Rasmuksen julkaisemia versioita.
+Updates: Pelipaja checks GitHub for a newer version every time it starts
+and downloads it by itself. Updates are signed, so Pelipaja only installs
+versions published by Rasmus.

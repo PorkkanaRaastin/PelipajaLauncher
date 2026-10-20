@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="fi">
-<head><meta charset="utf-8"><title>Matopeli</title></head>
+<html lang="en">
+<head><meta charset="utf-8"><title>Snake</title></head>
 <body>
 <script src="../_mini.js"></script>
 <script>
@@ -20,10 +20,10 @@ function freeCell() {
 
 Mini.run({
   id: "matopeli",
-  title: "Matopeli",
-  description: "Syö omenoita ja kasva. Älä törmää seinään tai häntääsi.",
+  title: "Snake",
+  description: "Eat apples and grow. Don't hit the wall or your own tail.",
   players: 1,
-  controls: [[null, ["W", "A", "S", "D"], "tai nuolet: käänny"]],
+  controls: [[null, ["W", "A", "S", "D"], "or arrows: turn"]],
   reset() {
     snake = [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }, { x: 5, y: 9 }];
     dir = { x: 1, y: 0 };
@@ -69,7 +69,7 @@ Mini.run({
       if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS || body.some((s) => s.x === head.x && s.y === head.y)) {
         shake(8, 0.25);
         const isBest = submitScore(score);
-        over({ title: "Törmäys!", color: C.danger, lines: [`Omenoita: ${score}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+        over({ title: "Crash!", color: C.danger, lines: [`Apples: ${score}`, isBest ? "New best!" : `Best: ${best()}`] });
         return;
       }
       snake.unshift(head);
@@ -105,8 +105,8 @@ Mini.run({
     Mini.circle(OX + h.x * CELL + 15 + ex + dir.y * 6, OY + h.y * CELL + 15 + ey + dir.x * 6, 3, C.bg);
     for (const p of particles) Mini.circle(p.x, p.y, 3 * (p.life / 0.4), C.danger);
     // HUD
-    text(`Omenat ${score}`, W - 40, 26, 20, C.text, "right", 800);
-    text(`Ennätys ${best()}`, W / 2, 26, 15, C.muted, "center", 600);
+    text(`Apples ${score}`, W - 40, 26, 20, C.text, "right", 800);
+    text(`Best ${best()}`, W / 2, 26, 15, C.muted, "center", 600);
   },
 });
 </script>

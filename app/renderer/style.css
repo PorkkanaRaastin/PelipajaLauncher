@@ -355,3 +355,25 @@ body:not(.locked) .auth { display: none; }
 .mini-card.running .mini-play { background: var(--surface-2); color: var(--accent); }
 .mini-lead, .mini-head, .mini-grid { margin-left: 40px; margin-right: 40px; }
 .mini-grid:last-child { margin-bottom: 40px; }
+
+/* UUSI-merkki ja Mitä uutta -ikkuna */
+.new-badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 6px; background: #2f7dff; color: #fff; font-size: 10.5px; font-weight: 900; letter-spacing: .08em; box-shadow: 0 0 12px rgba(47,125,255,.55); flex: none; }
+.side-games .new-badge { margin-left: auto; }
+.new-badge.on-card { position: absolute; top: 8px; right: 8px; }
+.card { position: relative; }
+.hero-tags .new-badge { padding: 4px 10px; font-size: 12px; }
+.wn-overlay { position: fixed; inset: 0; z-index: 250; display: grid; place-items: center; background: rgba(5,7,10,.72); padding: 20px; }
+.wn-card { width: min(520px, 100%); max-height: 90vh; overflow: auto; background: var(--surface); border: 1px solid rgba(47,125,255,.45); border-radius: 16px; padding: 26px 28px 24px; box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 4px rgba(47,125,255,.12); display: flex; flex-direction: column; gap: 6px; }
+.wn-kicker { color: #6ea8ff; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+.wn-card h2 { margin: 0; font: 800 30px var(--display, inherit); }
+.wn-card h3 { margin: 14px 0 8px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.wn-date { color: var(--muted); font-size: 13px; }
+.wn-notes { margin: 10px 0 4px; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; font-size: 14.5px; line-height: 1.45; }
+.wn-notes li::marker { color: #6ea8ff; }
+.wn-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.wn-game { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 0 0 10px; border-radius: 10px; overflow: hidden; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); cursor: pointer; text-align: left; position: relative; }
+.wn-game:hover { border-color: #2f7dff; }
+.wn-game img, .wn-game .ph { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+.wn-game span { padding: 0 10px; font-weight: 800; font-size: 13.5px; }
+.wn-game .new-badge { position: absolute; top: 6px; right: 6px; padding: 2px 7px; }
+.wn-card .auth-btn { margin-top: 16px; }

@@ -1,6 +1,6 @@
 # Pelipaja
 
-Rasmuksen oma pelilauncher. Kaikki pelit, tallennukset ja peliajat ovat yhdessä paikassa,
+Rasmuksen oma pelilauncher (käyttöliittymä ja pelit englanniksi). Kaikki pelit, tallennukset ja peliajat ovat yhdessä paikassa,
 ja käyttäjätili toimii millä tahansa koneella.
 Tehty Electronilla (HTML, CSS ja JavaScript).
 
@@ -23,6 +23,7 @@ pelipaja/
 │  │  ├─ settings.js     asetukset
 │  │  ├─ storage.js      salattu tallennus koneelle
 │  │  ├─ updater.js      automaattiset päivitykset GitHubista
+│  │  ├─ whatsnew.js     "What's new" -ikkuna ja uusien pelien NEW-merkit
 │  │  ├─ update-verify.js päivitysten allekirjoituksen ja tiedostojen tarkistus
 │  │  ├─ paths.js        sovelluksen kansiot
 │  │  └─ state.js        yhteinen tila (kirjautunut käyttäjä jne.)
@@ -32,11 +33,12 @@ pelipaja/
 │  ├─ renderer/        launcherin käyttöliittymä (index.html, style.css, renderer.js)
 │  └─ assets/          kuvake
 ├─ games/              pelit ja games.json-pelilista
-│  ├─ _shared/           pelien yhteiset kirjastot (three.js, PeerJS), toimii ilman nettiä
-│  └─ minigames/         Minipelit-välilehden 10 peliä ja niiden yhteinen pohja (_mini.js)
+│  ├─ _shared/           yhteiset kirjastot: three.js, PeerJS ja coop.js (co-op-pelien pohja)
+│  └─ minigames/         Minigames-välilehden 10 peliä ja niiden yhteinen pohja (_mini.js)
 ├─ scripts/
 │  ├─ check.js         tarkistus: npm test
 │  ├─ make-update.js   allekirjoitetun päivityspaketin teko (GitHub Actions)
+│  ├─ make-notes.js    "What's new" commit-viesteistä (GitHub Actions)
 │  └─ LUE-MINUT.txt    ohje, joka tulee Pelipaja-Windows.zip-pakettiin
 └─ supabase/           tietokannan SQL-päivitykset
 ```
@@ -67,9 +69,15 @@ Pelipaja päivittää itsensä GitHubista. Uuden version julkaisu:
    `pelipaja-<versio>.update` ja `latest.json`.
 4. Pelaajien Pelipaja näyttää joka käynnistyksellä latausnäkymän, joka tarkistaa uusimman version.
    Jos uusi löytyy, se ladataan ja Pelipaja käynnistyy heti uudella versiolla. Käytön aikana
-   tarkistetaan tunnin välein, ja uudesta versiosta tulee sivupalkkiin **Käynnistä uudelleen** -nappi.
+   tarkistetaan tunnin välein, ja uudesta versiosta tulee sivupalkkiin **Restart now** -nappi.
 
 Jos versionumero ei muutu, mitään ei julkaista (pelkkä tarkistus ajetaan).
+
+**What's new:** commit-viestit edellisen julkaisun jälkeen näkyvät pelaajille "What's new" -ikkunassa,
+kun Pelipaja käynnistyy ensimmäistä kertaa uudella versiolla. Jokainen rivi (otsikko ja kuvauksen
+rivit) on oma kohtansa. GitHubin oletusviestit, kuten "Add files via upload", jätetään pois.
+Uudet pelit (joita edellisessä julkaisussa ei ollut) saavat sinisen NEW-merkin seuraavaan
+käynnistykseen asti. Kokoaja: `scripts/make-notes.js`, näyttö: `app/main/whatsnew.js`.
 
 Miten päivitys toimii:
 - Exe pysyy samana. Ladattu versio tallentuu kansioon `%APPDATA%/pelipaja/updates/<versio>`,
@@ -91,15 +99,15 @@ Miten päivitys toimii:
 ```json
 {
   "id": "kuutiomaa",
-  "name": "Kuutiomaa",
+  "name": "Cubeland",
   "type": "html",
   "path": "kuutiomaa/index.html",
   "cover": "kuutiomaa/cover.png",
   "version": "0.1",
   "endButton": "top-left",
-  "tags": ["3D", "Hiekkalaatikko"],
-  "description": "Lyhyt kuvaus pelistä.",
-  "updates": ["Mitä uutta tässä versiossa"]
+  "tags": ["3D", "Sandbox"],
+  "description": "Short description of the game.",
+  "updates": ["What's new in this version"]
 }
 ```
 
@@ -108,13 +116,20 @@ Miten päivitys toimii:
 
 | Kenttä      | Mitä                                                                     |
 |-------------|--------------------------------------------------------------------------|
-| `id`        | pienet kirjaimet, numerot, `-` ja `_` (esim. `syva-vesi`)                  |
+| `id`        | pienet kirjaimet, numerot, `-` ja `_` (esim. `goat-mechanic`)                  |
 | `type`      | `html` = peli games-kansiossa, `url` = nettipeli (`path` on `https://`-osoite) |
 | `endButton` | Save & End -napin paikka: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center` |
 | `color`     | laatan väri, jos kansikuvaa ei ole (esim. `"#4a7bd0"`)                   |
-| `category`  | `peli` (oletus) = etusivu ja kirjasto, `minipeli` = Minipelit-välilehti     |
-| `players`   | minipeleille: `1` = Yksin, `2` = Kaksin samalla koneella                 |
-| `controls`  | minipelikortissa näkyvä lyhyt ohje, esim. `"WASD  vs  nuolet"`           |
+| `category`  | `peli` (oletus) = etusivu ja kirjasto, `minipeli` = Minigames-välilehti     |
+| `players`   | minipeleille: `1` = 1 player, `2` = 2 players samalla koneella                 |
+| `controls`  | minipelikortissa näkyvä lyhyt ohje, esim. `"WASD  vs  arrows"`           |
+
+### Co-op-pelit (coop.js)
+
+Peak Pals (tunturiin), Pizza Moped (mopolahetti) ja Cabin Rush (mokkiremontti) käyttävät yhteistä pohjaa `games/_shared/coop.js`. Se hoitaa
+valikon, kaksinpelin samalla koneella, nettipelin liittymiskoodilla (isännän kone pyörittää pelin,
+kaveri lähettää näppäimensä), tauon, tulosruudun, tasot ja peliohjaimet. Peli antaa sille vain
+omat funktionsa (`init`, `step`, `snapshot`, `apply`, `render`). Katso mallia esim. `games/mokkiremontti`.
 
 ### Minipelit
 
@@ -123,7 +138,7 @@ tauon (Esc), uuden pelin (R), äänet (M), ennätykset ja Save & End -tuen. Uusi
 kopioi jonkin minipelin kansio, muokkaa `Mini.run({...})`-kohtaa ja lisää peli games.jsoniin
 (`"category": "minipeli"`). Kansikuvan saa avaamalla pelin osoitteella `index.html#cover`.
 
-Kehitysversiossa (`npm start`) launcherissa on **+ Lisää peli** -nappi, joka avaa games-kansion.
+Kehitysversiossa (`npm start`) launcherissa on **+ Add game** -nappi, joka avaa games-kansion.
 Valmiissa versiossa uudet pelit tulevat päivitysten mukana.
 
 ## Save & End Game

@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Kahlekaverit</title>
+<title>Chained Movers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Permanent+Marker&family=Baloo+2:wght@500;700;800&display=swap">
@@ -101,66 +101,66 @@ button:disabled{opacity:.45!important;cursor:default}
 
 <div id="hud" hidden>
   <div id="top">
-    <div class="tape" id="dayLbl">Päivä 1</div>
+    <div class="tape" id="dayLbl">Night 1</div>
     <div id="timer">3:00</div>
     <div class="quota" id="quotaBox">
-      <div class="qtxt"><span id="bank">€0</span><span id="quota">/ €1 200</span></div>
+      <div class="qtxt"><span id="bank">€0</span><span id="quota">/ €1,200</span></div>
       <div class="qbar"><i id="qfill"></i></div>
     </div>
   </div>
-  <div class="pcard p1"><b><i></i>PATE</b><span class="st" id="st1"></span><span class="k" id="k1">WASD · F tartu · E huuda</span></div>
-  <div class="pcard p2"><b><i></i>MASA</b><span class="st" id="st2"></span><span class="k" id="k2">IJKL/nuolet · O tartu · U huuda</span></div>
+  <div class="pcard p1"><b><i></i>PATE</b><span class="st" id="st1"></span><span class="k" id="k1">WASD · F grab · E shout</span></div>
+  <div class="pcard p2"><b><i></i>MASA</b><span class="st" id="st2"></span><span class="k" id="k2">IJKL/arrows · O grab · U shout</span></div>
   <div id="hint"></div>
 </div>
 <div id="toast"></div>
 
 <div class="overlay" id="menu">
   <div class="box">
-    <div class="stamp">SÄRKYVÄÄ</div>
-    <div class="marker">Muutto Oy · yövuoro · 2 pelaajaa</div>
-    <h1>KAHLE&shy;KAVERIT</h1>
-    <p>Pate ja Masa on kahlittu toisiinsa ketjulla. Tyhjentäkää vanha kartano ennen aamua ja kantakaa tavarat pakuun. Joka kolhu syö esineen arvoa. Ja älkää herättäkö Ilkkaa, kartanon itsetietoista robotti-imuria.</p>
+    <div class="stamp">FRAGILE</div>
+    <div class="marker">Movers Ltd · night shift · 2 players</div>
+    <h1>CHAINED&shy; MOVERS</h1>
+    <p>Pate and Masa are chained to each other. Empty the old mansion before morning and carry everything to the van. Every bump eats into an item's value. And don't wake Ilkka, the mansion's self-aware robot vacuum.</p>
     <div class="controls">
       <div class="ctl p1"><b><i></i>PATE</b>
-        <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> liiku</div>
-        <div><kbd>F</kbd> tai <kbd>Välilyönti</kbd> pidä pohjassa: tartu</div>
-        <div><kbd>E</kbd> huuda</div>
+        <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</div>
+        <div><kbd>F</kbd> or <kbd>Space</kbd> hold: grab</div>
+        <div><kbd>E</kbd> shout</div>
       </div>
       <div class="ctl p2"><b><i></i>MASA</b>
-        <div><kbd>I</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> tai nuolet liiku</div>
-        <div><kbd>O</kbd> tai <kbd>Enter</kbd> pidä pohjassa: tartu</div>
-        <div><kbd>U</kbd> tai <kbd>oikea Shift</kbd> huuda</div>
+        <div><kbd>I</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> or arrows move</div>
+        <div><kbd>O</kbd> or <kbd>Enter</kbd> hold: grab</div>
+        <div><kbd>U</kbd> or <kbd>right Shift</kbd> shout</div>
       </div>
     </div>
     <div class="tips">
-      <span>Isot esineet, kuten piano, akvaario ja marmoripatsas, nousevat vain kahdella kantajalla. Yksin niitä voi vain raahata.</span>
-      <span>Onko huonekalu tiellä? Tarttukaa siihen molemmat, niin saatte siirrettyä sen.</span>
-      <span>Jokainen kova osuma seinään tai toiseen esineeseen syö arvoa. Arvo näkyy esineen päällä.</span>
-      <span>Huutakaa yhtä aikaa samaa esinettä kantaessa: HEAVE-HO antaa lisävoimaa.</span>
-      <span>Huuto ja kolinat houkuttelevat Ilkan. Paku on turvassa, Ilkka ei mene ulos.</span>
-      <span>Jos Ilkka imuroi kaverin, raahatkaa hänet ketjusta tai menkää viereen herättämään.</span>
+      <span>Big items like the piano, aquarium and marble statue need two carriers. Alone you can only drag them.</span>
+      <span>Furniture in the way? Both grab it and you can move it.</span>
+      <span>Every hard hit against a wall or another item lowers its value. The value is shown above the item.</span>
+      <span>Shout at the same time while carrying the same item: HEAVE-HO gives you extra strength.</span>
+      <span>Shouting and crashing attract Ilkka. The van is safe, Ilkka doesn't go outside.</span>
+      <span>If Ilkka vacuums your friend, drag them by the chain or go next to them to wake them up.</span>
     </div>
-    <div class="gfx"><span>Grafiikka</span><div class="seg" role="group" aria-label="Grafiikka"><button type="button" id="gmQ" data-gfx="quality">Laatu<small>varjot, terävä kuva</small></button><button type="button" id="gmP" data-gfx="performance">Suorituskyky<small>sulavampi, kevyempi</small></button></div></div>
+    <div class="gfx"><span>Graphics</span><div class="seg" role="group" aria-label="Graphics"><button type="button" id="gmQ" data-gfx="quality">Quality<small>shadows, sharp image</small></button><button type="button" id="gmP" data-gfx="performance">Performance<small>smoother, lighter</small></button></div></div>
     <div class="row">
-      <button class="go" id="contBtn" hidden>Jatka</button>
-      <button class="go" id="startBtn">Aloita yövuoro</button>
+      <button class="go" id="contBtn" hidden>Continue</button>
+      <button class="go" id="startBtn">Start night shift</button>
       <span class="small" id="bestLbl"></span>
     </div>
-    <div class="row"><button class="ghost" id="netBtn">Pelaa netissä</button><span class="small">Kaveri omalla koneellaan liittymiskoodilla</span></div>
-    <span class="small">Peliohjaimet toimivat myös: tatti liikkuu, A tarttuu, B huutaa. Esc = tauko, M = äänet, G = grafiikka.</span>
+    <div class="row"><button class="ghost" id="netBtn">Play online</button><span class="small">Your friend on their own computer with a join code</span></div>
+    <span class="small">Gamepads work too: stick moves, A grabs, B shouts. Esc = pause, M = sound, G = graphics.</span>
   </div>
 </div>
 
 <div class="overlay" id="result" hidden>
   <div class="box">
-    <div class="stamp" id="resStamp">KUITATTU</div>
-    <div class="marker" id="resKicker">Päivä 1</div>
-    <h2 id="resTitle">Kiintiö täynnä!</h2>
+    <div class="stamp" id="resStamp">SIGNED OFF</div>
+    <div class="marker" id="resKicker">Night 1</div>
+    <h2 id="resTitle">Quota met!</h2>
     <p id="resText"></p>
     <div class="stats" id="resStats"></div>
     <div class="row">
-      <button class="go" id="resBtn">Seuraava yö</button>
-      <button class="ghost" id="resMenu">Päävalikkoon</button>
+      <button class="go" id="resBtn">Next night</button>
+      <button class="ghost" id="resMenu">Main menu</button>
     </div>
   </div>
 </div>
@@ -168,39 +168,39 @@ button:disabled{opacity:.45!important;cursor:default}
 <div class="overlay" id="net" hidden>
   <div class="box">
     <div class="stamp">ONLINE</div>
-    <div class="marker">Nettipeli · kaksi konetta</div>
-    <h2>Pelaa kaverin kanssa netissä</h2>
-    <p>Toinen luo pelin ja saa liittymiskoodin. Toinen kirjoittaa koodin ja liittyy. Kumpikin ohjaa omaa hahmoaan omalla koneellaan WASD- tai nuolinäppäimillä.</p>
+    <div class="marker">Online · two computers</div>
+    <h2>Play online with a friend</h2>
+    <p>One of you creates a game and gets a join code. The other types the code and joins. Each of you controls your own character on your own computer with WASD or the arrow keys.</p>
     <div class="controls">
-      <div class="ctl p1"><b><i></i>Luo peli</b>
-        <div>Pelaat Patena. Sinun koneesi pyörittää pelin.</div>
-        <button class="go small" id="hostBtn">Luo peli</button>
-        <div class="codewrap" id="codeWrap" hidden><span class="small">Liittymiskoodi</span><div class="code" id="codeLbl">·····</div><button class="ghost small" id="copyBtn">Kopioi koodi</button></div>
+      <div class="ctl p1"><b><i></i>Create game</b>
+        <div>You play Pate. Your computer runs the game.</div>
+        <button class="go small" id="hostBtn">Create game</button>
+        <div class="codewrap" id="codeWrap" hidden><span class="small">Join code</span><div class="code" id="codeLbl">·····</div><button class="ghost small" id="copyBtn">Copy code</button></div>
       </div>
-      <div class="ctl p2"><b><i></i>Liity peliin</b>
-        <div>Pelaat Masana.</div>
-        <label class="small" for="joinCode">Kaverin koodi</label>
-        <input id="joinCode" maxlength="5" placeholder="KOODI" autocomplete="off" spellcheck="false">
-        <button class="go small" id="joinBtn">Liity</button>
+      <div class="ctl p2"><b><i></i>Join game</b>
+        <div>You play Masa.</div>
+        <label class="small" for="joinCode">Friend's code</label>
+        <input id="joinCode" maxlength="5" placeholder="CODE" autocomplete="off" spellcheck="false">
+        <button class="go small" id="joinBtn">Join</button>
       </div>
     </div>
     <p class="netstatus" id="netStatus" role="status"></p>
     <div class="row">
-      <button class="go" id="netStart" hidden>Aloita yövuoro</button>
-      <button class="ghost" id="netBack">Takaisin</button>
+      <button class="go" id="netStart" hidden>Start night shift</button>
+      <button class="ghost" id="netBack">Back</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="pause" hidden>
   <div class="box">
-    <div class="marker">Tauko</div>
-    <h2>Kahvitauko</h2>
-    <p>Ilkka odottaa kiltisti. Ehkä.</p>
-    <div class="gfx"><span>Grafiikka</span><div class="seg" role="group" aria-label="Grafiikka"><button type="button" id="gpQ" data-gfx="quality">Laatu<small>varjot, terävä kuva</small></button><button type="button" id="gpP" data-gfx="performance">Suorituskyky<small>sulavampi, kevyempi</small></button></div></div>
+    <div class="marker">Paused</div>
+    <h2>Coffee break</h2>
+    <p>Ilkka is waiting patiently. Maybe.</p>
+    <div class="gfx"><span>Graphics</span><div class="seg" role="group" aria-label="Graphics"><button type="button" id="gpQ" data-gfx="quality">Quality<small>shadows, sharp image</small></button><button type="button" id="gpP" data-gfx="performance">Performance<small>smoother, lighter</small></button></div></div>
         <div class="row">
-      <button class="go" id="resumeBtn">Jatka</button>
-      <button class="ghost" id="quitBtn">Päävalikkoon</button>
+      <button class="go" id="resumeBtn">Resume</button>
+      <button class="ghost" id="quitBtn">Main menu</button>
     </div>
   </div>
 </div>
@@ -217,49 +217,49 @@ const SPEED=230,ROPE=300,K=90,STEP=1/120,DAY_TIME=180;
 const ZONE={x:-400,y:FRONT_Y-75,w:165,h:150};
 // koko: s = pieni, m = keskikokoinen, l = iso (vaatii kaksi kantajaa)
 const TYPES={
-  vase:     {n:'Maljakko',       s:'s',r:12,m:1,  v:[120,220], fr:2.2,w:5},
-  lamp:     {n:'Pöytälamppu',    s:'s',r:12,m:.8, v:[60,120],  fr:1.6,w:4},
-  trophy:   {n:'Pokaali',        s:'s',r:11,m:1.2,v:[150,300], fr:.6, w:3},
-  duck:     {n:'Kumiankka',      s:'s',r:9, m:.4, v:[15,40],   fr:0,  w:3},
-  gnome:    {n:'Puutarhatonttu', s:'s',r:11,m:1.6,v:[60,140],  fr:1,  w:3},
-  teapot:   {n:'Teekannu',       s:'s',r:11,m:.9, v:[90,170],  fr:2,  w:3},
-  books:    {n:'Kirjapino',      s:'s',r:12,m:1.1,v:[40,90],   fr:.4, w:3},
-  painting: {n:'Taulu',          s:'m',r:20,m:1.4,v:[180,380], fr:1.2,w:4},
-  tv:       {n:'Putkitelkkari',  s:'m',r:20,m:3,  v:[250,450], fr:1.4,w:3},
-  gramo:    {n:'Gramofoni',      s:'m',r:16,m:2,  v:[280,480], fr:1.5,w:2},
-  globe:    {n:'Karttapallo',    s:'m',r:15,m:1.6,v:[160,300], fr:1.1,w:2},
-  guitar:   {n:'Kitara',         s:'m',r:18,m:1.4,v:[200,380], fr:1.3,w:2},
-  microwave:{n:'Mikroaaltouuni', s:'m',r:16,m:2.4,v:[80,160],  fr:.9, w:2},
-  chair:    {n:'Tuoli',          s:'m',r:17,m:1.8,v:[70,150],  fr:.8, w:3},
-  clock:    {n:'Kaappikello',    s:'l',r:24,m:7,  v:[900,1300],fr:1,  heavy:true},
+  vase:     {n:'Vase',       s:'s',r:12,m:1,  v:[120,220], fr:2.2,w:5},
+  lamp:     {n:'Desk lamp',    s:'s',r:12,m:.8, v:[60,120],  fr:1.6,w:4},
+  trophy:   {n:'Trophy',        s:'s',r:11,m:1.2,v:[150,300], fr:.6, w:3},
+  duck:     {n:'Rubber duck',      s:'s',r:9, m:.4, v:[15,40],   fr:0,  w:3},
+  gnome:    {n:'Garden gnome', s:'s',r:11,m:1.6,v:[60,140],  fr:1,  w:3},
+  teapot:   {n:'Teapot',       s:'s',r:11,m:.9, v:[90,170],  fr:2,  w:3},
+  books:    {n:'Book stack',      s:'s',r:12,m:1.1,v:[40,90],   fr:.4, w:3},
+  painting: {n:'Painting',          s:'m',r:20,m:1.4,v:[180,380], fr:1.2,w:4},
+  tv:       {n:'Tube TV',  s:'m',r:20,m:3,  v:[250,450], fr:1.4,w:3},
+  gramo:    {n:'Gramophone',      s:'m',r:16,m:2,  v:[280,480], fr:1.5,w:2},
+  globe:    {n:'Globe',    s:'m',r:15,m:1.6,v:[160,300], fr:1.1,w:2},
+  guitar:   {n:'Guitar',         s:'m',r:18,m:1.4,v:[200,380], fr:1.3,w:2},
+  microwave:{n:'Microwave', s:'m',r:16,m:2.4,v:[80,160],  fr:.9, w:2},
+  chair:    {n:'Chair',          s:'m',r:17,m:1.8,v:[70,150],  fr:.8, w:3},
+  clock:    {n:'Grandfather clock',    s:'l',r:24,m:7,  v:[900,1300],fr:1,  heavy:true},
   piano:    {n:'Piano',          s:'l',r:40,m:12, v:[1800,2600],fr:.8,heavy:true},
-  fridge:   {n:'Jääkaappi',      s:'l',r:26,m:8,  v:[600,900], fr:.7, heavy:true},
-  aquarium: {n:'Akvaario',       s:'l',r:30,m:9,  v:[1100,1600],fr:2.2,heavy:true},
-  statue:   {n:'Marmoripatsas',  s:'l',r:24,m:11, v:[1400,2000],fr:1.6,heavy:true},
-  arcade:   {n:'Pelikone',       s:'l',r:24,m:8,  v:[1000,1500],fr:1.2,heavy:true},
+  fridge:   {n:'Fridge',      s:'l',r:26,m:8,  v:[600,900], fr:.7, heavy:true},
+  aquarium: {n:'Aquarium',       s:'l',r:30,m:9,  v:[1100,1600],fr:2.2,heavy:true},
+  statue:   {n:'Marble statue',  s:'l',r:24,m:11, v:[1400,2000],fr:1.6,heavy:true},
+  arcade:   {n:'Arcade machine',       s:'l',r:24,m:8,  v:[1000,1500],fr:1.2,heavy:true},
 };
 const HEAVY=Object.keys(TYPES).filter(k=>TYPES[k].heavy);
 const ROOMS=[
-  {n:'Olohuone',f:'wood',c:['#6b4a33','#5a3d2a'],wl:'#5b4a6e'},{n:'Keittiö',f:'tile',c:['#cfc6b4','#9e968a'],wl:'#5e6b62'},
-  {n:'Kirjasto',f:'carpet',c:['#4a2a33','#8d5a3b'],wl:'#4a3a2e'},{n:'Makuuhuone',f:'carpet',c:['#3b4a6b','#c8b48a'],wl:'#6a5a7e'},
-  {n:'Sauna',f:'wood',c:['#a8794a','#8e6338'],wl:'#7a5a3a'},{n:'Biljardihuone',f:'carpet',c:['#2f5a3c','#c9a45a'],wl:'#3e4a3a'},
-  {n:'Ruokasali',f:'wood',c:['#7a5232','#664428'],wl:'#6b3e3e'},{n:'Työhuone',f:'stone',c:['#58525e','#45404b'],wl:'#45506a'},
-  {n:'Kylpyhuone',f:'tile',c:['#b9d6d2','#8fb0ac'],wl:'#4f6e74'},{n:'Musiikkihuone',f:'carpet',c:['#5e2f4f','#d2a85c'],wl:'#5a3a5a'},
-  {n:'Varasto',f:'stone',c:['#4d4a42','#3c3a33'],wl:'#4a4640'},
+  {n:'Living room',f:'wood',c:['#6b4a33','#5a3d2a'],wl:'#5b4a6e'},{n:'Kitchen',f:'tile',c:['#cfc6b4','#9e968a'],wl:'#5e6b62'},
+  {n:'Library',f:'carpet',c:['#4a2a33','#8d5a3b'],wl:'#4a3a2e'},{n:'Bedroom',f:'carpet',c:['#3b4a6b','#c8b48a'],wl:'#6a5a7e'},
+  {n:'Sauna',f:'wood',c:['#a8794a','#8e6338'],wl:'#7a5a3a'},{n:'Billiard room',f:'carpet',c:['#2f5a3c','#c9a45a'],wl:'#3e4a3a'},
+  {n:'Dining hall',f:'wood',c:['#7a5232','#664428'],wl:'#6b3e3e'},{n:'Study',f:'stone',c:['#58525e','#45404b'],wl:'#45506a'},
+  {n:'Bathroom',f:'tile',c:['#b9d6d2','#8fb0ac'],wl:'#4f6e74'},{n:'Music room',f:'carpet',c:['#5e2f4f','#d2a85c'],wl:'#5a3a5a'},
+  {n:'Storeroom',f:'stone',c:['#4d4a42','#3c3a33'],wl:'#4a4640'},
 ];
-const SHOUTS=['NOSTA!','VARO VARO!','MÄ HOIDAN!','HYVÄ HYVÄ!','MIHIN SÄ MENET?!','OOPS','KANTAKAA!','SE ON TÄSSÄ!','HUPS','ILKKA!!!','RAUHASSA!','KOLME, KAKS…','NOSTA SÄ!','EI SINNE!'];
+const SHOUTS=['LIFT!','CAREFUL CAREFUL!','I GOT IT!','NICE NICE!','WHERE ARE YOU GOING?!','OOPS','CARRY IT!','IT\'S RIGHT HERE!','WHOOPS','ILKKA!!!','EASY NOW!','THREE, TWO…','YOU LIFT!','NOT THERE!'];
 
 // ================= apurit =================
 function mulberry32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
-const euro=n=>'€'+Math.round(n).toLocaleString('fi-FI');
+const euro=n=>'€'+Math.round(n).toLocaleString('en-GB');
 const $=id=>document.getElementById(id);
 let best=0;try{best=+localStorage.getItem('kk_best')||0}catch(e){}
 
 // ================= three.js =================
-if(!window.THREE){document.body.insertAdjacentHTML('beforeend','<div class="overlay"><div class="box"><h2>3D-kirjasto ei latautunut</h2><p>Peli tarvitsee nettiyhteyden ensimmäisellä avauskerralla (three.js). Tarkista yhteys ja lataa sivu uudelleen.</p></div></div>');return}
+if(!window.THREE){document.body.insertAdjacentHTML('beforeend','<div class="overlay"><div class="box"><h2>The 3D library didn\'t load</h2><p>The game needs an internet connection the first time it opens (three.js). Check your connection and reload the page.</p></div></div>');return}
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
@@ -277,7 +277,7 @@ function applyGfx(){
   if(renderer.shadowMap.enabled!==q){renderer.shadowMap.enabled=q;moon.castShadow=q;scene.traverse(o=>{if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.needsUpdate=true)})}
   document.querySelectorAll('[data-gfx]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.gfx===GFX)));
 }
-function setGfx(v,announce){GFX=v;try{localStorage.setItem('kk_gfx',v)}catch(e){}applyGfx();if(announce)toast(v==='quality'?'Grafiikka: laatu':'Grafiikka: suorituskyky',1100,true)}
+function setGfx(v,announce){GFX=v;try{localStorage.setItem('kk_gfx',v)}catch(e){}applyGfx();if(announce)toast(v==='quality'?'Graphics: quality':'Graphics: performance',1100,true)}
 document.querySelectorAll('[data-gfx]').forEach(b=>b.addEventListener('click',()=>setGfx(b.dataset.gfx)));
 function resize(){vw=innerWidth;vh=innerHeight;renderer.setPixelRatio(pixelRatio());renderer.setSize(vw,vh);camera.aspect=vw/vh;camera.updateProjectionMatrix();odpr=Math.min(2,window.devicePixelRatio||1);ov.width=vw*odpr;ov.height=vh*odpr;ov.style.width=vw+'px';ov.style.height=vh+'px'}
 addEventListener('resize',resize);resize();
@@ -388,7 +388,7 @@ function buildMap(seed){
   const pool=ROOMS.slice().sort(()=>R()-.5);let pi=0;
   for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
     const front=c===0&&r===FRONT_ROW;
-    const st=front?{n:'Aula',f:'stone',c:['#5a4d44','#4a3f37'],wl:'#4a3a3a'}:pool[pi++%pool.length];
+    const st=front?{n:'Lobby',f:'stone',c:['#5a4d44','#4a3f37'],wl:'#4a3a3a'}:pool[pi++%pool.length];
     cells.push({c,r,x:c*CW,y:r*CH,st,lr:R()*.3-.15});
   }
   const KINDS=['shelf','sofa','counter','bed','table'];
@@ -574,11 +574,11 @@ function buildVan(){
   // takaovet auki
   for(const sz of[-1,1]){const d=box(g,62,70,4,'#d6cfbe',0,40,0);d.position.set(ZONE.x+ZONE.w+22,40,FRONT_Y+sz*(ZONE.h/2+30));d.rotation.y=sz*.9}
   // kyljen teksti
-  const logo=canvasTex(512,96,(c,w,h)=>{c.fillStyle='#e8e1d0';c.fillRect(0,0,w,h);c.fillStyle='#2a1a0b';c.font='44px "Permanent Marker", cursive';c.fillText('KAHLEKAVERIT',18,52);c.font='24px "Permanent Marker", cursive';c.fillStyle='#a3241c';c.fillText('MUUTTO OY · YÖVUORO',22,84)});
+  const logo=canvasTex(512,96,(c,w,h)=>{c.fillStyle='#e8e1d0';c.fillRect(0,0,w,h);c.fillStyle='#2a1a0b';c.font='44px "Permanent Marker", cursive';c.fillText('CHAINED MOVERS',18,52);c.font='24px "Permanent Marker", cursive';c.fillStyle='#a3241c';c.fillText('MOVERS LTD · NIGHT SHIFT',22,84)});
   const lm=new THREE.MeshStandardMaterial({map:logo,roughness:.8});
   const lp=add(g,new THREE.PlaneGeometry(200,38),lm,-345,44,ZONE.y+ZONE.h+14.6);lp.userData.own=true;lp.castShadow=false;
   // kohdealue lattialla
-  const zt=canvasTex(256,256,(c,w,h)=>{c.clearRect(0,0,w,h);c.strokeStyle='#fff';c.lineWidth=10;c.setLineDash([26,18]);c.strokeRect(12,12,w-24,h-24);c.setLineDash([]);c.font='30px "Bowlby One", sans-serif';c.fillStyle='rgba(255,255,255,.75)';c.textAlign='center';c.fillText('LASTAA',w/2,h/2+10)});
+  const zt=canvasTex(256,256,(c,w,h)=>{c.clearRect(0,0,w,h);c.strokeStyle='#fff';c.lineWidth=10;c.setLineDash([26,18]);c.strokeRect(12,12,w-24,h-24);c.setLineDash([]);c.font='30px "Bowlby One", sans-serif';c.fillStyle='rgba(255,255,255,.75)';c.textAlign='center';c.fillText('LOAD',w/2,h/2+10)});
   zoneMat=new THREE.MeshBasicMaterial({map:zt,transparent:true,color:'#efe0b0',depthWrite:false});
   const zp=add(g,new THREE.PlaneGeometry(ZONE.w-10,ZONE.h-10),zoneMat,ZONE.x+ZONE.w/2,4.5,FRONT_Y);zp.rotation.x=-Math.PI/2;zp.castShadow=false;zp.userData.own=true;
   world.add(g);
@@ -681,7 +681,7 @@ addEventListener('keydown',e=>{
   if(GAME_KEYS.has(e.code)&&G.phase==='play')e.preventDefault();
   keys[e.code]=true;
   if(e.code==='Escape'||e.code==='KeyP'){if(G.phase==='play')setPause(true);else if(G.phase==='pause')setPause(false)}
-  if(e.code==='KeyM'){muted=!muted;toast(muted?'Äänet pois':'Äänet päällä',1100,true)}
+  if(e.code==='KeyM'){muted=!muted;toast(muted?'Sound off':'Sound on',1100,true)}
   if(e.code==='KeyG'&&!e.repeat)setGfx(GFX==='quality'?'performance':'quality',true);
   if(G.phase==='play'&&!e.repeat){
     if(G.mode==='local')KB.forEach((k,i)=>{if(k.y.includes(e.code))yell(players[i])});
@@ -731,9 +731,9 @@ function newDay(){
   G.time=DAY_TIME;G.quota=1200+(G.day-1)*800;G.bank=0;G.leaveT=0;G.heave=0;
   G.stats={broken:0,slurp:0,eaten:0,delivered:0,lost:0};
   cam.x=-120;cam.y=FRONT_Y;cam.d=800;
-  $('dayLbl').textContent='Päivä '+G.day;$('quota').textContent='/ '+euro(G.quota);
+  $('dayLbl').textContent='Night '+G.day;$('quota').textContent='/ '+euro(G.quota);
   G.phase='play';showHud(true);last=performance.now();hudCache='';
-  toast('PÄIVÄ '+G.day+'<small>Kiintiö '+euro(G.quota)+' · aikaa 3 min</small>',2400,true);
+  toast('NIGHT '+G.day+'<small>Quota '+euro(G.quota)+' · 3 minutes</small>',2400,true);
   if(G.mode==='host'){net.ev=[];netSend({t:'start',day:G.day,seed:G.seed,quota:G.quota,items:items.map(it=>[it.id,it.t,r1(it.x),r1(it.y),it.val,r2(it.a)]),mon:[r1(mon.x),r1(mon.y)]})}
 }
 function release(p){if(p.hold){p.hold.holders=Math.max(0,p.hold.holders-1);p.hold=null}}
@@ -744,11 +744,11 @@ function tryGrab(p){
   p.hold=bestIt;bestIt.holders++;
   const a=Math.atan2(p.y-bestIt.y,p.x-bestIt.x),L=bestIt.r+p.r-3;p.ox=Math.cos(a)*L;p.oy=Math.sin(a)*L;
   sfx.grab();
-  if(TYPES[bestIt.t].heavy&&bestIt.holders<2)addText(bestIt.x,bestIt.y,'Tarvitaan 2 kantajaa!','#efe0b0',15,1.3,90);
-  if(TYPES[bestIt.t].heavy&&bestIt.holders===2)addText(bestIt.x,bestIt.y,'NOSTA!','#86e08a',18,1,90);
+  if(TYPES[bestIt.t].heavy&&bestIt.holders<2)addText(bestIt.x,bestIt.y,'Needs 2 carriers!','#efe0b0',15,1.3,90);
+  if(TYPES[bestIt.t].heavy&&bestIt.holders===2)addText(bestIt.x,bestIt.y,'LIFT!','#86e08a',18,1,90);
 }
 // Huonekalut: tartu kiinni (F / O). Huonekalu liikkuu vasta, kun molemmat pitävät siitä kiinni.
-const FURN_N={shelf:'Kirjahylly',sofa:'Sohva',counter:'Keittiötaso',bed:'Sänky',table:'Pöytä'};
+const FURN_N={shelf:'Bookshelf',sofa:'Sofa',counter:'Kitchen counter',bed:'Bed',table:'Table'};
 function tryGrabFurn(p){
   let best=null,bd=1e9;
   for(const f of furn){const cx=clamp(p.x,f.x,f.x+f.w),cy=clamp(p.y,f.y,f.y+f.h),d=Math.hypot(p.x-cx,p.y-cy)-p.r;if(d<16&&d<bd){bd=d;best=f}}
@@ -756,7 +756,7 @@ function tryGrabFurn(p){
   p.hold=best;best.holders++;
   p.ox=p.x-(best.x+best.w/2);p.oy=p.y-(best.y+best.h/2);
   sfx.grab();
-  addText(best.x+best.w/2,best.y+best.h/2,best.holders<2?'Tarvitaan 2 siirtäjää!':'SIIRRÄ!',best.holders<2?'#efe0b0':'#86e08a',best.holders<2?15:18,1.2,90);
+  addText(best.x+best.w/2,best.y+best.h/2,best.holders<2?'Needs 2 movers!':'PUSH!',best.holders<2?'#efe0b0':'#86e08a',best.holders<2?15:18,1.2,90);
 }
 const furnBlocked=(f)=>{
   for(const s of solids){if(s===f)continue;if(f.x<s.x+s.w&&f.x+f.w>s.x&&f.y<s.y+s.h&&f.y+f.h>s.y)return true}
@@ -778,7 +778,7 @@ function yell(p){
   p.yellT=1.1;p.bubble=pick(SHOUTS);sfx.yell(p.i);
   const now=performance.now()/1000;p.yellAt=now;
   const o=players[1-p.i];
-  if(p.hold&&o.hold===p.hold&&now-o.yellAt<.8){G.heave=5;p.bubble=o.bubble='HEAVE-HO!';o.yellT=1.1;sfx.heave();toast('HEAVE-HO!<small>Tuplavoimat 5 sekunniksi</small>',1400);shake(6)}
+  if(p.hold&&o.hold===p.hold&&now-o.yellAt<.8){G.heave=5;p.bubble=o.bubble='HEAVE-HO!';o.yellT=1.1;sfx.heave();toast('HEAVE-HO!<small>Double strength for 5 seconds</small>',1400);shake(6)}
   noise(p.x,p.y,700);
 }
 function noise(x,y,loud){
@@ -787,7 +787,7 @@ function noise(x,y,loud){
 }
 function damage(it,imp,mult){
   if(it.dead)return;
-  if(it.t==='duck'){if(imp>90&&it.hitT<=0){sfx.squeak();addText(it.x,it.y,'PIIP','#ffe14d',15,1,30);it.hitT=.3}return}
+  if(it.t==='duck'){if(imp>90&&it.hitT<=0){sfx.squeak();addText(it.x,it.y,'SQUEAK','#ffe14d',15,1,30);it.hitT=.3}return}
   if(imp<140)return;
   const loss=Math.max(5,Math.round((imp-140)*TYPES[it.t].fr*it.max/700*(mult||1)));
   it.val-=loss;it.hitT=.35;G.stats.lost+=loss;it.av+=(Math.random()-.5)*imp*.03;
@@ -800,7 +800,7 @@ function damage(it,imp,mult){
 function breakItem(it){
   it.dead=true;G.stats.broken++;
   for(const p of players)if(p.hold===it)p.hold=null;
-  addText(it.x,it.y,'RIKKI!','#ff4d5e',26,1.4,70);
+  addText(it.x,it.y,'BROKEN!','#ff4d5e',26,1.4,70);
   burst(it.x,it.y,'#e9e2d0',26,220,20);burst(it.x,it.y,'#c9925a',14,180,20);
   crash(.6,1200);shake(9);noise(it.x,it.y,1000);
 }
@@ -818,9 +818,9 @@ function step(dt){
     if(p.knocked>0){
       release(p);
       const o=players[1-p.i];
-      if(o.knocked<=0&&Math.hypot(o.x-p.x,o.y-p.y)<80){p.revive+=dt;if(p.revive>1.2){p.knocked=0;addText(p.x,p.y,'YLÖS!','#86e08a',20);sfx.grab()}}
+      if(o.knocked<=0&&Math.hypot(o.x-p.x,o.y-p.y)<80){p.revive+=dt;if(p.revive>1.2){p.knocked=0;addText(p.x,p.y,'UP!','#86e08a',20);sfx.grab()}}
       else p.revive=Math.max(0,p.revive-dt);
-      p.knocked-=dt;if(p.knocked<=0){p.knocked=0;addText(p.x,p.y,'Huh…','#fff',16)}
+      p.knocked-=dt;if(p.knocked<=0){p.knocked=0;addText(p.x,p.y,'Phew…','#fff',16)}
       p.vx*=Math.exp(-4*dt);p.vy*=Math.exp(-4*dt);
       continue;
     }
@@ -835,7 +835,7 @@ function step(dt){
     const it=p.hold;if(!it)continue;
     const bx=it.furn?it.x+it.w/2:it.x,by=it.furn?it.y+it.h/2:it.y;
     const ex=p.x-(bx+p.ox),ey=p.y-(by+p.oy);
-    if(ex*ex+ey*ey>70*70){release(p);addText(p.x,p.y,'Ups!','#fff',15);sfx.drop();continue}
+    if(ex*ex+ey*ey>70*70){release(p);addText(p.x,p.y,'Oops!','#fff',15);sfx.drop();continue}
     const me=effMass(it);
     it.vx+=ex*K*dt/me;it.vy+=ey*K*dt/me;
     const c=Math.min(1,10*dt/Math.sqrt(me));it.vx+=(p.vx-it.vx)*c;it.vy+=(p.vy-it.vy)*c;
@@ -870,7 +870,7 @@ function step(dt){
   for(const it of items){if(it.dead)continue;
     const d=Math.hypot(it.x-mon.x,it.y-mon.y);
     if(d<it.r+mon.r){
-      if(!it.holders&&TYPES[it.t].s==='s'&&mon.state!=='chase'&&mon.stun<=0){it.dead=true;G.stats.eaten++;addText(it.x,it.y,'NAM!','#efe0b0',22,1,40);sfx.nam();mon.stun=1}
+      if(!it.holders&&TYPES[it.t].s==='s'&&mon.state!=='chase'&&mon.stun<=0){it.dead=true;G.stats.eaten++;addText(it.x,it.y,'YUM!','#efe0b0',22,1,40);sfx.nam();mon.stun=1}
       else{const rel=circleCircle(mon,it,20,effMass(it),.4);if(rel>0)damage(it,rel*.5)}
     }
   }
@@ -881,7 +881,7 @@ function step(dt){
       it.dead=true;for(const p of players)if(p.hold===it)p.hold=null;
       G.bank+=it.val;G.stats.delivered++;
       addText(it.x,it.y,'+'+euro(it.val),'#86e08a',24,1.4,70);burst(it.x,it.y,'#86e08a',14,140,30);sfx.cash();
-      if(G.bank>=G.quota&&G.bank-it.val<G.quota){toast('KIINTIÖ TÄYNNÄ!<small>Menkää molemmat pakuun lähteäksenne, tai keräätte lisää</small>',2800);sfx.win()}
+      if(G.bank>=G.quota&&G.bank-it.val<G.quota){toast('QUOTA MET!<small>Both get in the van to leave, or keep collecting</small>',2800);sfx.win()}
     }
   }
   if(items.some(i=>i.dead)){for(const it of items)if(it.dead&&it.mesh){world.remove(it.mesh);it.mesh.traverse(o=>{if(o.geometry)o.geometry.dispose()})}items=items.filter(i=>!i.dead)}
@@ -959,21 +959,21 @@ function endDay(ok,why){
   if(humG)humG.gain.setTargetAtTime(0,AC.currentTime,.05);
   const bonus=ok&&why==='early'?Math.round(G.time)*5:0;
   const s=G.stats;
-  $('resKicker').textContent='Päivä '+G.day;
-  const rows=[['Pakuun kannettu',euro(G.bank)],['Kiintiö',euro(G.quota)],['Esineitä toimitettu',s.delivered],['Kolhuissa menetetty',euro(s.lost)],['Rikki menneet',s.broken],['Ilkan syömät',s.eaten],['Imuroinnit',s.slurp]];
-  if(bonus)rows.splice(2,0,['Aikabonus',euro(bonus)]);
+  $('resKicker').textContent='Night '+G.day;
+  const rows=[['Loaded into the van',euro(G.bank)],['Quota',euro(G.quota)],['Items delivered',s.delivered],['Lost to bumps',euro(s.lost)],['Broken',s.broken],['Eaten by Ilkka',s.eaten],['Times vacuumed',s.slurp]];
+  if(bonus)rows.splice(2,0,['Time bonus',euro(bonus)]);
   $('resStats').innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');
   if(ok){
-    $('resStamp').textContent='KUITATTU';$('resStamp').style.borderColor=$('resStamp').style.color='#2f7a35';
-    $('resTitle').textContent=why==='early'?'Lähditte ajoissa!':'Aamu koitti, kiintiö täynnä!';
-    $('resText').textContent=pick(['Pomo on tyytyväinen. Huomenna isompi talo ja isompi kiintiö.','Ilkka jäi imuroimaan yksin. Hyvää työtä.','Paku on täynnä ja ketju vielä ehjä. Melkein ammattilaisia.']);
-    $('resBtn').textContent='Seuraava yö';sfx.win();
+    $('resStamp').textContent='SIGNED OFF';$('resStamp').style.borderColor=$('resStamp').style.color='#2f7a35';
+    $('resTitle').textContent=why==='early'?'You left early!':'Morning came, quota met!';
+    $('resText').textContent=pick(['The boss is happy. Tomorrow: a bigger house and a bigger quota.','Ilkka was left vacuuming alone. Good work.','The van is full and the chain is still intact. Almost professionals.']);
+    $('resBtn').textContent='Next night';sfx.win();
     if(G.day>best){best=G.day;try{localStorage.setItem('kk_best',String(best))}catch(e){}}
   }else{
-    $('resStamp').textContent='HYLÄTTY';$('resStamp').style.borderColor=$('resStamp').style.color='#a3241c';
-    $('resTitle').textContent=why==='slurp'?'Molemmat imuroitiin':'Kiintiö jäi vajaaksi';
-    $('resText').textContent=why==='slurp'?'Ilkka on nyt kahden muuttomiehen ja yhden ketjun painoisempi. Firma lähettää uudet kaverit huomenna.':'Aurinko nousi ja pomo laski laatikot. Ei riittänyt. Muuttofirma aloittaa alusta.';
-    $('resBtn').textContent='Uusi yritys';sfx.lose();
+    $('resStamp').textContent='REJECTED';$('resStamp').style.borderColor=$('resStamp').style.color='#a3241c';
+    $('resTitle').textContent=why==='slurp'?'You both got vacuumed':'Quota not met';
+    $('resText').textContent=why==='slurp'?'Ilkka is now two movers and one chain heavier. The company will send new guys tomorrow.':'The sun rose and the boss counted the boxes. Not enough. The moving company starts over.';
+    $('resBtn').textContent='Try again';sfx.lose();
   }
   G.lastOk=ok;
   saveDay(ok?G.day+1:0);
@@ -987,7 +987,7 @@ function toMenu(){if(G.mode!=='local'){netSend({t:'menu'});setTimeout(netCleanup
 function savedDay(){try{return +localStorage.getItem('kk_save')||0}catch(e){return 0}}
 function saveDay(d){try{if(d>1)localStorage.setItem('kk_save',String(d));else localStorage.removeItem('kk_save')}catch(e){}}
 window.rrSaveGame=()=>{if((G.phase==='play'||G.phase==='pause')&&G.mode!=='client')saveDay(G.day)};
-function updateBest(){const sd=savedDay();$('contBtn').hidden=sd<2;$('contBtn').textContent='Jatka: yö '+sd;$('startBtn').textContent=sd>1?'Uusi peli':'Aloita yövuoro';$('bestLbl').textContent=best?'Pisin selvitty putki: '+best+(best===1?' yö':' yötä'):''}
+function updateBest(){const sd=savedDay();$('contBtn').hidden=sd<2;$('contBtn').textContent='Continue: night '+sd;$('startBtn').textContent=sd>1?'New game':'Start night shift';$('bestLbl').textContent=best?'Longest streak: '+best+(best===1?' night':' nights'):''}
 $('startBtn').onclick=()=>{initAudio();if(AC&&AC.state==='suspended')AC.resume();$('menu').hidden=true;saveDay(0);G.day=1;newDay()};
 $('contBtn').onclick=()=>{initAudio();if(AC&&AC.state==='suspended')AC.resume();$('menu').hidden=true;G.day=savedDay()||1;newDay()};
 $('resBtn').onclick=()=>{$('result').hidden=true;G.day=G.lastOk?G.day+1:1;newDay()};
@@ -1091,12 +1091,12 @@ function drawOverlay(){
     g.font='800 13px "Baloo 2", sans-serif';const s=ty.n+'  '+euro(it.val),w=g.measureText(s).width+14;
     g.fillStyle='rgba(17,14,27,.82)';rr(g,sx-w/2,sy-20,w,19,5);g.fill();g.fillStyle=col;g.fillText(s,sx,sy-6);
     if(k<1){g.fillStyle='rgba(255,255,255,.15)';g.fillRect(sx-w/2+6,sy-2,w-12,3);g.fillStyle=col;g.fillRect(sx-w/2+6,sy-2,(w-12)*k,3)}
-    if(ty.heavy&&it.holders===1&&G.heave<=0){g.font='15px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('Tarvitaan 2 kantajaa!',sx,sy-28)}
+    if(ty.heavy&&it.holders===1&&G.heave<=0){g.font='15px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('Needs 2 carriers!',sx,sy-28)}
   }
   for(const f of furn){
     if(f.holders!==1)continue;
     const [sx,sy]=project(f.x+f.w/2,90,f.y+f.h/2);
-    g.font='15px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('Tarvitaan 2 siirtäjää!',sx,sy);
+    g.font='15px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('Needs 2 movers!',sx,sy);
   }
   for(const p of players){
     const [sx,sy]=project(p.x,p.knocked>0?36:70,p.y);
@@ -1108,8 +1108,8 @@ function drawOverlay(){
       g.beginPath();g.moveTo(-7,13);g.lineTo(0,24);g.lineTo(7,13);g.fill();g.fillStyle='#1b1420';g.fillText(p.bubble,0,6);g.restore();
     }
   }
-  if(mon&&mon.stun>0){const [sx,sy]=project(mon.x,40,mon.y);g.font='18px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('*röyh*',sx,sy)}
-  if(G.leaveT>0){const [sx,sy]=project(ZONE.x+ZONE.w/2,80,FRONT_Y);g.strokeStyle='#86e08a';g.lineWidth=7;g.beginPath();g.arc(sx,sy,34,-1.57,-1.57+6.283*G.leaveT/2);g.stroke();g.font='16px "Bowlby One", sans-serif';g.fillStyle='#86e08a';g.fillText('LÄHDETÄÄN',sx,sy-46)}
+  if(mon&&mon.stun>0){const [sx,sy]=project(mon.x,40,mon.y);g.font='18px "Permanent Marker", cursive';g.fillStyle='#efe0b0';g.fillText('*burp*',sx,sy)}
+  if(G.leaveT>0){const [sx,sy]=project(ZONE.x+ZONE.w/2,80,FRONT_Y);g.strokeStyle='#86e08a';g.lineWidth=7;g.beginPath();g.arc(sx,sy,34,-1.57,-1.57+6.283*G.leaveT/2);g.stroke();g.font='16px "Bowlby One", sans-serif';g.fillStyle='#86e08a';g.fillText('LET\'S GO',sx,sy-46)}
   for(const t of texts){const k=t.t/t.life,[sx,sy]=project(t.x,t.h+k*40,t.y);g.globalAlpha=1-k*k;g.font=`${t.size}px "Bowlby One", sans-serif`;g.fillStyle='#000';g.fillText(t.s,sx+2,sy+2);g.fillStyle=t.col;g.fillText(t.s,sx,sy)}
   g.globalAlpha=1;
   if(G.heave>0){g.fillStyle=`rgba(255,138,61,${.06+.04*Math.sin(performance.now()/90)})`;g.fillRect(0,0,vw,vh)}
@@ -1132,13 +1132,13 @@ function placeCam(x,y,d){
 let hudCache='';
 function updateHud(){
   const s=Math.ceil(G.time),mm=Math.floor(s/60),ss=String(s%60).padStart(2,'0');
-  const st=p=>p.knocked>0?['Imuroitu! '+Math.ceil(p.knocked)+' s','bad']:p.hold?(p.hold.furn?['Siirtää: '+FURN_N[p.hold.k],'']:['Kantaa: '+TYPES[p.hold.t].n,'']):['',''];
+  const st=p=>p.knocked>0?['Vacuumed! '+Math.ceil(p.knocked)+' s','bad']:p.hold?(p.hold.furn?['Moving: '+FURN_N[p.hold.k],'']:['Carrying: '+TYPES[p.hold.t].n,'']):['',''];
   const s1=st(players[0]),s2=st(players[1]);
   const full=G.bank>=G.quota;
-  const hint=full?'Kiintiö täynnä · menkää molemmat pakuun lähteäksenne':G.heave>0?'HEAVE-HO! '+Math.ceil(G.heave)+' s':mon.state==='chase'?'ILKKA JAHTAA! Juoskaa pakuun':'';
+  const hint=full?'Quota met · both get in the van to leave':G.heave>0?'HEAVE-HO! '+Math.ceil(G.heave)+' s':mon.state==='chase'?'ILKKA IS CHASING! Run to the van':'';
   const online=G.mode!=='local',me=G.mode==='client'?1:0;
-  const k1=!online?'WASD · F tartu · E huuda':me===0?'Sinä · WASD/nuolet · F tartu · E huuda':'Kaveri netissä · ping '+net.ping+' ms';
-  const k2=!online?'IJKL/nuolet · O tartu · U huuda':me===1?'Sinä · WASD/nuolet · F tartu · E huuda':'Kaveri netissä · ping '+net.ping+' ms';
+  const k1=!online?'WASD · F grab · E shout':me===0?'You · WASD/arrows · F grab · E shout':'Friend online · ping '+net.ping+' ms';
+  const k2=!online?'IJKL/arrows · O grab · U shout':me===1?'You · WASD/arrows · F grab · E shout':'Friend online · ping '+net.ping+' ms';
   const key=[mm,ss,G.bank,s1,s2,hint,full,k1,k2].join('|');if(key===hudCache)return;hudCache=key;
   $('k1').textContent=k1;$('k2').textContent=k2;
   $('timer').textContent=mm+':'+ss;$('timer').classList.toggle('low',s<=30);
@@ -1149,7 +1149,7 @@ function updateHud(){
 
 // ================= nettipeli =================
 // Isäntä pyörittää koko pelin. Kaveri lähettää näppäimensä ja saa pelitilanteen 20 kertaa sekunnissa.
-const NET_VER='kk-net-2',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const NET_VER='kk-net-3',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const net={peer:null,conn:null,code:'',remote:{x:0,y:0,g:false},lastIn:0,sendT:0,inT:0,lastSent:'',ping:0,pingT:0,ev:[],connected:false,snapOk:false};
 G.mode='local';
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
@@ -1159,24 +1159,24 @@ function netCleanup(){const c=net.conn,pr=net.peer;net.conn=null;net.peer=null;n
 function hasNet(){return typeof window.Peer==='function'&&typeof window.RTCPeerConnection==='function'}
 function netStatus(t,bad){const el=$('netStatus');el.textContent=t;el.classList.toggle('bad',!!bad)}
 function netErrText(err){
-  const m={'peer-unavailable':'Peliä ei löytynyt tällä koodilla. Tarkista koodi ja että kaverin peli on auki.','network':'Ei yhteyttä välityspalvelimeen. Tarkista nettiyhteys.',
-    'server-error':'Välityspalvelin ei vastaa juuri nyt. Yrittäkää hetken päästä uudelleen.','socket-error':'Välityspalvelin ei vastaa juuri nyt. Yrittäkää hetken päästä uudelleen.',
-    'socket-closed':'Yhteys välityspalvelimeen katkesi.','browser-incompatible':'Tämä selain ei tue nettipeliä. Pelatkaa Pelipajassa.',
-    'webrtc':'Suora yhteys ei auennut. Verkko saattaa estää sen.'};
-  return m[err&&err.type]||('Yhteysvirhe: '+((err&&(err.message||err.type))||'tuntematon'));
+  const m={'peer-unavailable':'No game found with that code. Check the code and that your friend\'s game is open.','network':'Can\'t reach the relay server. Check your internet connection.',
+    'server-error':'The relay server isn\'t responding right now. Try again in a moment.','socket-error':'The relay server isn\'t responding right now. Try again in a moment.',
+    'socket-closed':'Lost connection to the relay server.','browser-incompatible':'This browser doesn\'t support online play. Play in Pelipaja.',
+    'webrtc':'A direct connection couldn\'t be opened. The network may be blocking it.'};
+  return m[err&&err.type]||('Connection error: '+((err&&(err.message||err.type))||'unknown'));
 }
 function netButtons(on){$('hostBtn').disabled=!on;$('joinBtn').disabled=!on}
 function openNet(){
   $('menu').hidden=true;$('net').hidden=false;$('codeWrap').hidden=true;$('netStart').hidden=true;netButtons(true);netStatus('');
-  if(!hasNet()){netButtons(false);netStatus('Nettipeli toimii Pelipajassa tai ladattuna tiedostona selaimessa. Tämä näkymä estää suorat yhteydet.',true)}
+  if(!hasNet()){netButtons(false);netStatus('Online play works in Pelipaja or as a downloaded file in a browser. This view blocks direct connections.',true)}
 }
 function closeNet(){netCleanup();$('net').hidden=true;$('menu').hidden=false;updateBest()}
 function newCode(){let c='';for(let i=0;i<5;i++)c+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return c}
 function hostGame(){
   if(!hasNet())return;
-  netCleanup();netButtons(false);$('codeWrap').hidden=true;$('netStart').hidden=true;netStatus('Luodaan peliä…');
+  netCleanup();netButtons(false);$('codeWrap').hidden=true;$('netStart').hidden=true;netStatus('Creating game…');
   const code=newCode(),peer=new Peer(NET_PREFIX+code,{debug:0});net.peer=peer;
-  peer.on('open',()=>{if(net.peer!==peer)return;net.code=code;$('codeLbl').textContent=code;$('codeWrap').hidden=false;$('copyBtn').textContent='Kopioi koodi';netStatus('Lähetä koodi kaverille. Odotetaan, että hän liittyy…')});
+  peer.on('open',()=>{if(net.peer!==peer)return;net.code=code;$('codeLbl').textContent=code;$('codeWrap').hidden=false;$('copyBtn').textContent='Copy code';netStatus('Send the code to your friend. Waiting for them to join…')});
   peer.on('connection',conn=>{
     if(net.peer!==peer)return;
     if(net.conn&&net.conn.open){conn.on('open',()=>{conn.send({t:'full'});setTimeout(()=>conn.close(),400)});return}
@@ -1193,13 +1193,13 @@ function hostGame(){
 function joinGame(){
   if(!hasNet())return;
   const code=$('joinCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if(code.length!==5){netStatus('Liittymiskoodissa on 5 merkkiä.',true);$('joinCode').focus();return}
-  netCleanup();netButtons(false);$('codeWrap').hidden=true;$('netStart').hidden=true;netStatus('Yhdistetään…');
+  if(code.length!==5){netStatus('The join code has 5 characters.',true);$('joinCode').focus();return}
+  netCleanup();netButtons(false);$('codeWrap').hidden=true;$('netStart').hidden=true;netStatus('Connecting…');
   const peer=new Peer({debug:0});net.peer=peer;
   peer.on('open',()=>{
     if(net.peer!==peer)return;
     const conn=peer.connect(NET_PREFIX+code,{reliable:true,serialization:'json'});net.conn=conn;bindConn(conn,'client');
-    setTimeout(()=>{if(net.conn===conn&&!net.connected){netStatus('Yhteys ei auennut. Tarkista koodi tai kokeilkaa toista verkkoa.',true);netCleanup();netButtons(true)}},15000);
+    setTimeout(()=>{if(net.conn===conn&&!net.connected){netStatus('Couldn\'t connect. Check the code or try another network.',true);netCleanup();netButtons(true)}},15000);
   });
   peer.on('error',err=>{
     if(net.peer!==peer)return;
@@ -1210,7 +1210,7 @@ function joinGame(){
 function bindConn(conn,role){
   conn.on('open',()=>{if(role==='client')conn.send({t:'hello',v:NET_VER})});
   conn.on('data',d=>{if(net.conn===conn)onNet(d,role)});
-  conn.on('close',()=>{if(net.conn===conn){if(G.phase==='menu'&&!$('net').hidden){netStatus('Kaveri poistui.',true);netCleanup();netButtons(true);$('netStart').hidden=true}else if(net.connected)netLost('Kaveri poistui pelistä tai yhteys katkesi.')}});
+  conn.on('close',()=>{if(net.conn===conn){if(G.phase==='menu'&&!$('net').hidden){netStatus('Your friend left.',true);netCleanup();netButtons(true);$('netStart').hidden=true}else if(net.connected)netLost('Your friend left the game or the connection dropped.')}});
   conn.on('error',()=>{});
 }
 function onNet(d,role){
@@ -1219,27 +1219,27 @@ function onNet(d,role){
   if(role==='host'){
     switch(d.t){
       case 'hello':
-        if(d.v!==NET_VER){netSend({t:'bad'});netStatus('Kaverilla on eri versio pelistä. Päivittäkää molemmat.',true);return}
-        net.connected=true;net.lastRx=performance.now();G.mode='host';netSend({t:'welcome'});netStatus('Masa liittyi! Aloita, kun olette valmiita.');$('netStart').hidden=false;$('netStart').focus();sfxRaw.cash();break;
+        if(d.v!==NET_VER){netSend({t:'bad'});netStatus('Your friend has a different version of the game. Both of you should update.',true);return}
+        net.connected=true;net.lastRx=performance.now();G.mode='host';netSend({t:'welcome'});netStatus('Masa joined! Start when you\'re both ready.');$('netStart').hidden=false;$('netStart').focus();sfxRaw.cash();break;
       case 'in':net.remote={x:clamp(+d.x||0,-1,1),y:clamp(+d.y||0,-1,1),g:!!d.g};net.lastIn=performance.now();if(d.p!=null)net.ping=d.p;break;
       case 'y':if(G.phase==='play')yell(players[1]);break;
       case 'ping':netSend({t:'pong',ts:d.ts});break;
       case 'pause':if(G.phase==='play')setPause(true,true);break;
       case 'resume':if(G.phase==='pause')setPause(false,true);break;
-      case 'menu':netLost('Masa palasi päävalikkoon.');break;
+      case 'menu':netLost('Masa went back to the main menu.');break;
     }
   }else{
     switch(d.t){
-      case 'welcome':net.connected=true;net.lastRx=performance.now();G.mode='client';netStatus('Yhdistetty! Odotetaan, että Pate aloittaa yövuoron…');sfxRaw.cash();break;
-      case 'bad':netStatus('Pelin versiot eivät täsmää. Päivittäkää molemmat.',true);break;
-      case 'full':netStatus('Pelissä on jo kaksi pelaajaa.',true);break;
+      case 'welcome':net.connected=true;net.lastRx=performance.now();G.mode='client';netStatus('Connected! Waiting for Pate to start the night shift…');sfxRaw.cash();break;
+      case 'bad':netStatus('Game versions don\'t match. Both of you should update.',true);break;
+      case 'full':netStatus('The game already has two players.',true);break;
       case 'start':clientStart(d);break;
       case 's':if(G.phase==='play'||G.phase==='pause')applySnap(d);break;
       case 'end':clientEnd(d);break;
       case 'pong':net.ping=Math.round(performance.now()-d.ts);break;
       case 'pause':if(G.phase==='play')setPause(true,true);break;
       case 'resume':if(G.phase==='pause')setPause(false,true);break;
-      case 'menu':netLost('Pate palasi päävalikkoon.');break;
+      case 'menu':netLost('Pate went back to the main menu.');break;
     }
   }
 }
@@ -1248,7 +1248,7 @@ function netLost(msg){
   for(const id of ['net','result','pause'])$(id).hidden=true;
   showHud(false);if(humG)humG.gain.setTargetAtTime(0,AC.currentTime,.05);
   G.phase='menu';players=[];$('menu').hidden=false;$('resBtn').hidden=false;updateBest();
-  toast('YHTEYS KATKESI<small>'+msg+'</small>',3800,true);
+  toast('CONNECTION LOST<small>'+msg+'</small>',3800,true);
 }
 function localYell(){if(G.mode==='host')yell(players[0]);else if(G.mode==='client')netSend({t:'y'})}
 function sendSnap(){
@@ -1265,9 +1265,9 @@ function clientStart(d){
   G.day=d.day;setupDay(d.seed,d.items);mon.x=d.mon[0];mon.y=d.mon[1];
   G.time=DAY_TIME;G.quota=d.quota;G.bank=0;G.leaveT=0;G.heave=0;net.snapOk=false;
   cam.x=-120;cam.y=FRONT_Y;cam.d=800;hudCache='';
-  $('dayLbl').textContent='Päivä '+G.day;$('quota').textContent='/ '+euro(G.quota);
+  $('dayLbl').textContent='Night '+G.day;$('quota').textContent='/ '+euro(G.quota);
   G.phase='play';showHud(true);last=performance.now();
-  toast('PÄIVÄ '+G.day+'<small>Kiintiö '+euro(G.quota)+' · pelaat Masana</small>',2400,true);
+  toast('NIGHT '+G.day+'<small>Quota '+euro(G.quota)+' · you play Masa</small>',2400,true);
 }
 function applyEv(e){
   switch(e[0]){
@@ -1303,13 +1303,13 @@ function clientEnd(d){
   if(G.phase==='menu')return;
   G.phase='end';if(humG)humG.gain.setTargetAtTime(0,AC.currentTime,.05);
   $('resKicker').textContent=d.kick;$('resStamp').textContent=d.stamp;$('resStamp').style.color=$('resStamp').style.borderColor=d.sc;
-  $('resTitle').textContent=d.title;$('resText').textContent=d.text+' Odotetaan, että Pate aloittaa seuraavan yövuoron.';$('resStats').innerHTML=d.stats;
+  $('resTitle').textContent=d.title;$('resText').textContent=d.text+' Waiting for Pate to start the next night shift.';$('resStats').innerHTML=d.stats;
   $('resBtn').hidden=true;(d.ok?sfxRaw.win:sfxRaw.lose)();
   if(d.ok){const day=+String(d.kick).replace(/\D/g,'')||0;if(day>best){best=day;try{localStorage.setItem('kk_best',String(best))}catch(e){}}}
   showHud(false);$('result').hidden=false;$('resMenu').focus();
 }
 // sydämenlyönti: kumpikin kuulee toisesta vähintään kerran sekunnissa
-setInterval(()=>{if(!net.connected)return;netSend({t:'hb'});if(performance.now()-net.lastRx>8000)netLost('Kaveri ei vastaa. Yhteys katkesi.')},1000);
+setInterval(()=>{if(!net.connected)return;netSend({t:'hb'});if(performance.now()-net.lastRx>8000)netLost('Your friend isn\'t responding. Connection lost.')},1000);
 // isännän peli jatkuu, vaikka ikkuna olisi piilossa (selain pysäyttää silloin ruudunpäivityksen)
 setInterval(()=>{if(document.hidden&&G.mode==='host'&&G.phase==='play'){const now=performance.now(),dt=Math.min(.1,(now-last)/1000);last=now;simTick(dt)}},50);
 $('netBtn').onclick=()=>{initAudio();openNet()};
@@ -1318,9 +1318,9 @@ $('hostBtn').onclick=hostGame;
 $('joinBtn').onclick=joinGame;
 $('joinCode').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')joinGame()});
 $('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
-$('copyBtn').onclick=()=>{const c=net.code,b=$('copyBtn');const done=()=>{b.textContent='Kopioitu!'};
+$('copyBtn').onclick=()=>{const c=net.code,b=$('copyBtn');const done=()=>{b.textContent='Copied!'};
   try{navigator.clipboard.writeText(c).then(done,()=>{selectCode()})}catch(e){selectCode()}};
-function selectCode(){const r=document.createRange();r.selectNodeContents($('codeLbl'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copyBtn').textContent='Valittu, paina Ctrl+C'}
+function selectCode(){const r=document.createRange();r.selectNodeContents($('codeLbl'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copyBtn').textContent='Selected, press Ctrl+C'}
 $('netStart').onclick=()=>{initAudio();if(AC&&AC.state==='suspended')AC.resume();$('net').hidden=true;G.day=1;newDay()};
 
 // ================= pääsilmukka =================

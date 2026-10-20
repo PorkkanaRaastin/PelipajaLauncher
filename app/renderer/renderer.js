@@ -3,6 +3,10 @@ const api = window.launcher;
 const $ = (id) => document.getElementById(id);
 
 let games = [];
+// uudet pelit (UUSI-merkki näkyy, kunnes Pelipaja käynnistetään uudelleen)
+let newIds = new Set();
+let whatsNew = null, whatsNewShown = false;
+function newBadge() { const b = document.createElement("span"); b.className = "new-badge"; b.textContent = "NEW"; return b; }
 const mainGames = () => games.filter((g) => g.category !== "minipeli");
 const miniGames = () => games.filter((g) => g.category === "minipeli");
 let stats = {};
@@ -22,13 +26,13 @@ function formatTime(ms) {
 }
 
 function formatDate(ts) {
-  if (!ts) return "Ei vielä";
+  if (!ts) return "Never";
   const d = new Date(ts);
   const today = new Date();
   const yesterday = new Date(Date.now() - 86400000);
-  if (d.toDateString() === today.toDateString()) return "Tänään";
-  if (d.toDateString() === yesterday.toDateString()) return "Eilen";
-  return d.toLocaleDateString("fi-FI");
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString("en-GB");
 }
 
 function cover(game, cls) {
@@ -84,10 +88,11 @@ function renderSidebar() {
     name.className = "name";
     name.textContent = g.name;
     btn.append(name);
+    if (newIds.has(g.id)) btn.append(newBadge());
     if (runningIds.includes(g.id)) {
       const dot = document.createElement("span");
       dot.className = "dot-running";
-      dot.title = "Käynnissä";
+      dot.title = "Running";
       btn.append(dot);
     }
     btn.addEventListener("click", () => selectGame(g.id));
@@ -100,8 +105,8 @@ function renderHero() {
   const g = games.find((x) => x.id === selectedId);
   const playBtn = $("playBtn");
   if (!g) {
-    $("heroTitle").textContent = "Ei pelejä vielä";
-    $("heroDesc").textContent = "Pelit tulevat Pelipajan päivitysten mukana.";
+    $("heroTitle").textContent = "No games yet";
+    $("heroDesc").textContent = "Games arrive with Pelipaja updates.";
     $("heroTags").replaceChildren();
     $("heroBg").style.backgroundImage = "";
     playBtn.disabled = true;
@@ -116,6 +121,7 @@ function renderHero() {
 
   const tags = $("heroTags");
   tags.replaceChildren();
+  if (newIds.has(g.id)) tags.append(newBadge());
   for (const t of g.tags || []) {
     const s = document.createElement("span");
     s.className = "tag";
@@ -132,8 +138,8 @@ function renderHero() {
   const isRunning = runningIds.includes(g.id);
   playBtn.disabled = false;
   playBtn.classList.toggle("running", isRunning);
-  playBtn.querySelector(".play-label").textContent = isRunning ? "SULJE PELI" : "PELAA";
-  $("playSub").textContent = isRunning ? "Peli on käynnissä" : "Käynnistyy omaan ikkunaan";
+  playBtn.querySelector(".play-label").textContent = isRunning ? "CLOSE GAME" : "PLAY";
+  $("playSub").textContent = isRunning ? "Game is running" : "Opens in its own window";
 
   const notes = $("notes");
   notes.replaceChildren();
@@ -160,16 +166,17 @@ function renderGrid() {
     b.textContent = g.name;
     const span = document.createElement("span");
     const st = stats[g.id];
-    span.textContent = st && st.playtimeMs ? `Pelattu ${formatTime(st.playtimeMs)}` : "Ei pelattu vielä";
+    span.textContent = st && st.playtimeMs ? `Played ${formatTime(st.playtimeMs)}` : "Not played yet";
     body.append(b, span);
     card.append(body);
+    if (newIds.has(g.id)) { const nb = newBadge(); nb.classList.add("on-card"); card.append(nb); }
     card.addEventListener("click", () => selectGame(g.id));
     grid.append(card);
   }
   if (!q && devMode) {
     const add = document.createElement("button");
     add.className = "card add";
-    add.textContent = "+ Lisää peli";
+    add.textContent = "+ Add game";
     add.addEventListener("click", () => api.openGamesFolder());
     grid.append(add);
   }
@@ -189,8 +196,9 @@ function renderMinigames() {
       art.append(cover(g));
       const badge = document.createElement("span");
       badge.className = "mini-badge";
-      badge.textContent = players === 2 ? "2 pelaajaa" : "1 pelaaja";
+      badge.textContent = players === 2 ? "2 players" : "1 player";
       art.append(badge);
+      if (newIds.has(g.id)) { const nb = newBadge(); nb.classList.add("on-card"); art.append(nb); }
       const body = document.createElement("div");
       body.className = "mini-body";
       const name = document.createElement("b");
@@ -204,7 +212,7 @@ function renderMinigames() {
       ctl.textContent = g.controls || "";
       const play = document.createElement("span");
       play.className = "mini-play";
-      play.textContent = running ? "Käynnissä" : "Pelaa";
+      play.textContent = running ? "Running" : "Play";
       foot.append(ctl, play);
       body.append(name, desc, foot);
       card.append(art, body);
@@ -254,8 +262,8 @@ async function startApp(u) {
   $("userAvatar").textContent = u.username.charAt(0).toUpperCase();
   $("userName").textContent = u.username;
   $("userEmail").textContent = u.email;
-  $("accName").textContent = "Kirjautuneena: " + u.username;
-  $("accInfo").textContent = `${u.email} · tili luotu ${new Date(u.createdAt).toLocaleDateString("fi-FI")}. Peliajat, käynnistykset ja pelien tallennukset tallentuvat tälle tilille.`;
+  $("accName").textContent = "Signed in as " + u.username;
+  $("accInfo").textContent = `${u.email} · account created ${new Date(u.createdAt).toLocaleDateString("en-GB")}. Playtime, launches and game saves are stored on this account.`;
   [games, stats, runningIds] = await Promise.all([api.getGames(), api.getStats(), api.getRunning()]);
   selectedId = null;
   try { selectedId = localStorage.getItem(selKey()); } catch {}
@@ -263,7 +271,40 @@ async function startApp(u) {
   $("optMinimize").checked = settings.minimizeOnLaunch;
   showView("home");
   renderAll();
+  showWhatsNew();
 }
+
+// ---------- Mitä uutta ----------
+function showWhatsNew() {
+  if (!whatsNew || whatsNewShown) return;
+  whatsNewShown = true;
+  $("wnVersion").textContent = "Pelipaja " + whatsNew.version;
+  $("wnDate").textContent = whatsNew.date ? new Date(whatsNew.date).toLocaleDateString("en-GB") : "";
+  const ul = $("wnNotes");
+  ul.replaceChildren();
+  for (const n of whatsNew.notes.length ? whatsNew.notes : ["Small fixes and improvements"]) { const li = document.createElement("li"); li.textContent = n; ul.append(li); }
+  const ng = games.filter((g) => newIds.has(g.id));
+  $("wnGamesWrap").hidden = !ng.length;
+  const box = $("wnGames");
+  box.replaceChildren();
+  for (const g of ng) {
+    const b = document.createElement("button");
+    b.className = "wn-game";
+    b.append(cover(g));
+    const t = document.createElement("span");
+    t.textContent = g.name;
+    b.append(t, newBadge());
+    b.addEventListener("click", () => {
+      $("whatsNew").hidden = true;
+      if (g.category === "minipeli") showView("minigames");
+      else selectGame(g.id);
+    });
+    box.append(b);
+  }
+  $("whatsNew").hidden = false;
+  setTimeout(() => $("wnClose").focus(), 50);
+}
+$("wnClose").addEventListener("click", () => ($("whatsNew").hidden = true));
 
 async function logout() {
   const res = await api.auth.logout();
@@ -290,19 +331,19 @@ function showAuth(step) {
   showStep(step);
 }
 function fail(errId, res, fieldMap) {
-  $(errId).textContent = res.error || "Jokin meni pieleen.";
+  $(errId).textContent = res.error || "Something went wrong.";
   const inp = fieldMap && res.field && fieldMap[res.field];
   if (inp) { $(inp).classList.add("bad"); $(inp).focus(); }
 }
 async function busy(btn, fn) {
   const label = btn.textContent;
-  btn.disabled = true; btn.textContent = "Odota…";
+  btn.disabled = true; btn.textContent = "Please wait…";
   try { return await fn(); } finally { btn.disabled = false; btn.textContent = label; }
 }
 document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => showStep(b.dataset.go)));
 document.querySelectorAll(".pw-toggle").forEach((b) => b.addEventListener("click", () => {
   const i = $(b.dataset.for); const show = i.type === "password";
-  i.type = show ? "text" : "password"; b.textContent = show ? "Piilota" : "Näytä";
+  i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show";
 }));
 
 // Kirjaudu
@@ -321,7 +362,7 @@ $("stepSignup").addEventListener("submit", async (e) => {
   const res = await busy($("suBtn"), () => api.auth.start({ username, email }));
   if (!res.ok) return fail("suErr", res, { username: "suName", email: "suEmail" });
   A.username = username; A.email = res.email;
-  toVerify(res.dev, res.reused ? "Koodi lähetettiin jo hetki sitten. Tarkista sähköpostisi." : "");
+  toVerify(res.dev, res.reused ? "A code was sent a moment ago. Check your email." : "");
 });
 
 // 2/3: 6-numeroinen koodi
@@ -362,7 +403,7 @@ function startResendTimer(sec) {
   const btn = $("resendBtn");
   const tick = () => {
     btn.disabled = A.resendLeft > 0;
-    btn.textContent = A.resendLeft > 0 ? `Lähetä uusi koodi (${A.resendLeft} s)` : "Lähetä uusi koodi";
+    btn.textContent = A.resendLeft > 0 ? `Send a new code (${A.resendLeft} s)` : "Send a new code";
     if (A.resendLeft-- <= 0) clearInterval(A.resendTimer);
   };
   tick(); A.resendTimer = setInterval(tick, 1000);
@@ -372,14 +413,14 @@ $("stepVerify").addEventListener("submit", async (e) => {
   e.preventDefault();
   if (verifying) return;
   const code = codeValue();
-  if (code.length !== 6) { $("verifyErr").textContent = "Syötä kaikki 6 numeroa."; return; }
+  if (code.length !== 6) { $("verifyErr").textContent = "Enter all 6 digits."; return; }
   verifying = true;
   const res = await busy($("verifyBtn"), () => api.auth.verify({ email: A.email, code }));
   verifying = false;
   if (!res.ok) { $("verifyErr").textContent = res.error; boxes.forEach((b) => (b.value = "")); boxes[0].focus(); return; }
   clearInterval(A.resendTimer);
   A.token = res.token;
-  $("pwLead").textContent = `Sähköposti vahvistettu! Luo vielä salasana tilille ${res.username}.`;
+  $("pwLead").textContent = `Email verified! Now create a password for ${res.username}.`;
   $("suPw").value = ""; $("suPw2").value = ""; checkRules();
   showStep("stepPassword");
 });
@@ -387,7 +428,7 @@ $("resendBtn").addEventListener("click", async () => {
   const res = await api.auth.resend({ email: A.email });
   if (!res.ok) { $("verifyErr").textContent = res.error; return; }
   $("verifyErr").textContent = "";
-  toast("Uusi koodi lähetetty.", "ok");
+  toast("New code sent.", "ok");
   startResendTimer(45);
 });
 
@@ -403,23 +444,23 @@ $("suPw2").addEventListener("input", checkRules);
 $("stepPassword").addEventListener("submit", async (e) => {
   e.preventDefault();
   const r = checkRules();
-  if (!r.len) return fail("pwErr", { error: "Salasanassa pitää olla vähintään 8 merkkiä.", field: "p" }, { p: "suPw" });
-  if (!r.mix) return fail("pwErr", { error: "Lisää salasanaan kirjaimia ja numeroita tai erikoismerkkejä.", field: "p" }, { p: "suPw" });
-  if (!r.match) return fail("pwErr", { error: "Salasanat eivät täsmää.", field: "p" }, { p: "suPw2" });
+  if (!r.len) return fail("pwErr", { error: "Your password needs at least 8 characters.", field: "p" }, { p: "suPw" });
+  if (!r.mix) return fail("pwErr", { error: "Use letters plus numbers or special characters.", field: "p" }, { p: "suPw" });
+  if (!r.match) return fail("pwErr", { error: "Passwords don't match.", field: "p" }, { p: "suPw2" });
   const res = await busy($("pwBtn"), () => api.auth.setPassword({ email: A.email, token: A.token, password: $("suPw").value, remember: true }));
   if (!res.ok) {
     if (res.field === "password") return fail("pwErr", res, { password: "suPw" });
     showStep("stepSignup"); return fail("suErr", res);
   }
   $("suPw").value = ""; $("suPw2").value = ""; A.token = "";
-  toast(`Tervetuloa Pelipajaan, ${res.user.username}!`, "ok");
+  toast(`Welcome to Pelipaja, ${res.user.username}!`, "ok");
   startApp(res.user);
 });
 
 // ---------- Päivitykset ----------
 const UPDATE_TEXT = {
-  ready: (s) => [`Päivitys ${s.version} on valmis`, "Uusi versio otetaan käyttöön, kun Pelipaja käynnistyy uudelleen.", "Käynnistä uudelleen"],
-  manual: (s) => [`Pelipaja ${s.version} on julkaistu`, "Tämä päivitys vaatii uuden Pelipaja-latauksen.", "Avaa lataussivu"],
+  ready: (s) => [`Update ${s.version} is ready`, "The new version starts the next time Pelipaja restarts.", "Restart now"],
+  manual: (s) => [`Pelipaja ${s.version} is out`, "This update needs a fresh Pelipaja download.", "Open download page"],
 };
 function renderUpdate(s) {
   if (!s) return;
@@ -434,14 +475,14 @@ function renderUpdate(s) {
     $("updateBtn").dataset.action = s.state;
   }
   const info = {
-    idle: "Päivitykset tulevat automaattisesti GitHubista.",
-    uptodate: "Sinulla on uusin versio.",
-    downloading: `Ladataan päivitystä ${s.version}…`,
-    ready: `Päivitys ${s.version} on valmis. Käynnistä Pelipaja uudelleen.`,
-    manual: `Versio ${s.version} vaatii uuden latauksen.`,
-    error: "Päivitysten tarkistus ei onnistunut (ei nettiä?). Yritetään myöhemmin uudelleen.",
+    idle: "Updates arrive automatically from GitHub.",
+    uptodate: "You have the latest version.",
+    downloading: `Downloading update ${s.version}…`,
+    ready: `Update ${s.version} is ready. Restart Pelipaja.`,
+    manual: `Version ${s.version} needs a fresh download.`,
+    error: "Couldn't check for updates (no internet?). Trying again later.",
   }[s.state];
-  if (info) $("updateInfo").textContent = devMode && s.state === "idle" ? "Kehitysversio ei päivity automaattisesti." : info;
+  if (info) $("updateInfo").textContent = devMode && s.state === "idle" ? "Development build doesn't update automatically." : info;
 }
 $("updateBtn").addEventListener("click", async () => {
   if ($("updateBtn").dataset.action === "manual") return api.update.openPage();
@@ -449,7 +490,7 @@ $("updateBtn").addEventListener("click", async () => {
   if (!res.ok) toast(res.error);
 });
 $("updateCheckBtn").addEventListener("click", async () => {
-  $("updateInfo").textContent = "Tarkistetaan…";
+  $("updateInfo").textContent = "Checking…";
   renderUpdate(await api.update.check());
 });
 api.onUpdateStatus(renderUpdate);
@@ -462,15 +503,15 @@ function bootShow(s) {
   const wrap = bar.parentElement;
   const pct = Math.round((s.progress || 0) * 100);
   const msg = {
-    checking: "Tarkistetaan päivityksiä…",
-    downloading: `Ladataan Pelipaja ${s.version}… ${pct} %`,
-    installing: `Asennetaan Pelipaja ${s.version}…`,
-    ready: `Pelipaja ${s.version} asennettu`,
-    restarting: `Käynnistetään Pelipaja ${s.version}…`,
-    uptodate: "Pelipaja on ajan tasalla",
-    manual: `Pelipaja ${s.version} vaatii uuden latauksen. Jatketaan nykyisellä versiolla.`,
-    error: "Päivityspalvelimeen ei saatu yhteyttä. Jatketaan ilman päivitystä.",
-    dev: "Kehitysversio: ei päivityksiä",
+    checking: "Checking for updates…",
+    downloading: `Downloading Pelipaja ${s.version}… ${pct}%`,
+    installing: `Installing Pelipaja ${s.version}…`,
+    ready: `Pelipaja ${s.version} installed`,
+    restarting: `Starting Pelipaja ${s.version}…`,
+    uptodate: "Pelipaja is up to date",
+    manual: `Pelipaja ${s.version} needs a fresh download. Continuing with this version.`,
+    error: "Couldn't reach the update server. Continuing without updating.",
+    dev: "Development build: no updates",
   }[s.state];
   if (msg) $("bootText").textContent = msg;
   wrap.classList.toggle("indeterminate", s.state === "checking");
@@ -499,9 +540,13 @@ async function bootUpdate() {
     const info = await api.appInfo();
     devMode = !!info.dev;
     $("appVersion").textContent = info.version;
-    $("bootVer").textContent = "Versio " + info.version;
+    $("bootVer").textContent = "Version " + info.version;
   } catch {}
   if (!(await bootUpdate())) return;
+  try {
+    whatsNew = await api.whatsNew();
+    if (whatsNew) newIds = new Set(whatsNew.newGames || []);
+  } catch {}
   api.update.status().then(renderUpdate, () => {});
   document.querySelectorAll(".dev-only").forEach((el) => (el.hidden = !devMode));
   const st = await api.auth.status();

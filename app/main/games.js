@@ -19,7 +19,7 @@ function reloadCatalog() {
   try {
     catalog = loadCatalog(GAMES_FILE, GAMES_DIR);
   } catch (err) {
-    catalog = { games: [], errors: ["games.json ei aukea: " + err.message] };
+    catalog = { games: [], errors: ["games.json can't be opened: " + err.message] };
   }
   for (const e of catalog.errors) console.warn("[games.json]", e);
   return catalog.games;
@@ -98,13 +98,13 @@ function buttonCorner(wc) {
 // ---------- Käynnistys ----------
 function launch(id) {
   const user = state.session && state.session.user;
-  if (!user) return { ok: false, error: "Kirjaudu sisään ennen pelaamista." };
-  if (running.has(id)) return { ok: false, error: "Peli on jo käynnissä." };
+  if (!user) return { ok: false, error: "Sign in before playing." };
+  if (running.has(id)) return { ok: false, error: "That game is already running." };
   reloadCatalog();
   const game = findGame(id);
-  if (!game) return { ok: false, error: "Peliä ei löytynyt." };
+  if (!game) return { ok: false, error: "Game not found." };
   if (game.type === "html" && !fs.existsSync(game.target)) {
-    return { ok: false, error: `Pelin tiedostoa ei löytynyt (${path.relative(GAMES_DIR, game.target)}).` };
+    return { ok: false, error: `Game file not found (${path.relative(GAMES_DIR, game.target)}).` };
   }
 
   // Jokaisella käyttäjällä oma tallennustila: pelien omat tallennukset eivät sekoitu

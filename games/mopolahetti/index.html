@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pizza Moped</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1a1a22;font-family:"Segoe UI",system-ui,sans-serif;color:#fff6ea}
+canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh}
+#hud{position:fixed;left:0;right:0;top:12px;display:flex;justify-content:center;gap:10px;pointer-events:none;z-index:5}
+#hud[hidden],.pp[hidden],#order[hidden]{display:none}
+.pill{background:rgba(20,16,14,.74);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
+.pill small{font-weight:700;color:#d8c8b4;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+#time.low{color:#ff8c6a}
+#qbar{width:110px;height:8px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}#qfill{height:100%;background:#7ee081;width:0}
+#order{position:fixed;left:50%;top:64px;transform:translateX(-50%);background:rgba(20,16,14,.74);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 16px;font-weight:800;font-size:14px;pointer-events:none;z-index:5;text-align:center}
+#order span{color:#ffcf6a}
+#tilt{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);width:260px;height:44px;pointer-events:none;z-index:5;background:rgba(20,16,14,.74);border:1px solid rgba(255,255,255,.12);border-radius:12px}
+#tilt[hidden]{display:none}
+#tilt b{position:absolute;left:0;right:0;top:4px;text-align:center;font-size:11px;letter-spacing:.1em;color:#d8c8b4}
+#tiltTrack{position:absolute;left:16px;right:16px;bottom:9px;height:12px;border-radius:8px;background:linear-gradient(90deg,#e5534b 0 12%,#f0b429 12% 28%,#3fbf5f 28% 72%,#f0b429 72% 88%,#e5534b 88%)}
+#tiltNeedle{position:absolute;bottom:5px;width:6px;height:20px;margin-left:-3px;border-radius:3px;background:#fff;left:50%}
+.pp{position:fixed;bottom:14px;pointer-events:none;z-index:5;background:rgba(20,16,14,.74);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px;max-width:270px}
+.pp b{display:flex;align-items:center;gap:8px}.pp b i{width:11px;height:11px;border-radius:50%}
+.pp span{display:block;color:#d8c8b4;font-size:12px;font-weight:700;margin-top:3px}
+#pp1{left:14px}#pp2{right:14px}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="ov"></canvas>
+<div id="hud" hidden>
+  <div class="pill"><small id="lvName">Shift 1</small></div>
+  <div class="pill"><small>Shift time left</small><span id="time">3:00</span></div>
+  <div class="pill"><small>Earned</small><span id="money">0 €</span><div id="qbar"><div id="qfill"></div></div><small id="quota">/ 60 €</small></div>
+</div>
+<div id="order" hidden></div>
+<div id="tilt" hidden><b>PIZZA STACK BALANCE</b><div id="tiltTrack"></div><div id="tiltNeedle"></div></div>
+<div class="pp" id="pp1" hidden><b><i style="background:#ff8a3d"></i>PATE · STEERING</b><span id="k1"></span></div>
+<div class="pp" id="pp2" hidden><b><i style="background:#33d1c4"></i>MASA · THROTTLE &amp; PIZZAS</b><span id="k2"></span></div>
+
+<script src="../_shared/three.min.js"></script>
+<script src="../_shared/peerjs.min.js"></script>
+<script src="../_shared/coop.js"></script>
+<script>
+// Mopolähetti – kaksi kuskia, yksi mopo ja huojuva pizzapino.
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+function mulberry32(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+const BLK = 300, RD = 130, CELL = BLK + RD; // kortteli, tie, ruutu
+const N = 5;                                 // 5×5 korttelia
+const SIZE = N * CELL + RD;
+const COLS = ["#ff8a3d", "#33d1c4"];
+const STREETS = ["Gull Lane", "Pizza Path", "Bump Road", "Throttle Street", "Moped Hill", "Cheese Crescent", "Hinge Street", "Corner Lane", "Salami Lane", "Beach Boulevard"];
+function shift(lv) { return { quota: 60 + (lv - 1) * 35, time: 180, gulls: Math.min(7, 2 + lv), cars: Math.min(9, 3 + lv), maxStack: Math.min(5, 2 + Math.ceil(lv / 2)) }; }
+
+// ---------- maailma ----------
+let blocks = [], houses = [], bumps = [], cones = [], pizzeria = null, S = null;
+const roadCenter = (i) => RD / 2 + i * CELL; // i:s tie (0..N)
+function buildCity(seed, lv) {
+  const R = mulberry32(seed);
+  S = shift(lv);
+  blocks = []; houses = []; bumps = []; cones = [];
+  for (let bx = 0; bx < N; bx++)
+    for (let bz = 0; bz < N; bz++) {
+      const x0 = RD + bx * CELL, z0 = RD + bz * CELL;
+      const blk = { x0, z0, x1: x0 + BLK, z1: z0 + BLK, park: R() < 0.12, b: [] };
+      blocks.push(blk);
+      if (blk.park) continue;
+      // talot korttelin reunoille, ovet kadulle päin
+      const per = 2;
+      for (let side = 0; side < 4; side++)
+        for (let k = 0; k < per; k++) {
+          const w = 110 + R() * 20, d = 80 + R() * 40, h = 40 + R() * 110;
+          let x, z, dx = 0, dz = 0;
+          const off = 20 + k * (BLK / per) + R() * 10;
+          if (side === 0) { x = x0 + off + w / 2; z = z0 + d / 2 + 8; dz = -1; }
+          else if (side === 1) { x = x0 + off + w / 2; z = z0 + BLK - d / 2 - 8; dz = 1; }
+          else if (side === 2) { x = x0 + d / 2 + 8; z = z0 + off + w / 2; dx = -1; }
+          else { x = x0 + BLK - d / 2 - 8; z = z0 + off + w / 2; dx = 1; }
+          const ww = side < 2 ? w : d, dd = side < 2 ? d : w;
+          if (x - ww / 2 < x0 + 4 || x + ww / 2 > x0 + BLK - 4 || z - dd / 2 < z0 + 4 || z + dd / 2 > z0 + BLK - 4) continue;
+          if (blk.b.some((o) => Math.abs(o.x - x) < (o.w + ww) / 2 + 6 && Math.abs(o.z - z) < (o.d + dd) / 2 + 6)) continue;
+          const hs = { x, z, w: ww, d: dd, h, dx, dz, col: pick(["#d9a066", "#c96f4a", "#e8d9b5", "#9fb7c9", "#b3c99a", "#d98a8a", "#cdb4db"]), n: 0, street: "", id: houses.length };
+          hs.door = { x: x + dx * (ww / 2 + 22) * (dx ? 1 : 0), z: z + dz * (dd / 2 + 22) * (dz ? 1 : 0) };
+          if (!dx) hs.door.x = x;
+          if (!dz) hs.door.z = z;
+          hs.n = 1 + Math.floor(R() * 40);
+          hs.street = STREETS[(side * 3 + bx + bz * 2) % STREETS.length];
+          blk.b.push(hs);
+          houses.push(hs);
+        }
+    }
+  // pizzeria: keskimmäisen korttelin talo
+  const mid = blocks[Math.floor(blocks.length / 2)];
+  if (!mid.b.length) { mid.park = false; }
+  pizzeria = { x: mid.x0 + BLK / 2, z: mid.z0 - 22, w: 160, d: 110, h: 60 };
+  mid.b = mid.b.filter((h) => !(Math.abs(h.x - pizzeria.x) < 150 && h.z < mid.z0 + 140));
+  houses = blocks.flatMap((b) => b.b);
+  houses.forEach((h, i) => (h.id = i));
+  pizzeria.box = { x: pizzeria.x, z: mid.z0 + 70, w: 170, d: 120, h: 60 };
+  // töyssyt ja tietyöt teille
+  for (let i = 0; i <= N; i++)
+    for (let j = 0; j < N; j++) {
+      if (R() < 0.35) bumps.push({ x: roadCenter(i), z: RD + j * CELL + BLK / 2, ax: "z" });
+      if (R() < 0.35) bumps.push({ x: RD + j * CELL + BLK / 2, z: roadCenter(i), ax: "x" });
+      if (R() < 0.1 + lv * 0.02) cones.push({ x: roadCenter(i) + (R() - 0.5) * 50, z: RD + j * CELL + 40 + R() * (BLK - 80) });
+      if (R() < 0.1 + lv * 0.02) cones.push({ x: RD + j * CELL + 40 + R() * (BLK - 80), z: roadCenter(i) + (R() - 0.5) * 50 });
+    }
+}
+// kiinteät esteet ympyrää vasten
+function solids() {
+  const out = [];
+  for (const h of houses) out.push(h);
+  out.push(pizzeria.box);
+  return out;
+}
+let SOLIDS = [];
+function hitRect(o, r, s) {
+  const cx = clamp(o.x, s.x - s.w / 2, s.x + s.w / 2), cz = clamp(o.z, s.z - s.d / 2, s.z + s.d / 2);
+  let dx = o.x - cx, dz = o.z - cz;
+  const d2 = dx * dx + dz * dz;
+  if (d2 >= r * r) return null;
+  if (d2 < 1e-6) { dx = o.x - s.x; dz = o.z - s.z; const l = Math.hypot(dx, dz) || 1; return { nx: dx / l, nz: dz / l, pen: r }; }
+  const d = Math.sqrt(d2);
+  return { nx: dx / d, nz: dz / d, pen: r - d };
+}
+
+// ---------- tila ----------
+let M = null, G = {}, gulls = [], cars = [], flying = [];
+function newOrder() {
+  // kohde vähintään vähän matkan päässä
+  let h;
+  for (let t = 0; t < 40; t++) { h = pick(houses); if (Math.hypot(h.door.x - pizzeria.x, h.door.z - pizzeria.z) > 500) break; }
+  const n = 1 + Math.floor(Math.random() * S.maxStack);
+  const dist = Math.hypot(h.door.x - pizzeria.x, h.door.z - pizzeria.z);
+  G.order = { house: h.id, n, time: 18 + dist / 60, max: 18 + dist / 60, worst: 0 };
+}
+function stepCars(dt) {
+  for (const c of cars) {
+    // auto ajaa korttelin ympäri myötäpäivään
+    const seg = c.path[c.k], nxt = c.path[(c.k + 1) % 4];
+    const dx = nxt.x - c.x, dz = nxt.z - c.z, d = Math.hypot(dx, dz);
+    // jarruttaa mopon edessä
+    const ahead = Math.hypot(M.x - (c.x + (dx / d) * 60), M.z - (c.z + (dz / d) * 60)) < 70;
+    c.v = lerp(c.v, ahead ? 0 : c.sp, Math.min(1, 3 * dt));
+    if (d < c.v * dt + 1) { c.x = nxt.x; c.z = nxt.z; c.k = (c.k + 1) % 4; }
+    else { c.x += (dx / d) * c.v * dt; c.z += (dz / d) * c.v * dt; c.a = Math.atan2(dx, dz); }
+  }
+}
+function crash(why, imp) {
+  if (!G.stack) return;
+  Coop.emit("crash", M.x, M.z, G.stack, why);
+  for (let i = 0; i < G.stack; i++) flying.push({ x: M.x, y: 30 + i * 9, z: M.z, vx: (Math.random() - 0.5) * 300, vy: 200 + Math.random() * 200, vz: (Math.random() - 0.5) * 300, r: Math.random() * 6, life: 2.5 });
+  G.stack = 0; G.tilt = 0; G.tiltV = 0; G.lost++;
+  G.order = null;
+}
+
+function step(dt, inputs) {
+  G.time -= dt;
+  const st = inputs[0], gs = inputs[1];
+  // ---- mopo ----
+  const throttle = -gs.y; // ylös = kaasu
+  if (throttle > 0) M.v += 300 * throttle * dt;
+  else if (throttle < 0) M.v += (M.v > 10 ? -480 : -140) * -throttle * dt;
+  M.v *= Math.exp(-(throttle ? 0.25 : 0.9) * dt);
+  M.v = clamp(M.v, -90, 340);
+  const steerPow = clamp(Math.abs(M.v) / 140, 0.2, 1) * Math.sign(M.v || 1);
+  const yawRate = -st.x * 2.5 * steerPow;
+  M.a += yawRate * dt;
+  M.x += Math.sin(M.a) * M.v * dt;
+  M.z += Math.cos(M.a) * M.v * dt;
+  M.lean = lerp(M.lean, st.x * clamp(M.v / 250, 0, 1) * 0.45, Math.min(1, 8 * dt));
+  // reunat
+  if (M.x < 15 || M.x > SIZE - 15 || M.z < 15 || M.z > SIZE - 15) { M.x = clamp(M.x, 15, SIZE - 15); M.z = clamp(M.z, 15, SIZE - 15); M.v *= -0.3; }
+  // talot
+  for (const s of SOLIDS) {
+    const h = hitRect(M, 16, s);
+    if (!h) continue;
+    M.x += h.nx * h.pen; M.z += h.nz * h.pen;
+    const vn = Math.sin(M.a) * h.nx + Math.cos(M.a) * h.nz; // nopeus seinää kohti
+    const imp = -vn * M.v;
+    if (imp > 0) { M.v *= 0.35; if (imp > 150) crash("wall", imp); else { G.tiltV += (Math.random() - 0.5) * imp * 0.02; Coop.emit("bonk", M.x, M.z); } }
+  }
+  // autot
+  for (const c of cars) {
+    const d = Math.hypot(c.x - M.x, c.z - M.z);
+    if (d < 34) {
+      const nx = (M.x - c.x) / (d || 1), nz = (M.z - c.z) / (d || 1);
+      M.x = c.x + nx * 34; M.z = c.z + nz * 34;
+      if (Math.abs(M.v) > 60) crash("auto", 200);
+      M.v *= -0.4;
+      Coop.emit("honkCar", c.x, c.z);
+    }
+  }
+  // töyssyt ja kartiot
+  for (const b of bumps) {
+    const along = b.ax === "z" ? Math.abs(M.z - b.z) : Math.abs(M.x - b.x);
+    const across = b.ax === "z" ? Math.abs(M.x - b.x) : Math.abs(M.z - b.z);
+    if (along < 8 && across < RD / 2 && Math.abs(M.v) > 40 && !(M.lastBump === b && G.t - M.bumpT < 0.5)) {
+      M.lastBump = b; M.bumpT = G.t;
+      const k = Math.abs(M.v) / 100;
+      G.tiltV += (Math.random() < 0.5 ? -1 : 1) * k * 1.1;
+      M.hop = Math.min(18, Math.abs(M.v) / 14);
+      Coop.emit("bump", M.x, M.z, k);
+    }
+  }
+  for (const c of cones) {
+    if (c.hit > 0) { c.hit -= dt; continue; }
+    if (Math.hypot(c.x - M.x, c.z - M.z) < 22) { c.hit = 3; M.v *= 0.6; G.tiltV += (Math.random() - 0.5) * 2.2; Coop.emit("cone", c.x, c.z); }
+  }
+  M.hop = Math.max(0, M.hop - 60 * dt);
+  // ---- pizzapino ----
+  if (G.stack > 0) {
+    const n = G.stack;
+    const latAcc = M.v * yawRate; // keskipakovoima
+    G.tiltV += (-latAcc * 0.0011 + Math.sin(G.tilt) * (2.2 + n * 0.55) - gs.x * 3.6 - G.tiltV * 1.6) * dt;
+    G.tilt += G.tiltV * dt;
+    if (G.order) G.order.worst = Math.max(G.order.worst, Math.abs(G.tilt));
+    if (Math.abs(G.tilt) > 0.62) crash("pino");
+  } else { G.tilt *= Math.exp(-6 * dt); G.tiltV = 0; }
+  // ---- töötti ----
+  if (st.aP || st.bP) { G.horn = 0.5; Coop.emit("horn", M.x, M.z); for (const g of gulls) if (Math.hypot(g.x - M.x, g.z - M.z) < 260) { g.flee = 2.5; g.steal = 0; } }
+  G.horn = Math.max(0, G.horn - dt);
+  // ---- lokit ----
+  for (const g of gulls) {
+    g.t += dt;
+    if (g.flee > 0) {
+      g.flee -= dt;
+      const dx = g.x - M.x, dz = g.z - M.z, d = Math.hypot(dx, dz) || 1;
+      g.vx = lerp(g.vx, (dx / d) * 260, 3 * dt); g.vz = lerp(g.vz, (dz / d) * 260, 3 * dt); g.y = lerp(g.y, 140, 2 * dt);
+    } else if (G.stack > 0 && Math.hypot(g.x - M.x, g.z - M.z) < 700) {
+      // syöksyy pizzojen kimppuun
+      const dx = M.x - g.x, dz = M.z - g.z, d = Math.hypot(dx, dz) || 1;
+      const sp = 170 + S.gulls * 6;
+      g.vx = lerp(g.vx, (dx / d) * sp + Math.sin(M.a) * M.v * 0.6, 2.2 * dt); g.vz = lerp(g.vz, (dz / d) * sp + Math.cos(M.a) * M.v * 0.6, 2.2 * dt);
+      g.y = lerp(g.y, d < 120 ? 48 : 110, 2 * dt);
+      if (d < 34) {
+        g.steal += dt;
+        if (g.steal > 0.8) {
+          g.steal = 0; g.flee = 4; G.stack--; G.stolen++;
+          Coop.emit("steal", M.x, M.z);
+          flying.push({ x: g.x, y: 60, z: g.z, vx: g.vx, vy: 120, vz: g.vz, r: 0, life: 1.4, gull: true });
+          if (G.stack <= 0) { G.order = null; Coop.emit("emptyStack"); }
+        }
+      } else g.steal = Math.max(0, g.steal - dt);
+    } else {
+      // kiertelee taivaalla
+      g.vx = lerp(g.vx, Math.cos(g.t * 0.6 + g.ph) * 120, dt); g.vz = lerp(g.vz, Math.sin(g.t * 0.6 + g.ph) * 120, dt); g.y = lerp(g.y, 150, dt);
+    }
+    g.x = clamp(g.x + g.vx * dt, -200, SIZE + 200); g.z = clamp(g.z + g.vz * dt, -200, SIZE + 200);
+  }
+  stepCars(dt);
+  for (const f of flying) { f.x += f.vx * dt; f.y += f.vy * dt; f.z += f.vz * dt; f.vy -= 700 * dt; if (f.y < 3) { f.y = 3; f.vy *= -0.3; f.vx *= 0.6; f.vz *= 0.6; } f.life -= dt; }
+  flying = flying.filter((f) => f.life > 0);
+  // ---- tilaukset ----
+  const atPizzeria = Math.hypot(M.x - pizzeria.x, M.z - pizzeria.z) < 70 && Math.abs(M.v) < 90;
+  if (!G.order && atPizzeria) {
+    newOrder();
+    G.stack = G.order.n; G.tilt = 0; G.tiltV = 0;
+    Coop.emit("pickup", G.order.n, G.order.house);
+  }
+  if (G.order) {
+    G.order.time -= dt;
+    const h = houses[G.order.house];
+    if (G.stack > 0 && Math.hypot(M.x - h.door.x, M.z - h.door.z) < 55 && Math.abs(M.v) < 110) {
+      // toimitus: maksu + tippi nopeudesta ja pizzojen kunnosta
+      const base = 6 * G.stack;
+      const fast = clamp(G.order.time / G.order.max, 0, 1);
+      const neat = 1 - clamp(G.order.worst / 0.62, 0, 1);
+      const tip = Math.round(G.stack * (2 + 6 * fast + 6 * neat));
+      const missing = G.order.n - G.stack;
+      const pay = Math.max(2, base + tip - missing * 4);
+      G.money += pay; G.delivered++;
+      Coop.emit("deliver", h.door.x, h.door.z, pay, tip, missing);
+      G.order = null; G.stack = 0;
+    }
+  }
+  G.t += dt;
+  if (G.time <= 0) {
+    G.time = 0;
+    const ok = G.money >= S.quota;
+    Coop.end({
+      ok,
+      kicker: "Shift " + G.lv + " over",
+      title: ok ? "Ka-ching!" : "The boss isn't happy",
+      text: ok ? pick(["The gulls stayed hungry and the customers happy. More orders tomorrow.", "The moped is smoking a bit, but the quota is met."]) : pick(["Too much pizza on the asphalt and in the gulls' bellies.", "You fell short of the quota. Another try tomorrow on the same moped."]),
+      stamp: ok ? "PAID" : "SHORT",
+      stats: [["Earned", G.money + " €"], ["Quota", S.quota + " €"], ["Deliveries", G.delivered], ["Stacks dropped", G.lost], ["Stolen by gulls", G.stolen]],
+      next: "Next shift",
+    });
+  }
+}
+
+// ---------- nettipeli ----------
+const r1 = (v) => Math.round(v * 10) / 10, r2 = (v) => Math.round(v * 100) / 100;
+function snapshot() {
+  return {
+    m: [r1(M.x), r1(M.z), r2(M.a), r1(M.v), r2(M.lean), r1(M.hop)],
+    t: r1(G.time), $: G.money, s: G.stack, tl: r2(G.tilt), h: r2(G.horn), d: G.delivered, l: G.lost, sl: G.stolen,
+    o: G.order ? [G.order.house, G.order.n, r1(G.order.time), r1(G.order.max)] : null,
+    g: gulls.map((g) => [r1(g.x), r1(g.y), r1(g.z), r1(g.vx), r1(g.vz)]),
+    c: cars.map((c) => [r1(c.x), r1(c.z), r2(c.a)]),
+  };
+}
+function apply(s, first) {
+  M.tx = s.m[0]; M.tz = s.m[1]; M.ta = s.m[2]; M.v = s.m[3]; M.lean = s.m[4]; M.hop = s.m[5];
+  if (first) { M.x = M.tx; M.z = M.tz; M.a = M.ta; }
+  G.time = s.t; G.money = s.$; G.stack = s.s; G.tilt = s.tl; G.horn = s.h; G.delivered = s.d; G.lost = s.l; G.stolen = s.sl;
+  G.order = s.o ? { house: s.o[0], n: s.o[1], time: s.o[2], max: s.o[3] } : null;
+  s.g.forEach((a, i) => { const g = gulls[i]; if (!g) return; g.tx = a[0]; g.ty = a[1]; g.tz = a[2]; g.vx = a[3]; g.vz = a[4]; if (first) { g.x = a[0]; g.y = a[1]; g.z = a[2]; } });
+  s.c.forEach((a, i) => { const c = cars[i]; if (!c) return; c.tx = a[0]; c.tz = a[1]; c.a = a[2]; if (first) { c.x = a[0]; c.z = a[1]; } });
+}
+
+// ---------- 3D ----------
+const renderer = new THREE.WebGLRenderer({ canvas: $("gl"), antialias: true });
+renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#9fc6e8");
+scene.fog = new THREE.Fog("#9fc6e8", 900, 2600);
+const camera = new THREE.PerspectiveCamera(50, 1, 5, 6000);
+scene.add(new THREE.HemisphereLight("#dfefff", "#6b5a45", 0.75));
+const sun = new THREE.DirectionalLight("#fff1d6", 1.0);
+sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -700, right: 700, top: 700, bottom: -700, near: 10, far: 3000 });
+scene.add(sun, sun.target);
+const ov = $("ov"), og = ov.getContext("2d");
+let vw = 0, vh = 0, odpr = 1;
+function resize() { vw = innerWidth; vh = innerHeight; odpr = Math.min(2, devicePixelRatio || 1); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.updateProjectionMatrix(); ov.width = vw * odpr; ov.height = vh * odpr; }
+addEventListener("resize", resize);
+resize();
+const MATS = {};
+const mat = (c, o) => { const k = c + JSON.stringify(o || {}); return MATS[k] || (MATS[k] = new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.8 }, o || {}))); };
+function add(g, geo, m, x, y, z) { const me = new THREE.Mesh(geo, m); me.position.set(x || 0, y || 0, z || 0); me.castShadow = true; me.receiveShadow = true; g.add(me); return me; }
+const BOX = new THREE.BoxGeometry(1, 1, 1);
+function canvasTex(w, h, draw) { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t; }
+
+let world = null, moped = null, stack3 = [], gull3 = [], car3 = [], fly3 = [], marker = null, arrow = null, pizMarker = null;
+function buildWorld() {
+  if (world) { scene.remove(world); world.traverse((o) => { if (o.geometry && o.geometry !== BOX) o.geometry.dispose(); if (o.material && o.material.map && o.userData.own) o.material.map.dispose(); }); }
+  world = new THREE.Group();
+  scene.add(world);
+  // tiet: koko alue asfalttia, korttelit päälle
+  const roadTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = "#3b3d44"; g.fillRect(0, 0, w, h); for (let i = 0; i < 2000; i++) { g.fillStyle = Math.random() < 0.5 ? "#36383f" : "#41434a"; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } });
+  roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping; roadTex.repeat.set(SIZE / 200, SIZE / 200);
+  const road = add(world, new THREE.PlaneGeometry(SIZE + 4000, SIZE + 4000), new THREE.MeshStandardMaterial({ map: roadTex, roughness: 0.95 }), SIZE / 2, 0, SIZE / 2);
+  road.rotation.x = -Math.PI / 2; road.castShadow = false; road.userData.own = true;
+  // keskiviivat
+  const dash = new THREE.InstancedMesh(BOX, mat("#f2e6b8"), 2000);
+  const tmp = new THREE.Object3D();
+  let k = 0;
+  for (let i = 0; i <= N; i++) for (let p = 20; p < SIZE - 20; p += 46) {
+    tmp.position.set(roadCenter(i), 0.6, p); tmp.scale.set(3, 1, 22); tmp.rotation.set(0, 0, 0); tmp.updateMatrix(); dash.setMatrixAt(k++, tmp.matrix);
+    tmp.position.set(p, 0.6, roadCenter(i)); tmp.scale.set(22, 1, 3); tmp.updateMatrix(); dash.setMatrixAt(k++, tmp.matrix);
+  }
+  dash.count = k; dash.receiveShadow = true; world.add(dash);
+  // korttelit: jalkakäytävä + nurmi
+  for (const b of blocks) {
+    add(world, BOX, mat("#a8a196"), (b.x0 + b.x1) / 2, 3, (b.z0 + b.z1) / 2).scale.set(BLK, 6, BLK);
+    add(world, BOX, mat(b.park ? "#5f9a4f" : "#7d9c62"), (b.x0 + b.x1) / 2, 6.5, (b.z0 + b.z1) / 2).scale.set(BLK - 26, 1, BLK - 26);
+    if (b.park) {
+      for (let i = 0; i < 7; i++) {
+        const t = new THREE.Group();
+        add(t, new THREE.CylinderGeometry(3, 4, 26, 6), mat("#6b4a2f"), 0, 13, 0);
+        add(t, new THREE.IcosahedronGeometry(20, 0), mat("#3f7a3a", { flatShading: true }), 0, 40, 0);
+        t.position.set(b.x0 + 40 + Math.random() * (BLK - 80), 6, b.z0 + 40 + Math.random() * (BLK - 80));
+        world.add(t);
+      }
+    }
+  }
+  // talot
+  for (const h of houses) {
+    const g = new THREE.Group();
+    add(g, BOX, mat(h.col), 0, h.h / 2, 0).scale.set(h.w, h.h, h.d);
+    add(g, BOX, mat("#5a4a42"), 0, h.h + 3, 0).scale.set(h.w + 6, 6, h.d + 6);
+    // ikkunat
+    const rows = Math.floor(h.h / 32);
+    for (let r = 0; r < rows; r++) {
+      const y = 22 + r * 30;
+      const n = Math.floor((h.dx ? h.d : h.w) / 34);
+      for (let i = 0; i < n; i++) {
+        const o = -((n - 1) * 34) / 2 + i * 34;
+        const win = add(g, BOX, mat("#3c5a78", { roughness: 0.3, metalness: 0.2 }), h.dx ? h.dx * (h.w / 2 + 0.5) : o, y, h.dz ? h.dz * (h.d / 2 + 0.5) : o);
+        win.scale.set(h.dx ? 1 : 16, 16, h.dz ? 1 : 16); win.castShadow = false;
+      }
+    }
+    const door = add(g, BOX, mat("#4a2c1c"), h.dx ? h.dx * (h.w / 2 + 0.6) : 0, 13, h.dz ? h.dz * (h.d / 2 + 0.6) : 0);
+    door.scale.set(h.dx ? 1 : 16, 26, h.dz ? 1 : 16);
+    g.position.set(h.x, 6, h.z);
+    world.add(g);
+  }
+  // pizzeria
+  const pz = new THREE.Group(), pb = pizzeria.box;
+  add(pz, BOX, mat("#c0392b"), 0, pb.h / 2, 0).scale.set(pb.w, pb.h, pb.d);
+  for (let i = 0; i < 8; i++) add(pz, BOX, mat(i % 2 ? "#f4efe4" : "#2f8a3a"), -pb.w / 2 + 10 + i * 21.4, pb.h - 8, -pb.d / 2 - 8).scale.set(21, 4, 16);
+  const signTex = canvasTex(512, 128, (g, w, h) => { g.fillStyle = "#1b1410"; g.fillRect(0, 0, w, h); g.fillStyle = "#ffcf6a"; g.font = "900 72px Segoe UI, sans-serif"; g.textAlign = "center"; g.fillText("PIZZA SHACK", w / 2, 92); });
+  const sign = add(pz, new THREE.PlaneGeometry(150, 38), new THREE.MeshBasicMaterial({ map: signTex }), 0, pb.h + 22, -pb.d / 2 + 2);
+  sign.rotation.y = Math.PI; sign.userData.own = true; sign.castShadow = false;
+  add(pz, BOX, mat("#1b1410"), 0, pb.h + 22, -pb.d / 2 + 4).scale.set(156, 44, 2);
+  pz.position.set(pb.x, 6, pb.z);
+  world.add(pz);
+  pizMarker = add(world, new THREE.TorusGeometry(48, 4, 8, 32), mat("#ffcf6a", { emissive: "#ffb000", emissiveIntensity: 0.9 }), pizzeria.x, 2, pizzeria.z);
+  pizMarker.rotation.x = Math.PI / 2; pizMarker.castShadow = false;
+  // töyssyt
+  for (const b of bumps) { const m = add(world, BOX, mat("#e8c547"), b.x, 2, b.z); m.scale.set(b.ax === "z" ? RD - 20 : 10, 4, b.ax === "z" ? 10 : RD - 20); }
+  for (const c of cones) {
+    const g = new THREE.Group();
+    add(g, new THREE.ConeGeometry(7, 22, 10), mat("#ff6a1a"), 0, 11, 0);
+    add(g, new THREE.CylinderGeometry(5, 5.5, 3, 10), mat("#ffffff"), 0, 10, 0);
+    add(g, BOX, mat("#222"), 0, 0.6, 0).scale.set(16, 1.2, 16);
+    g.position.set(c.x, 0, c.z); world.add(g); c.m = g;
+  }
+  // meri reunalla ja lokit
+  const sea = add(world, new THREE.PlaneGeometry(4000, 1400), mat("#3f77a8", { roughness: 0.2, metalness: 0.1 }), SIZE / 2, 0.5, SIZE + 700);
+  sea.rotation.x = -Math.PI / 2; sea.castShadow = false;
+  // mopo
+  moped = mopedModel();
+  moped.scale.setScalar(1.3);
+  world.add(moped);
+  marker = new THREE.Group();
+  add(marker, new THREE.TorusGeometry(40, 4, 8, 32), mat("#7ee081", { emissive: "#3fbf5f", emissiveIntensity: 1 }), 0, 2, 0).rotation.x = Math.PI / 2;
+  const pin = add(marker, new THREE.ConeGeometry(12, 30, 12), mat("#7ee081", { emissive: "#3fbf5f", emissiveIntensity: 1 }), 0, 90, 0);
+  pin.rotation.x = Math.PI;
+  marker.userData.pin = pin;
+  world.add(marker);
+  arrow = new THREE.Group();
+  const ah = add(arrow, new THREE.ConeGeometry(9, 24, 3), mat("#ffcf6a", { emissive: "#ffb000", emissiveIntensity: 0.8 }), 0, 0, 0);
+  ah.rotation.x = Math.PI / 2;
+  world.add(arrow);
+  gull3 = gulls.map(() => { const g = gullModel(); world.add(g); return g; });
+  car3 = cars.map((c) => { const m = carModel(c.col); world.add(m); return m; });
+  fly3 = [];
+}
+function mopedModel() {
+  const g = new THREE.Group(), body = new THREE.Group();
+  g.add(body);
+  add(body, BOX, mat("#e9e2d0"), 0, 16, 0).scale.set(14, 12, 44);
+  add(body, BOX, mat("#c0392b"), 0, 24, 6).scale.set(12, 6, 26);
+  for (const z of [-20, 20]) { const w = add(body, new THREE.CylinderGeometry(9, 9, 6, 12), mat("#1a1a1f"), 0, 9, z); w.rotation.z = Math.PI / 2; }
+  add(body, BOX, mat("#333"), 0, 34, 22).scale.set(26, 3, 3); // ohjaustanko
+  add(body, new THREE.SphereGeometry(4, 8, 8), mat("#fff6c0", { emissive: "#ffe080", emissiveIntensity: 1 }), 0, 26, 26);
+  // kuskit
+  const rider = (col, z, helm) => {
+    const r = new THREE.Group();
+    add(r, BOX, mat(col), 0, 40, 0).scale.set(14, 18, 10);
+    add(r, new THREE.SphereGeometry(8, 10, 8), mat(helm, { roughness: 0.3 }), 0, 56, 0);
+    add(r, BOX, mat("#2a2f3a"), 0, 52, 5).scale.set(12, 4, 3);
+    r.position.z = z;
+    body.add(r);
+    return r;
+  };
+  const r1_ = rider(COLS[0], 8, "#ff8a3d"), r2_ = rider(COLS[1], -8, "#33d1c4");
+  // pizzateline
+  const rack = add(body, BOX, mat("#444"), 0, 30, -24).scale.set(22, 2, 22);
+  const stackG = new THREE.Group(); stackG.position.set(0, 31, -24); body.add(stackG);
+  g.userData = { body, stackG, r1: r1_, r2: r2_ };
+  return g;
+}
+const pizzaBoxMat = mat("#d9b98a"), pizzaLabel = mat("#c0392b");
+function pizzaBox() { const g = new THREE.Group(); add(g, BOX, pizzaBoxMat, 0, 4.5, 0).scale.set(26, 9, 26); add(g, BOX, pizzaLabel, 0, 9.2, 0).scale.set(12, 0.6, 12); return g; }
+function gullModel() {
+  const g = new THREE.Group();
+  add(g, new THREE.SphereGeometry(6, 8, 6), mat("#f4f4f4"), 0, 0, 0).scale.set(1, 0.8, 1.8);
+  add(g, BOX, mat("#f0b429"), 0, 0, 12).scale.set(2, 2, 6);
+  const wl = add(g, BOX, mat("#dcdcdc"), -13, 1, 0); wl.scale.set(22, 1.5, 9);
+  const wr = add(g, BOX, mat("#dcdcdc"), 13, 1, 0); wr.scale.set(22, 1.5, 9);
+  g.userData = { wl, wr };
+  return g;
+}
+function carModel(col) {
+  const g = new THREE.Group();
+  add(g, BOX, mat(col, { roughness: 0.4 }), 0, 14, 0).scale.set(34, 16, 62);
+  add(g, BOX, mat("#26323e", { roughness: 0.2 }), 0, 27, -4).scale.set(30, 12, 32);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const w = add(g, new THREE.CylinderGeometry(7, 7, 5, 10), mat("#111"), sx * 17, 7, sz * 20); w.rotation.z = Math.PI / 2; }
+  return g;
+}
+
+// ---------- piirto ----------
+let camP = new THREE.Vector3(), camL = new THREE.Vector3(), shakeA = 0, texts = [];
+function render(dt, now, phase) {
+  const tt = now / 1000;
+  if (!M) { renderer.render(scene, camera); return; }
+  if (Coop.mode === "client") {
+    const k = Math.min(1, 14 * dt);
+    if (M.tx != null) { M.x += (M.tx - M.x) * k; M.z += (M.tz - M.z) * k; let da = M.ta - M.a; while (da > Math.PI) da -= 6.283; while (da < -Math.PI) da += 6.283; M.a += da * k; }
+    for (const o of gulls.concat(cars)) if (o.tx != null) { o.x += (o.tx - o.x) * k; o.z += (o.tz - o.z) * k; if (o.ty != null) o.y += (o.ty - o.y) * k; }
+  }
+  const u = moped.userData;
+  moped.position.set(M.x, M.hop, M.z);
+  moped.rotation.y = M.a;
+  u.body.rotation.z = -M.lean;
+  // pizzapino
+  while (stack3.length < G.stack) { const p = pizzaBox(); u.stackG.add(p); stack3.push(p); }
+  while (stack3.length > G.stack) u.stackG.remove(stack3.pop());
+  stack3.forEach((p, i) => { p.position.set(Math.sin(G.tilt) * i * 9.5, Math.cos(G.tilt) * i * 9.5, 0); p.rotation.z = -G.tilt; });
+  u.stackG.rotation.z = 0;
+  // lokit
+  gulls.forEach((g, i) => { const m = gull3[i]; m.position.set(g.x, g.y, g.z); m.rotation.y = Math.atan2(g.vx, g.vz); const f = Math.sin(tt * 12 + i) * 0.5; m.userData.wl.rotation.z = f; m.userData.wr.rotation.z = -f; });
+  cars.forEach((c, i) => { car3[i].position.set(c.x, 0, c.z); car3[i].rotation.y = c.a; });
+  // lentävät pizzat
+  while (fly3.length < flying.length) { const p = pizzaBox(); world.add(p); fly3.push(p); }
+  while (fly3.length > flying.length) world.remove(fly3.pop());
+  flying.forEach((f, i) => { fly3[i].position.set(f.x, f.y, f.z); fly3[i].rotation.set(f.life * 4, f.life * 3, f.r); });
+  // kohde
+  const ord = G.order;
+  const target = ord && G.stack > 0 ? houses[ord.house].door : !ord || G.stack <= 0 ? { x: pizzeria.x, z: pizzeria.z } : null;
+  marker.visible = !!(ord && G.stack > 0);
+  if (marker.visible) { const d = houses[ord.house].door; marker.position.set(d.x, 6, d.z); marker.userData.pin.position.y = 80 + Math.sin(tt * 4) * 8; marker.rotation.y = tt; }
+  pizMarker.visible = !(ord && G.stack > 0);
+  pizMarker.scale.setScalar(1 + Math.sin(tt * 4) * 0.05);
+  if (target && phase !== "menu") {
+    arrow.visible = true;
+    const a = Math.atan2(target.x - M.x, target.z - M.z);
+    arrow.position.set(M.x + Math.sin(a) * 60, 70 + M.hop, M.z + Math.cos(a) * 60);
+    arrow.rotation.y = a;
+  } else arrow.visible = false;
+  // kamera mopon takana
+  const back = 330 + clamp(M.v, 0, 340) * 0.5;
+  const want = new THREE.Vector3(M.x - Math.sin(M.a) * back * 0.75, 380 + M.v * 0.2, M.z - Math.cos(M.a) * back * 0.75);
+  const look = new THREE.Vector3(M.x + Math.sin(M.a) * 120, 0, M.z + Math.cos(M.a) * 120);
+  const kc = Math.min(1, 3.2 * dt);
+  if (camP.lengthSq() === 0) { camP.copy(want); camL.copy(look); }
+  camP.lerp(want, kc); camL.lerp(look, kc);
+  shakeA = Math.max(0, shakeA - dt * 30);
+  camera.position.set(camP.x + (Math.random() - 0.5) * shakeA, camP.y + (Math.random() - 0.5) * shakeA, camP.z);
+  camera.lookAt(camL);
+  sun.position.set(M.x + 500, 900, M.z + 300); sun.target.position.set(M.x, 0, M.z);
+  for (const t of texts) t.t += dt;
+  texts = texts.filter((t) => t.t < t.life);
+  renderer.render(scene, camera);
+  drawOverlay(phase);
+  if (phase === "play" || phase === "pause") updateHud();
+}
+const pv = new THREE.Vector3();
+function project(x, y, z) { pv.set(x, y, z).project(camera); return [(pv.x + 1) / 2 * vw, (1 - pv.y) / 2 * vh, pv.z]; }
+function drawOverlay(phase) {
+  og.setTransform(odpr, 0, 0, odpr, 0, 0);
+  og.clearRect(0, 0, vw, vh);
+  if (phase === "menu" || !M) return;
+  og.textAlign = "center";
+  for (const t of texts) {
+    const k = t.t / t.life, [x, y, z] = project(t.x, 80 + k * 60, t.z);
+    if (z > 1) continue;
+    og.globalAlpha = 1 - k * k; og.font = `900 ${t.s}px Segoe UI, sans-serif`;
+    og.fillStyle = "rgba(0,0,0,.45)"; og.fillText(t.m, x + 2, y + 2); og.fillStyle = t.c; og.fillText(t.m, x, y);
+  }
+  og.globalAlpha = 1;
+  // lokkivaroitus
+  for (const g of gulls) {
+    if (g.steal > 0.05) { const [x, y] = project(g.x, g.y + 20, g.z); og.font = "900 16px Segoe UI, sans-serif"; og.fillStyle = "#ffcf6a"; og.fillText("HONK!", x, y); }
+  }
+}
+let hudKey = "";
+function updateHud() {
+  const s = Math.max(0, Math.ceil(G.time)), mm = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  const ctl = (i) => Coop.mode !== "local" ? (Coop.me === i ? (i ? "You · ↑/W throttle · ↓/S brake · ←→/AD balance" : "You · A/D or ←→ steer · F/Enter or Space honk") : "Friend online · ping " + Coop.net.ping + " ms") : i ? "↑ throttle · ↓ brake · ←→ pizza stack balance" : "A/D steer · F or Space honk";
+  let ord = "";
+  if (G.order && G.stack > 0) { const h = houses[G.order.house]; ord = `Take <span>${G.stack} ${G.stack === 1 ? "pizza" : "pizzas"}</span> to <span>${h.n} ${h.street}</span> · ${Math.max(0, Math.ceil(G.order.time))} s`; }
+  else ord = "Pick up the next order at <span>Pizza Shack</span> (yellow ring)";
+  const key = [mm, G.money, ord, ctl(0), ctl(1), G.stack].join("|");
+  if (key !== hudKey) {
+    hudKey = key;
+    $("time").textContent = mm; $("time").classList.toggle("low", s <= 20);
+    $("money").textContent = G.money + " €"; $("quota").textContent = "/ " + S.quota + " €";
+    $("qfill").style.width = clamp(G.money / S.quota, 0, 1) * 100 + "%";
+    $("order").innerHTML = ord; $("k1").textContent = ctl(0); $("k2").textContent = ctl(1);
+    $("lvName").textContent = "Shift " + G.lv;
+  }
+  $("tilt").hidden = !(G.stack > 0);
+  $("tiltNeedle").style.left = 50 - clamp(G.tilt / 0.62, -1, 1) * 46 + "%";
+}
+function showHud(on) { for (const id of ["hud", "pp1", "pp2", "order"]) $(id).hidden = !on; if (!on) $("tilt").hidden = true; }
+function text(x, z, m, c = "#fff", s = 20, life = 1.3) { texts.push({ x, z, m, c, s, life, t: 0 }); }
+const T_ = Coop.tone;
+function onEvent(name, a) {
+  switch (name) {
+    case "horn": T_(392, 0.18, "square", 0.08); T_(330, 0.22, "square", 0.08, null, 0.05); text(a[0], a[1], "HONK!", "#ffcf6a", 18, 0.7); break;
+    case "bump": T_(140, 0.12, "sine", 0.12, 70); shakeA = Math.max(shakeA, a[2] * 4); break;
+    case "bonk": T_(120, 0.1, "square", 0.08, 60); shakeA = Math.max(shakeA, 4); break;
+    case "cone": T_(600, 0.08, "triangle", 0.06, 300); text(a[0], a[1], "BONK!", "#ff8a3d", 16, 0.8); break;
+    case "honkCar": T_(220, 0.3, "sawtooth", 0.06); break;
+    case "crash": Coop.noise(0.4, 0.4, 600); T_(110, 0.4, "sawtooth", 0.1, 50); shakeA = 14;
+      text(a[0], a[1], a[3] === "pino" ? "STACK FELL!" : "CRASH!", "#ff6b5e", 28, 1.6);
+      Coop.toast((a[3] === "pino" ? "PIZZAS GO FLYING" : "CRASH") + "<small>Get a new order from Pizza Shack</small>", 2200, true); break;
+    case "steal": T_(900, 0.1, "square", 0.06, 1400); T_(700, 0.15, "square", 0.06, 500, 0.1); text(a[0], a[1], "A GULL TOOK A PIZZA!", "#ffcf6a", 20, 1.4); break;
+    case "emptyStack": Coop.toast("ALL PIZZAS GONE<small>Get a new order</small>", 2000, true); break;
+    case "pickup": T_(660, 0.08, "triangle", 0.07); T_(880, 0.12, "triangle", 0.07, null, 0.08); { const h = houses[a[1]]; Coop.toast(a[0] + " PIZZAS LOADED<small>" + h.n + " " + h.street + "</small>", 2000, true); } break;
+    case "deliver": [784, 988, 1175].forEach((f, i) => T_(f, 0.12, "square", 0.06, null, i * 0.08)); text(a[0], a[1], "+" + a[2] + " €", "#7ee081", 30, 1.6); if (a[3] > 15) text(a[0] + 40, a[1], "Big tip!", "#ffcf6a", 18, 1.6); break;
+  }
+}
+
+// ---------- Coop ----------
+function init(seed, lv, quiet) {
+  buildCity(seed, lv);
+  SOLIDS = solids();
+  G = { lv, t: 0, time: S.time, money: 0, stack: 0, tilt: 0, tiltV: 0, horn: 0, order: null, delivered: 0, lost: 0, stolen: 0 };
+  M = { x: pizzeria.x, z: pizzeria.z - 5, a: Math.PI / 2, v: 0, lean: 0, hop: 0, lastBump: null, bumpT: 0 };
+  const R = mulberry32(seed + 5);
+  gulls = Array.from({ length: S.gulls }, (_, i) => ({ x: R() * SIZE, y: 150, z: R() * SIZE, vx: 0, vz: 0, t: R() * 10, ph: R() * 6, flee: 0, steal: 0 }));
+  cars = [];
+  for (let i = 0; i < S.cars; i++) {
+    const bx = Math.floor(R() * N), bz = Math.floor(R() * N), off = 30;
+    const x0 = roadCenter(bx) + off, x1 = roadCenter(bx + 1) - off, z0 = roadCenter(bz) + off, z1 = roadCenter(bz + 1) - off;
+    const path = [{ x: x0, z: z0 }, { x: x0, z: z1 }, { x: x1, z: z1 }, { x: x1, z: z0 }];
+    cars.push({ path, k: 0, x: x0, z: z0, a: 0, v: 0, sp: 110 + R() * 60, col: pick(["#3a6fb0", "#b04a3a", "#e8e2d0", "#2f8a3a", "#f0b429", "#555b66"]) });
+  }
+  flying = []; texts = []; stack3 = [];
+  buildWorld();
+  camP.set(0, 0, 0);
+  hudKey = "";
+  if (quiet) return;
+  showHud(true);
+  Coop.toast("SHIFT " + lv + "<small>Quota " + S.quota + " € · pick up an order at Pizza Shack</small>", 2600, true);
+}
+function preview() {
+  init(4321, 1, true);
+  showHud(false);
+  M.v = 0; M.a = 0.6;
+  G.stack = 3; G.tilt = 0.12;
+}
+if (location.hash === "#test") window.__g = { get M() { return M; }, get G() { return G; }, get houses() { return houses; }, get pizzeria() { return pizzeria; }, get gulls() { return gulls; }, step };
+Coop.start({
+  id: "mopolahetti",
+  title: "Pizza Moped",
+  kicker: "Co-op · 2 players · one moped",
+  description: "Pizza Shack's only delivery moped, two riders and an ever-taller pizza stack. One steers, the other works the throttle and keeps the stack upright.",
+  rules: [
+    "<b>Pate steers</b> and honks the gulls away. <b>Masa throttles, brakes</b> and tilts the pizza stack to balance it.",
+    "Pick up an order at Pizza Shack (yellow ring) and take it to the green ring. Speed and intact pizzas earn tips.",
+    "Sharp turns, bumps and roadworks shake the stack. If it topples or you crash, the pizzas go flying.",
+    "Gulls dive for the pizzas. The horn scares them off. Meet the quota before the shift ends.",
+  ],
+  netVersion: "mopolahetti-1",
+  names: ["Pate", "Masa"],
+  colors: COLS,
+  roles: ["Steers and honks", "Throttle, brake and pizza stack balance"],
+  labels: { move: "WASD or arrows", a: "F/Enter", b: "Space" },
+  help: [
+    "<kbd>A</kbd><kbd>D</kbd> steer<br><kbd>F</kbd> or <kbd>Space</kbd> honk",
+    "<kbd>↑</kbd> throttle · <kbd>↓</kbd> brake/reverse<br><kbd>←</kbd><kbd>→</kbd> tilt the pizza stack",
+  ],
+  keys: [
+    { left: ["KeyA"], right: ["KeyD"], up: ["KeyW"], down: ["KeyS"], a: ["KeyF"], b: ["Space"] },
+    { left: ["ArrowLeft"], right: ["ArrowRight"], up: ["ArrowUp"], down: ["ArrowDown"], a: ["Enter", "NumpadEnter"], b: ["ShiftRight"] },
+  ],
+  levelName: (lv) => "shift " + lv,
+  theme: { accent: "#ffcf6a", accentInk: "#2a1405", card: "#221a16", bg: "rgba(26,18,14,.72)" },
+  game: { init, step, snapshot, apply, render, onEvent, preview, onMenu: () => preview(), save: () => true },
+});
+})();
+</script>
+</body>
+</html>

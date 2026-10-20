@@ -23,18 +23,18 @@ const LOGIN_MAX_FAILS = 5;
 const LOGIN_LOCK_MS = 60 * 1000;
 
 function validateUsername(name) {
-  if (name.length < 3 || name.length > 20) throw new CloudError("Käyttäjänimessä pitää olla 3–20 merkkiä.", "username");
-  if (!/^[A-Za-z0-9ÅÄÖåäö_-]+$/.test(name)) throw new CloudError("Käytä vain kirjaimia, numeroita, - ja _.", "username");
+  if (name.length < 3 || name.length > 20) throw new CloudError("Usernames need 3–20 characters.", "username");
+  if (!/^[A-Za-z0-9ÅÄÖåäö_-]+$/.test(name)) throw new CloudError("Use only letters, numbers, - and _.", "username");
 }
 function validateEmail(email) {
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new CloudError("Tarkista sähköpostiosoite.", "email");
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new CloudError("Please check the email address.", "email");
 }
 function validatePassword(pw, username, email) {
-  if (pw.length < 8) throw new CloudError("Salasanassa pitää olla vähintään 8 merkkiä.", "password");
-  if (pw.length > 72) throw new CloudError("Salasana on liian pitkä (enintään 72 merkkiä).", "password");
+  if (pw.length < 8) throw new CloudError("Your password needs at least 8 characters.", "password");
+  if (pw.length > 72) throw new CloudError("Password is too long (max 72 characters).", "password");
   const l = pw.toLowerCase();
-  if (WEAK.includes(l)) throw new CloudError("Tämä salasana on liian helppo arvata.", "password");
-  if (l === username.toLowerCase() || l === email || l === email.split("@")[0]) throw new CloudError("Salasana ei saa olla sama kuin käyttäjänimi tai sähköposti.", "password");
+  if (WEAK.includes(l)) throw new CloudError("That password is too easy to guess.", "password");
+  if (l === username.toLowerCase() || l === email || l === email.split("@")[0]) throw new CloudError("Your password can't be your username or email.", "password");
 }
 
 // Supabasen englanninkieliset virheet selkokielelle
@@ -42,25 +42,25 @@ function friendly(err, ctx) {
   const m = String((err && (err.message || err.error_description || err.msg)) || err || "");
   const code = (err && (err.code || err.error_code)) || "";
   if (/fetch failed|failed to fetch|network|ENOTFOUND|ECONN|EAI_AGAIN|timed? ?out|socket/i.test(m))
-    return new CloudError("Ei yhteyttä Pelipajan palvelimeen. Tarkista nettiyhteys.");
+    return new CloudError("Can't reach the Pelipaja server. Check your internet connection.");
   const sec = /after (\d+) seconds?/i.exec(m);
-  if (sec) return new CloudError(`Odota ${sec[1]} s ennen uutta koodia.`);
+  if (sec) return new CloudError(`Wait ${sec[1]} s before requesting a new code.`);
   if (/rate limit|too many/i.test(m) || code === "over_email_send_rate_limit" || code === "over_request_rate_limit")
-    return new CloudError("Liian monta yritystä hetken sisällä. Odota hetki ja yritä uudelleen.");
+    return new CloudError("Too many attempts in a short time. Wait a moment and try again.");
   if (/sending .*email|smtp|confirmation email|magic link/i.test(m) || code === "unexpected_failure" && ctx === "send")
-    return new CloudError("Koodin lähetys epäonnistui (palvelimen sähköpostiasetus). Yritä hetken päästä uudelleen.");
+    return new CloudError("Couldn't send the code (server email settings). Try again in a moment.");
   if (/token has expired|otp_expired|invalid.*(otp|token)|token.*invalid/i.test(m) || code === "otp_expired")
-    return new CloudError("Väärä tai vanhentunut koodi.", "code");
-  if (/invalid login credentials/i.test(m) || code === "invalid_credentials") return new CloudError("Väärä käyttäjätunnus tai salasana.");
+    return new CloudError("Wrong or expired code.", "code");
+  if (/invalid login credentials/i.test(m) || code === "invalid_credentials") return new CloudError("Wrong username or password.");
   if (/password should be|weak_password|password.*(short|characters)/i.test(m) || code === "weak_password")
-    return new CloudError("Salasana ei kelpaa palvelimelle: käytä vähintään 8 merkkiä, kirjaimia ja numeroita.", "password");
-  if (/same_password|should be different/i.test(m)) return new CloudError("Valitse eri salasana.", "password");
-  if (/duplicate key|profiles_username_key|23505/i.test(m) || code === "23505") return new CloudError("Tämä käyttäjänimi ehti mennä toiselle. Valitse toinen nimi.", "username");
-  if (/email.*(not confirmed|not_confirmed)/i.test(m)) return new CloudError("Sähköpostia ei ole vahvistettu. Luo tili uudelleen samalla sähköpostilla.");
+    return new CloudError("The server rejected that password: use at least 8 characters with letters and numbers.", "password");
+  if (/same_password|should be different/i.test(m)) return new CloudError("Please choose a different password.", "password");
+  if (/duplicate key|profiles_username_key|23505/i.test(m) || code === "23505") return new CloudError("Someone just took that username. Please pick another.", "username");
+  if (/email.*(not confirmed|not_confirmed)/i.test(m)) return new CloudError("Email not verified. Create the account again with the same email.");
   if (/function .* does not exist|PGRST202|relation .* does not exist|42P01|42883/i.test(m))
-    return new CloudError("Pelipajan tietokantaa ei ole vielä asennettu (SQL-asetukset puuttuvat).");
-  if (/signups not allowed|signup.*disabled/i.test(m)) return new CloudError("Uusien tilien luonti on poistettu käytöstä palvelimella.");
-  return new CloudError(m || "Tuntematon virhe palvelimella.");
+    return new CloudError("The Pelipaja database isn't set up yet (SQL setup missing).");
+  if (/signups not allowed|signup.*disabled/i.test(m)) return new CloudError("Creating new accounts is disabled on the server.");
+  return new CloudError(m || "Unknown server error.");
 }
 
 class NoSocket {
@@ -156,7 +156,7 @@ function createCloud({ url, key, dataDir, seal, unseal, createClient, log = cons
       if (prof) username = prof.username;
       else if (!prof) return null; // rekisteröinti kesken (ei profiilia)
     } catch (err) {
-      if (!/yhteyttä/.test(err.message)) throw err; // offline: käytetään istunnon tietoja
+      if (!/Can't reach/.test(err.message)) throw err; // offline: käytetään istunnon tietoja
     }
     return { id: sessionUser.id, email: sessionUser.email, username: username || sessionUser.email.split("@")[0], createdAt: Date.parse(sessionUser.created_at) || Date.now() };
   }
@@ -198,9 +198,9 @@ function createCloud({ url, key, dataDir, seal, unseal, createClient, log = cons
       validateUsername(username);
       validateEmail(email);
       const free = await call(sb.rpc("username_available", { p_username: username }));
-      if (!free) throw new CloudError("Tämä käyttäjänimi on jo käytössä.", "username");
+      if (!free) throw new CloudError("That username is already taken.", "username");
       const taken = await call(sb.rpc("email_registered", { p_email: email }));
-      if (taken) throw new CloudError("Tällä sähköpostilla on jo tili. Kirjaudu sisään.", "email");
+      if (taken) throw new CloudError("There's already an account with this email. Sign in instead.", "email");
       if (pending.email === email && Date.now() - pending.sentAt < RESEND_COOLDOWN_MS) {
         pending.username = username;
         return { ok: true, email, reused: true };
@@ -212,9 +212,9 @@ function createCloud({ url, key, dataDir, seal, unseal, createClient, log = cons
 
     async resend({ email }) {
       email = lower(email);
-      if (pending.email !== email) throw new CloudError("Aloita rekisteröinti alusta.");
+      if (pending.email !== email) throw new CloudError("Please start the sign-up again.");
       const wait = pending.sentAt + RESEND_COOLDOWN_MS - Date.now();
-      if (wait > 0) throw new CloudError(`Odota ${Math.ceil(wait / 1000)} s ennen uutta koodia.`);
+      if (wait > 0) throw new CloudError(`Wait ${Math.ceil(wait / 1000)} s before requesting a new code.`);
       await call(sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, data: { username: pending.username } } }), "send");
       Object.assign(pending, { sentAt: Date.now(), tries: 0 });
       return { ok: true };
@@ -224,16 +224,16 @@ function createCloud({ url, key, dataDir, seal, unseal, createClient, log = cons
     async verifyCode({ email, code }) {
       email = lower(email);
       code = String(code || "").replace(/\D/g, "");
-      if (code.length !== 6) throw new CloudError("Koodissa on 6 numeroa.", "code");
-      if (pending.email !== email) throw new CloudError("Aloita rekisteröinti alusta.");
-      if (pending.tries >= CODE_MAX_TRIES) throw new CloudError("Liian monta väärää yritystä. Pyydä uusi koodi.", "code");
+      if (code.length !== 6) throw new CloudError("The code has 6 digits.", "code");
+      if (pending.email !== email) throw new CloudError("Please start the sign-up again.");
+      if (pending.tries >= CODE_MAX_TRIES) throw new CloudError("Too many wrong attempts. Request a new code.", "code");
       try {
         await call(sb.auth.verifyOtp({ email, token: code, type: "email" }));
       } catch (err) {
         if (err.field === "code") {
           pending.tries++;
           const left = CODE_MAX_TRIES - pending.tries;
-          throw new CloudError(left > 0 ? `Väärä tai vanhentunut koodi. Yrityksiä jäljellä ${left}.` : "Liian monta väärää yritystä. Pyydä uusi koodi.", "code");
+          throw new CloudError(left > 0 ? `Wrong or expired code. ${left} attempts left.` : "Too many wrong attempts. Request a new code.", "code");
         }
         throw err;
       }
@@ -246,7 +246,7 @@ function createCloud({ url, key, dataDir, seal, unseal, createClient, log = cons
       password = String(password || "");
       const { data } = await sb.auth.getSession();
       const session = data && data.session;
-      if (!session || lower(session.user.email) !== email) throw new CloudError("Vahvistus on vanhentunut. Aloita rekisteröinti alusta.");
+      if (!session || lower(session.user.email) !== email) throw new CloudError("Verification expired. Please start the sign-up again.");
       const username = pending.username || (session.user.user_metadata && session.user.user_metadata.username) || "";
       validatePassword(password, username, email);
       remember = rem !== false;
@@ -262,15 +262,15 @@ function createCloud({ url, key, dataDir, seal, unseal, createClient, log = cons
     async login({ login, password, remember: rem, legacyUsers }) {
       const key = lower(login);
       password = String(password || "");
-      if (!key || !password) throw new CloudError("Kirjoita sähköposti tai käyttäjänimi ja salasana.");
+      if (!key || !password) throw new CloudError("Enter your email or username and password.");
       const f = fails.get(key);
-      if (f && f.until > Date.now()) throw new CloudError(`Liian monta yritystä. Odota ${Math.ceil((f.until - Date.now()) / 1000)} s.`);
+      if (f && f.until > Date.now()) throw new CloudError(`Too many attempts. Wait ${Math.ceil((f.until - Date.now()) / 1000)} s.`);
       const bad = () => {
         const g = fails.get(key) || { n: 0, until: 0 };
         g.n++;
         if (g.n >= LOGIN_MAX_FAILS) Object.assign(g, { n: 0, until: Date.now() + LOGIN_LOCK_MS });
         fails.set(key, g);
-        return new CloudError("Väärä käyttäjätunnus tai salasana.");
+        return new CloudError("Wrong username or password.");
       };
       let email = key;
       if (!key.includes("@")) {
@@ -284,14 +284,14 @@ function createCloud({ url, key, dataDir, seal, unseal, createClient, log = cons
       try {
         data = await call(sb.auth.signInWithPassword({ email, password }));
       } catch (err) {
-        if (/Väärä käyttäjätunnus/.test(err.message)) throw bad();
+        if (/Wrong username/.test(err.message)) throw bad();
         throw err;
       }
       fails.delete(key);
       const user = await loadUser(data.user);
       if (!user) {
         await sb.auth.signOut({ scope: "local" }).catch(() => {});
-        throw new CloudError("Rekisteröinti jäi kesken. Luo tili uudelleen samalla sähköpostilla.");
+        throw new CloudError("Sign-up wasn't finished. Create the account again with the same email.");
       }
       current = user;
       return { ok: true, user: current, partition: partitionFor(current, legacyUsers) };

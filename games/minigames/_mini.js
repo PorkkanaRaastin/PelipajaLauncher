@@ -226,7 +226,7 @@
 
     let y = py + 52;
     if (state === "menu") {
-      text(game.players === 2 ? "KAKSINPELI · SAMA KONE" : "YKSINPELI", W / 2, y - 18, 12, C.muted, "center", 800);
+      text(game.players === 2 ? "2 PLAYERS · SAME COMPUTER" : "1 PLAYER", W / 2, y - 18, 12, C.muted, "center", 800);
       text(game.title, W / 2, y + 12, 38, C.text, "center", 800);
       y += 52;
       if (game.description) {
@@ -247,14 +247,14 @@
       }
       y += 16;
       if (game.players === 1 && best() > 0) {
-        text(`Ennätys: ${game.formatScore ? game.formatScore(best()) : best()}`, W / 2, y, 15, C.accent, "center", 700);
+        text(`Best: ${game.formatScore ? game.formatScore(best()) : best()}`, W / 2, y, 15, C.accent, "center", 700);
         y += 26;
       } else y += 10;
-      text("Paina VÄLILYÖNTI tai ENTER aloittaaksesi", W / 2, y + 8, 16, C.text, "center", 700);
+      text("Press SPACE or ENTER to start", W / 2, y + 8, 16, C.text, "center", 700);
     } else if (state === "pause") {
-      text("Tauko", W / 2, y + 12, 36, C.text, "center", 800);
-      text("Esc / P = jatka   ·   R = aloita alusta   ·   M = äänet", W / 2, y + 70, 15, C.muted, "center", 500);
-      text(muted ? "Äänet: pois" : "Äänet: päällä", W / 2, y + 100, 14, C.muted, "center", 500);
+      text("Paused", W / 2, y + 12, 36, C.text, "center", 800);
+      text("Esc / P = resume   ·   R = restart   ·   M = sound", W / 2, y + 70, 15, C.muted, "center", 500);
+      text(muted ? "Sound: off" : "Sound: on", W / 2, y + 100, 14, C.muted, "center", 500);
     } else if (state === "over") {
       text(result.title, W / 2, y + 12, 36, result.color || C.text, "center", 800);
       y += 64;
@@ -262,7 +262,7 @@
         text(l, W / 2, y, 17, C.text, "center", 600);
         y += 30;
       }
-      text("VÄLILYÖNTI / ENTER = uusi peli", W / 2, y + 24, 15, C.muted, "center", 600);
+      text("SPACE / ENTER = new game", W / 2, y + 24, 15, C.muted, "center", 600);
     }
   }
 

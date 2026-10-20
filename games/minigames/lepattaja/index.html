@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="fi">
-<head><meta charset="utf-8"><title>Lepattaja</title></head>
+<html lang="en">
+<head><meta charset="utf-8"><title>Flapper</title></head>
 <body>
 <script src="../_mini.js"></script>
 <script>
@@ -16,10 +16,10 @@ function addPipe(x) {
 
 Mini.run({
   id: "lepattaja",
-  title: "Lepattaja",
-  description: "Lennä putkien välistä. Jokainen putki on piste.",
+  title: "Flapper",
+  description: "Fly between the pipes. Every pipe is a point.",
   players: 1,
-  controls: [[null, ["Välilyönti"], "tai W / ↑ / hiiri: siivenisku"]],
+  controls: [[null, ["Space"], "or W / ↑ / mouse: flap"]],
   reset() {
     bird = { x: 240, y: H / 2 - 40, vy: 0, rot: 0, flap: 0 };
     pipes = [];
@@ -100,7 +100,7 @@ Mini.run({
     ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(25, 4); ctx.lineTo(14, 8); ctx.fill();
     ctx.restore();
     text(String(score), W / 2, 70, 56, C.text, "center", 800);
-    text(`Ennätys ${best()}`, W - 24, 26, 15, C.muted, "right", 600);
+    text(`Best ${best()}`, W - 24, 26, 15, C.muted, "right", 600);
   },
 });
 
@@ -109,7 +109,7 @@ function die() {
   dead = true;
   shake(10, 0.3);
   const isBest = submitScore(score);
-  over({ title: "Pläts!", color: C.danger, lines: [`Putkia: ${score}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+  over({ title: "Splat!", color: C.danger, lines: [`Pipes: ${score}`, isBest ? "New best!" : `Best: ${best()}`] });
 }
 </script>
 </body>

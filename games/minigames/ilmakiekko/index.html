@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="fi">
-<head><meta charset="utf-8"><title>Ilmakiekko</title></head>
+<html lang="en">
+<head><meta charset="utf-8"><title>Air Hockey</title></head>
 <body>
 <script src="../_mini.js"></script>
 <script>
@@ -20,12 +20,12 @@ function resetPuck(towards) {
 
 Mini.run({
   id: "ilmakiekko",
-  title: "Ilmakiekko",
-  description: "Lyö kiekko kaverin maaliin. Seitsemän maalia voittaa.",
+  title: "Air Hockey",
+  description: "Hit the puck into your friend's goal. First to seven goals wins.",
   players: 2,
   controls: [
-    ["Pelaaja 1", ["W", "A", "S", "D"], "liikuta mailaa (vasen puoli)", C.p1],
-    ["Pelaaja 2", ["↑", "←", "↓", "→"], "liikuta mailaa (oikea puoli)", C.p2],
+    ["Player 1", ["W", "A", "S", "D"], "move the mallet (left side)", C.p1],
+    ["Player 2", ["↑", "←", "↓", "→"], "move the mallet (right side)", C.p2],
   ],
   reset() {
     mallets = [{ x: 0, y: 0, vx: 0, vy: 0, color: C.p1 }, { x: 0, y: 0, vx: 0, vy: 0, color: C.p2 }];
@@ -100,10 +100,10 @@ Mini.run({
         shake(10, 0.3);
         beep(scorer ? 520 : 620, 0.3, "triangle", 0.06, 300);
         if (score[scorer] >= WIN) {
-          over({ title: `Pelaaja ${scorer + 1} voitti!`, color: scorer ? C.p2 : C.p1, lines: [`${score[0]} – ${score[1]}`] });
+          over({ title: `Player ${scorer + 1} wins!`, color: scorer ? C.p2 : C.p1, lines: [`${score[0]} – ${score[1]}`] });
           return;
         }
-        goalMsg = { text: `MAALI! Pelaaja ${scorer + 1}`, color: scorer ? C.p2 : C.p1, side: scorer ? -1 : 1 }; // -1 = vasen (pelaaja 1 päästi)
+        goalMsg = { text: `GOAL! Player ${scorer + 1}`, color: scorer ? C.p2 : C.p1, side: scorer ? -1 : 1 }; // -1 = vasen (pelaaja 1 päästi)
         goalT = 1.4;
         puck.vx = puck.vy = 0;
         return;
@@ -130,8 +130,8 @@ Mini.run({
       circle(m.x, m.y, MR - 10, "rgba(0,0,0,0.2)");
       circle(m.x, m.y, 9, m.color);
     }
-    text("PELAAJA 1", 24, 24, 14, C.p1, "left", 800);
-    text("PELAAJA 2", W - 24, 24, 14, C.p2, "right", 800);
+    text("PLAYER 1", 24, 24, 14, C.p1, "left", 800);
+    text("PLAYER 2", W - 24, 24, 14, C.p2, "right", 800);
     text(`${score[0]}   –   ${score[1]}`, W / 2, 24, 26, C.text, "center", 800);
     if (goalMsg) Mini.banner(goalMsg.text, goalMsg.color, CY - 120);
   },

@@ -30,14 +30,14 @@ function set(next) {
 
 // Oma istunto päivityksille (ei evästeitä tai välimuistia muiden sivujen kanssa)
 async function fetchBuffer(url, max, onProgress, timeoutMs = 60000) {
-  if (app.isPackaged && !url.startsWith("https://")) throw new Error("vain https sallittu");
+  if (app.isPackaged && !url.startsWith("https://")) throw new Error("only https allowed");
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await session.fromPartition("pelipaja-updater").fetch(url, { cache: "no-store", redirect: "follow", signal: ctrl.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const total = Number(res.headers.get("content-length") || 0);
-    if (total > max) throw new Error("liian suuri tiedosto");
+    if (total > max) throw new Error("file too large");
     const chunks = [];
     let got = 0;
     const reader = res.body.getReader();
@@ -45,13 +45,13 @@ async function fetchBuffer(url, max, onProgress, timeoutMs = 60000) {
       const { done, value } = await reader.read();
       if (done) break;
       got += value.length;
-      if (got > max) throw new Error("liian suuri tiedosto");
+      if (got > max) throw new Error("file too large");
       chunks.push(Buffer.from(value));
       if (onProgress && total) onProgress(got / total);
     }
     return Buffer.concat(chunks);
   } catch (err) {
-    if (err.name === "AbortError") throw new Error("aikakatkaisu");
+    if (err.name === "AbortError") throw new Error("timed out");
     throw err;
   } finally {
     clearTimeout(timer);
@@ -82,7 +82,7 @@ async function doCheck() {
       set({ state: "manual", version: latest.version, url: `${RELEASES}/latest`, error: null });
       return status;
     }
-    if (!/^[A-Za-z0-9._-]+$/.test(latest.file || "") || !/^[a-f0-9]{64}$/.test(latest.sha256 || "")) throw new Error("virheellinen latest.json");
+    if (!/^[A-Za-z0-9._-]+$/.test(latest.file || "") || !/^[a-f0-9]{64}$/.test(latest.sha256 || "")) throw new Error("invalid latest.json");
     // Jo ladattu aiemmin?
     const installed = verify.bestInstalled(updatesDir(), APP_VERSION, process.versions.electron);
     if (installed && verify.compareVersions(installed.version, latest.version) >= 0) {
@@ -91,7 +91,7 @@ async function doCheck() {
     }
     // Versio, joka on aiemmin kaatunut käynnistyessä, ladataan vasta kun tulee uudempi
     if (fs.existsSync(path.join(updatesDir(), latest.version + ".bad"))) {
-      set({ state: "error", error: `versio ${latest.version} ei käynnistynyt tällä koneella` });
+      set({ state: "error", error: `version ${latest.version} failed to start on this computer` });
       return status;
     }
     set({ state: "downloading", version: latest.version, progress: 0, error: null });
@@ -103,13 +103,13 @@ async function doCheck() {
       }
     });
     set({ state: "installing", progress: 1 });
-    if (verify.sha256(buf) !== latest.sha256) throw new Error("ladattu tiedosto ei täsmää");
+    if (verify.sha256(buf) !== latest.sha256) throw new Error("downloaded file doesn't match");
     const m = verify.installBundle(buf, updatesDir());
-    if (m.version !== latest.version) throw new Error("väärä versio paketissa");
+    if (m.version !== latest.version) throw new Error("wrong version in bundle");
     verify.cleanup(updatesDir());
     set({ state: "ready", version: m.version, error: null });
   } catch (err) {
-    console.error("Päivityksen tarkistus epäonnistui:", err.message);
+    console.error("Update check failed:", err.message);
     set({ state: "error", error: String(err.message || err) });
   }
   return status;

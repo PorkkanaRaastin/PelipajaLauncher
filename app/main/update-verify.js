@@ -37,29 +37,29 @@ const electronMajor = (v) => String(v).split(".")[0];
 
 // Tarkistaa allekirjoituksen ja palauttaa manifestin
 function readManifest(manifestText, sig) {
-  if (typeof manifestText !== "string" || typeof sig !== "string") throw new Error("manifest puuttuu");
+  if (typeof manifestText !== "string" || typeof sig !== "string") throw new Error("manifest missing");
   const ok = crypto.verify(null, Buffer.from(manifestText, "utf8"), PUBLIC_KEY, Buffer.from(sig, "base64"));
-  if (!ok) throw new Error("allekirjoitus ei täsmää");
+  if (!ok) throw new Error("signature doesn't match");
   const m = JSON.parse(manifestText);
-  if (!VERSION.test(m.version) || typeof m.electron !== "string" || !m.files || typeof m.files !== "object") throw new Error("virheellinen manifest");
+  if (!VERSION.test(m.version) || typeof m.electron !== "string" || !m.files || typeof m.files !== "object") throw new Error("invalid manifest");
   for (const [p, h] of Object.entries(m.files)) {
-    if (!SAFE_PATH.test(p) || !/^[a-f0-9]{64}$/.test(h)) throw new Error("virheellinen tiedosto manifestissa: " + p);
+    if (!SAFE_PATH.test(p) || !/^[a-f0-9]{64}$/.test(h)) throw new Error("invalid file in manifest: " + p);
   }
-  if (!m.files["package.json"] || !m.files["app/main/index.js"]) throw new Error("paketista puuttuu sovellus");
+  if (!m.files["package.json"] || !m.files["app/main/index.js"]) throw new Error("bundle is missing the app");
   return m;
 }
 
 // Purkaa ja tarkistaa ladatun paketin. Palauttaa { manifest, manifestText, sig, data }
 function openBundle(buf) {
-  if (!Buffer.isBuffer(buf) || buf.length > MAX_BUNDLE) throw new Error("paketti on liian suuri");
+  if (!Buffer.isBuffer(buf) || buf.length > MAX_BUNDLE) throw new Error("bundle too large");
   const raw = JSON.parse(zlib.gunzipSync(buf, { maxOutputLength: MAX_BUNDLE * 2 }).toString("utf8"));
   const manifest = readManifest(raw.manifest, raw.sig);
   const data = raw.data || {};
   const names = Object.keys(manifest.files);
-  if (Object.keys(data).length !== names.length) throw new Error("tiedostojen määrä ei täsmää");
+  if (Object.keys(data).length !== names.length) throw new Error("file count doesn't match");
   for (const p of names) {
-    if (typeof data[p] !== "string") throw new Error("tiedosto puuttuu: " + p);
-    if (sha256(Buffer.from(data[p], "base64")) !== manifest.files[p]) throw new Error("tarkistussumma ei täsmää: " + p);
+    if (typeof data[p] !== "string") throw new Error("file missing: " + p);
+    if (sha256(Buffer.from(data[p], "base64")) !== manifest.files[p]) throw new Error("checksum doesn't match: " + p);
   }
   return { manifest, manifestText: raw.manifest, sig: raw.sig, data };
 }
@@ -88,9 +88,9 @@ function installBundle(buf, updatesDir) {
 function verifyInstalled(dir) {
   const { manifest: text, sig } = JSON.parse(fs.readFileSync(path.join(dir, "pelipaja-manifest.json"), "utf8"));
   const m = readManifest(text, sig);
-  if (path.basename(dir) !== m.version) throw new Error("kansion nimi ei täsmää versioon");
+  if (path.basename(dir) !== m.version) throw new Error("folder name doesn't match version");
   for (const [p, h] of Object.entries(m.files)) {
-    if (sha256(fs.readFileSync(path.join(dir, ...p.split("/")))) !== h) throw new Error("tiedostoa on muokattu: " + p);
+    if (sha256(fs.readFileSync(path.join(dir, ...p.split("/")))) !== h) throw new Error("file has been modified: " + p);
   }
   return m;
 }
@@ -113,7 +113,7 @@ function bestInstalled(updatesDir, ownVersion, electronVersion) {
       if (electronMajor(m.electron) !== electronMajor(electronVersion)) continue;
       return { version: v, root: dir };
     } catch (err) {
-      console.error(`Päivitys ${v} hylätty: ${err.message}`);
+      console.error(`Update ${v} rejected: ${err.message}`);
     }
   }
   return null;

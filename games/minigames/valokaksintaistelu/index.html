@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="fi">
-<head><meta charset="utf-8"><title>Valokaksintaistelu</title></head>
+<html lang="en">
+<head><meta charset="utf-8"><title>Light Cycles</title></head>
 <body>
 <script src="../_mini.js"></script>
 <script>
@@ -27,12 +27,12 @@ function turn(b, dx, dy) {
 
 Mini.run({
   id: "valokaksintaistelu",
-  title: "Valokaksintaistelu",
-  description: "Valopyörät jättävät seinän perään. Viisi erävoittoa voittaa.",
+  title: "Light Cycles",
+  description: "Light cycles leave a wall behind them. Five round wins takes the match.",
   players: 2,
   controls: [
-    ["Pelaaja 1", ["W", "A", "S", "D"], "käänny", C.p1],
-    ["Pelaaja 2", ["↑", "←", "↓", "→"], "käänny", C.p2],
+    ["Player 1", ["W", "A", "S", "D"], "turn", C.p1],
+    ["Player 2", ["↑", "←", "↓", "→"], "turn", C.p2],
   ],
   reset() {
     wins = [0, 0];
@@ -103,8 +103,8 @@ Mini.run({
       rect(k.x * CELL - 2, TOP + k.y * CELL - 2, CELL + 4, CELL + 4, k.alive ? C.text : C.danger, 3);
       ctx.shadowBlur = 0;
     }
-    text("PELAAJA 1", 24, 24, 14, C.p1, "left", 800);
-    text("PELAAJA 2", W - 24, 24, 14, C.p2, "right", 800);
+    text("PLAYER 1", 24, 24, 14, C.p1, "left", 800);
+    text("PLAYER 2", W - 24, 24, 14, C.p2, "right", 800);
     for (let i = 0; i < WIN; i++) {
       rect(W / 2 - 160 + i * 26, 16, 18, 16, i < wins[0] ? C.p1 : C.panel2, 4);
       rect(W / 2 + 160 - 18 - i * 26, 16, 18, 16, i < wins[1] ? C.p2 : C.panel2, 4);
@@ -117,13 +117,13 @@ Mini.run({
 function endRound(aAlive, bAlive) {
   shake(10, 0.3);
   beep(160, 0.3, "sawtooth", 0.05, -80);
-  if (aAlive === bAlive) roundMsg = { text: "Tasapeli!", color: C.text };
+  if (aAlive === bAlive) roundMsg = { text: "Draw!", color: C.text };
   else {
     const w = aAlive ? 0 : 1;
     wins[w]++;
-    roundMsg = { text: `Pelaaja ${w + 1} voitti erän`, color: w ? C.p2 : C.p1 };
+    roundMsg = { text: `Player ${w + 1} wins the round`, color: w ? C.p2 : C.p1 };
     if (wins[w] >= WIN) {
-      over({ title: `Pelaaja ${w + 1} voitti!`, color: w ? C.p2 : C.p1, lines: [`Erät ${wins[0]} – ${wins[1]}`] });
+      over({ title: `Player ${w + 1} wins!`, color: w ? C.p2 : C.p1, lines: [`Rounds ${wins[0]} – ${wins[1]}`] });
       return;
     }
   }

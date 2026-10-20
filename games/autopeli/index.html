@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="fi"><head><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<title>Autopeli</title>
+<title>Turbo Laps</title>
 <style>
 :root{--hud:#fff;--accent:#ffd54a;--btn:rgba(255,255,255,.25);--f:'Press Start 2P',ui-monospace,Menlo,Consolas,monospace;box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:#78beff;font-family:var(--f)}
@@ -46,11 +46,11 @@ canvas{display:block}
 <div id="hud"><div id="spd">0 km/h</div><div id="lap"></div><div id="time"></div><div id="pos"></div><div id="bl"></div></div>
 <div id="lights"><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i></div>
 <div id="res"></div>
-<div id="menu"><div class="t">AUTO<br>PELI</div>
-<div id="m0"><p>▶ VALITSE TILA ◀</p><br><div class="cards" id="modes"></div><br><div id="lp"></div></div>
-<div id="m1" style="display:none"><p>▶ VALITSE RATA ◀</p><br><div class="cards" id="tracks"></div><br><button class="back" id="bk1">◀ TAKAISIN</button></div>
-<div id="m2" style="display:none"><p id="mt"></p><br><div class="cards" id="difs"></div><br><button class="back" id="bk">◀ TAKAISIN</button></div></div>
-<div id="redov"></div><div id="wrong"><div>VÄÄRÄÄN SUUNTAAN!</div><div style="font-size:11px">KÄÄNNY YMPÄRI</div><div id="wcnt">5</div></div>
+<div id="menu"><div class="t">TURBO<br>LAPS</div>
+<div id="m0"><p>▶ CHOOSE MODE ◀</p><br><div class="cards" id="modes"></div><br><div id="lp"></div></div>
+<div id="m1" style="display:none"><p>▶ CHOOSE TRACK ◀</p><br><div class="cards" id="tracks"></div><br><button class="back" id="bk1">◀ BACK</button></div>
+<div id="m2" style="display:none"><p id="mt"></p><br><div class="cards" id="difs"></div><br><button class="back" id="bk">◀ BACK</button></div></div>
+<div id="redov"></div><div id="wrong"><div>WRONG WAY!</div><div style="font-size:11px">TURN AROUND</div><div id="wcnt">5</div></div>
 <div id="wheel"><svg id="wsvg" viewBox="0 0 400 260"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4a52"/><stop offset="1" stop-color="#16161a"/></linearGradient></defs>
 <rect x="14" y="40" width="82" height="190" rx="36" fill="#1b1b1e" stroke="#000" stroke-width="4"/><rect x="304" y="40" width="82" height="190" rx="36" fill="#1b1b1e" stroke="#000" stroke-width="4"/>
 <path d="M60 70 Q60 50 85 50 L315 50 Q340 50 340 70 L340 165 Q340 185 315 185 L85 185 Q60 185 60 165 Z" fill="url(#cg)" stroke="#000" stroke-width="4"/>
@@ -58,9 +58,9 @@ canvas{display:block}
 <rect x="140" y="68" width="120" height="48" rx="6" fill="#06180e" stroke="#555" stroke-width="3"/><text id="wtxt" x="200" y="102" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#5cff7a">0</text>
 <circle cx="112" cy="84" r="13" fill="#e0361f"/><circle cx="112" cy="128" r="13" fill="#ffd54a"/><circle cx="288" cy="84" r="13" fill="#2f6fe0"/><circle cx="288" cy="128" r="13" fill="#20a050"/>
 <circle cx="160" cy="150" r="14" fill="#888" stroke="#000" stroke-width="3"/><circle cx="240" cy="150" r="14" fill="#888" stroke="#000" stroke-width="3"/><rect x="156" y="132" width="8" height="10" fill="#fff"/><rect x="236" y="132" width="8" height="10" fill="#fff"/></svg></div>
-<div id="msg">KOLARI!</div>
-<div id="pause" style="display:none"><div class="t" style="font-size:clamp(24px,6vw,44px)">TAUKO</div><div class="cards"><button class="card" id="pc" style="--c:#2e8b57"><span class="e">▶</span><b>JATKA</b></button><button class="card" id="pm" style="--c:#a8501a"><span class="e">⌂</span><b>VALIKKO</b></button></div></div>
-<div id="help">WASD / nuolet = aja · välilyönti = käsijarru · C = kamera (ylhäältä / takaa / ratti) · R = uusi kisa · ESC = tauko</div>
+<div id="msg">CRASH!</div>
+<div id="pause" style="display:none"><div class="t" style="font-size:clamp(24px,6vw,44px)">PAUSED</div><div class="cards"><button class="card" id="pc" style="--c:#2e8b57"><span class="e">▶</span><b>RESUME</b></button><button class="card" id="pm" style="--c:#a8501a"><span class="e">⌂</span><b>MENU</b></button></div></div>
+<div id="help">WASD / arrows = drive · Space = handbrake · C = camera (top / chase / cockpit) · R = restart race · ESC = pause</div>
 <div class="pad" id="l"><button data-k="left">◀</button><button data-k="right">▶</button></div>
 <div class="pad" id="r"><button data-k="down">■</button><button data-k="up">▲</button></div>
 <script src="../_shared/three.min.js"></script>
@@ -82,11 +82,11 @@ function box(w,h,d,c,x=0,y=0,z=0,p=world){const m=new THREE.Mesh(UB,mat(c));m.sc
 // ---- radat ja vuodenaikateemat ----
 let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
 const TR=[
-{n:'Kevät',e:'🌸',d:'Kukkaniitty',col:'#3f8f5a',sky:0x9fd8ff,gr:0x6cc26a,road:0x3c3c41,leaf:[0xf6a6c8,0xffc0dd,0x8fd36a],hw:14,grip:1,pine:.1,fall:0xffc0dd,fs:6,ob:['oil','oil','puddle','cones'],g:{"R":843.4250677299872,"a2":0.08144140304066241,"p2":1.62397223261185,"a3":0.09895346285775304,"p3":0.7498313783667981,"k1":33,"A1":51.897836757823825,"q1":2.566457271045074,"k2":10,"A2":77.78983946889639,"q2":1.575387570410967,"e":5,"pe":4.463879312677309}},
-{n:'Kesä',e:'☀️',d:'Aurinkorata',col:'#c98a1a',sky:0x4fb3ff,gr:0x4aa23a,road:0x45454a,leaf:[0x1e8c28,0x2fb035,0x23a02f],hw:16,grip:1,pine:.15,fall:0,fs:0,ob:['oil','sand','sand','cones'],g:{"R":980.8755589027814,"a2":0.06114646134898066,"p2":5.432399065028877,"a3":0.09830415157601237,"p3":4.36232856486924,"k1":34,"A1":50.13222062261775,"q1":3.054290100373328,"k2":9,"A2":90.6290054996498,"q2":3.495521296048537,"e":3,"pe":4.6717735711764545}},
-{n:'Syksy',e:'🍂',d:'Metsäpolku',col:'#a8501a',sky:0xd9b38c,gr:0x8a7a3a,road:0x3a3633,leaf:[0xd9531e,0xe8a317,0xb5341c],hw:12,grip:1,pine:.4,fall:0xe8a317,fs:7,ob:['oil','leaves','leaves','puddle'],g:{"R":886.519864427532,"a2":0.0686206762958318,"p2":4.087258522519842,"a3":0.033831289820373055,"p3":3.1366009208280596,"k1":35,"A1":59.00543305370957,"q1":4.193760888446122,"k2":9,"A2":86.82115676114336,"q2":6.193237445922569,"e":4,"pe":0.1544641950633377}},
-{n:'Talvi',e:'❄️',d:'Jäämaa – liukas!',col:'#4a7aa8',sky:0xcfe6f5,gr:0xf2f6fa,road:0x59616a,leaf:[0x2e6b4a,0x2a5d44,0x3a7a58],hw:13,grip:.8,pine:.85,snow:1,fall:0xffffff,fs:9,ob:['ice','ice','oil','snow','cones'],g:{"R":918.283809829269,"a2":0.1268619020283222,"p2":1.4927407125663013,"a3":0.07948716308921575,"p3":5.5080410624947405,"k1":35,"A1":56.77985859103501,"q1":4.998701926479116,"k2":9,"A2":143.0365350167267,"q2":4.1706767544709145,"e":3,"pe":5.069726392673329}}];
-const DIFS=[['Helppo',.8,'#2e8b57'],['Normaali',.98,'#c78a00'],['Vaikea',1.2,'#c0392b']];
+{n:'Spring',e:'🌸',d:'Flower Meadow',col:'#3f8f5a',sky:0x9fd8ff,gr:0x6cc26a,road:0x3c3c41,leaf:[0xf6a6c8,0xffc0dd,0x8fd36a],hw:14,grip:1,pine:.1,fall:0xffc0dd,fs:6,ob:['oil','oil','puddle','cones'],g:{"R":843.4250677299872,"a2":0.08144140304066241,"p2":1.62397223261185,"a3":0.09895346285775304,"p3":0.7498313783667981,"k1":33,"A1":51.897836757823825,"q1":2.566457271045074,"k2":10,"A2":77.78983946889639,"q2":1.575387570410967,"e":5,"pe":4.463879312677309}},
+{n:'Summer',e:'☀️',d:'Sunshine Circuit',col:'#c98a1a',sky:0x4fb3ff,gr:0x4aa23a,road:0x45454a,leaf:[0x1e8c28,0x2fb035,0x23a02f],hw:16,grip:1,pine:.15,fall:0,fs:0,ob:['oil','sand','sand','cones'],g:{"R":980.8755589027814,"a2":0.06114646134898066,"p2":5.432399065028877,"a3":0.09830415157601237,"p3":4.36232856486924,"k1":34,"A1":50.13222062261775,"q1":3.054290100373328,"k2":9,"A2":90.6290054996498,"q2":3.495521296048537,"e":3,"pe":4.6717735711764545}},
+{n:'Autumn',e:'🍂',d:'Forest Trail',col:'#a8501a',sky:0xd9b38c,gr:0x8a7a3a,road:0x3a3633,leaf:[0xd9531e,0xe8a317,0xb5341c],hw:12,grip:1,pine:.4,fall:0xe8a317,fs:7,ob:['oil','leaves','leaves','puddle'],g:{"R":886.519864427532,"a2":0.0686206762958318,"p2":4.087258522519842,"a3":0.033831289820373055,"p3":3.1366009208280596,"k1":35,"A1":59.00543305370957,"q1":4.193760888446122,"k2":9,"A2":86.82115676114336,"q2":6.193237445922569,"e":4,"pe":0.1544641950633377}},
+{n:'Winter',e:'❄️',d:'Iceland – slippery!',col:'#4a7aa8',sky:0xcfe6f5,gr:0xf2f6fa,road:0x59616a,leaf:[0x2e6b4a,0x2a5d44,0x3a7a58],hw:13,grip:.8,pine:.85,snow:1,fall:0xffffff,fs:9,ob:['ice','ice','oil','snow','cones'],g:{"R":918.283809829269,"a2":0.1268619020283222,"p2":1.4927407125663013,"a3":0.07948716308921575,"p3":5.5080410624947405,"k1":35,"A1":56.77985859103501,"q1":4.998701926479116,"k2":9,"A2":143.0365350167267,"q2":4.1706767544709145,"e":3,"pe":5.069726392673329}}];
+const DIFS=[['Easy',.8,'#2e8b57'],['Normal',.98,'#c78a00'],['Hard',1.2,'#c0392b']];
 let world,pts,Tn,ta,mc,HW=13,TH=TR[0],inMenu=true,DM=1,paused=false,carsOn=false,camMode=0,steerVis=0,curTrack=0,rec=null,newRec=false,spc=4,mode="race",career=null,sel=0,lastBs=-1,OB=[];
 // putoavat hiutaleet / lehdet
 const fxg=new THREE.BufferGeometry(),fxa=new Float32Array(900);
@@ -195,7 +195,7 @@ function mk(col){const K=0x151515,parts=[],B=(w,h,d)=>new THREE.BoxGeometry(w,h,
 function label(txt,col){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');
   x.font='bold 34px system-ui';x.textAlign='center';x.lineWidth=6;x.strokeStyle='#000';x.strokeText(txt,128,44);x.fillStyle=col;x.fillText(txt,128,44);
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.scale.set(11,2.75,1);scene.add(s);return s;}
-const defs=[['SINÄ',0xe10600,1],['Turbo Teemu',0x1e90ff,.99],['Nopea Nelli',0xffd000,.97],['Vauhti Venla',0x20c060,.95],['Kaasu Kalle',0xff7a00,.93],['Liisa Liukas',0xb050ff,.91],['Rento Roope',0x00c8c8,.89],['Pikku Pekka',0xff66aa,.87],['Sirpa Salama',0x9a9aa8,.85],['Jarmo Jyrky',0x99dd22,.83],['Hurja Hannu',0xffffff,.81],['Mutka Maija',0x8b5a2b,.79],['Rämä Riku',0x2b3a8b,.77]];
+const defs=[['YOU',0xe10600,1],['Turbo Tim',0x1e90ff,.99],['Speedy Sally',0xffd000,.97],['Velocity Vicky',0x20c060,.95],['Gas Gary',0xff7a00,.93],['Slippery Sue',0xb050ff,.91],['Chill Charlie',0x00c8c8,.89],['Little Leo',0xff66aa,.87],['Lightning Lisa',0x9a9aa8,.85],['Jerky Jack',0x99dd22,.83],['Wild Will',0xffffff,.81],['Curvy Kate',0x8b5a2b,.79],['Rusty Rick',0x2b3a8b,.77]];
 let cars=defs.map((d,i)=>({id:i,nm:d[0],sk:d[2],me:i==0,mesh:mk(d[1]),lab:label(d[0],i==0?'#ffd54a':'#fff'),lat:(i%2?-1:1)*(1+rnd()*5)}));
 const allCars=cars.slice();
 const me=cars[0],slot=[6,0,1,2,3,4,5,7,8,9,10,11,12];
@@ -249,18 +249,19 @@ const bestOf=i=>{const v=parseFloat(store.get('ap_best_'+i));return isNaN(v)?nul
 LAPS=+store.get("ap_laps")||3;const PTS=[25,18,15,12,10,8,6,4,2,1];
 const show=id=>['m0','m1','m2'].forEach(m=>$(m).style.display=m==id?'':'none');
 const card=(at,c,e,b,i)=>`<button class="card" style="--c:${c}" ${at}><span class="e">${e}</span><b>${b}</b><i>${i}</i></button>`;
-const savedCareer=()=>{try{return JSON.parse(store.get('ap_career')||'null');}catch(e){return null;}};
+const OLDN={'SINÄ':'YOU','Turbo Teemu':'Turbo Tim','Nopea Nelli':'Speedy Sally','Vauhti Venla':'Velocity Vicky','Kaasu Kalle':'Gas Gary','Liisa Liukas':'Slippery Sue','Rento Roope':'Chill Charlie','Pikku Pekka':'Little Leo','Sirpa Salama':'Lightning Lisa','Jarmo Jyrky':'Jerky Jack','Hurja Hannu':'Wild Will','Mutka Maija':'Curvy Kate','Rämä Riku':'Rusty Rick'};
+const savedCareer=()=>{try{const c=JSON.parse(store.get('ap_career')||'null');if(c&&c.pts)for(const k of Object.keys(c.pts))if(OLDN[k]){c.pts[OLDN[k]]=(c.pts[OLDN[k]]||0)+c.pts[k];delete c.pts[k];}return c;}catch(e){return null;}};
 function menuModes(){const sv=savedCareer();
-  $('modes').innerHTML=card('data-m="race"','#3f8f5a','🏁','KISA','3 KIERROSTA<br>10 AUTOA')+card('data-m="tt"','#4a7aa8','⏱️','AIKA-AJO','YKSIN RADALLA<br>JAHDAA ENNÄTYSTÄ')+card('data-m="career"','#a8501a','🏆','URA',sv?'JATKA TAI<br>ALOITA UUSI':'4 KISAN<br>MESTARUUS');
+  $('modes').innerHTML=card('data-m="race"','#3f8f5a','🏁','RACE',LAPS+' LAP'+(LAPS>1?'S':'')+'<br>10 CARS')+card('data-m="tt"','#4a7aa8','⏱️','TIME TRIAL','ALONE ON TRACK<br>CHASE THE RECORD')+card('data-m="career"','#a8501a','🏆','CAREER',sv?'CONTINUE OR<br>START NEW':'4-RACE<br>CHAMPIONSHIP');
   $('modes').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;if(mode=='career')menuDiff();else menuTracks();});
-  $('lp').innerHTML='<p style="animation:none;font-size:10px;margin-bottom:10px">KIERROKSIA</p>'+[1,2,3].map(n=>`<button class="card mini" data-l="${n}" style="--c:${n==LAPS?'#2e8b57':'#444'}">${n}</button>`).join('');
+  $('lp').innerHTML='<p style="animation:none;font-size:10px;margin-bottom:10px">LAPS</p>'+[1,2,3].map(n=>`<button class="card mini" data-l="${n}" style="--c:${n==LAPS?'#2e8b57':'#444'}">${n}</button>`).join('');
   $('lp').querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{LAPS=+b.dataset.l;store.set('ap_laps',String(LAPS));menuModes();});show('m0');}
 function menuTracks(){
-  $('tracks').innerHTML=TR.map((t,i)=>{const b=bestOf(i);return card(`data-i="${i}"`,t.col,t.e,t.n.toUpperCase(),t.d+'<br>PARAS '+(b!=null?fmt(b):'--'));}).join('');
+  $('tracks').innerHTML=TR.map((t,i)=>{const b=bestOf(i);return card(`data-i="${i}"`,t.col,t.e,t.n.toUpperCase(),t.d+'<br>BEST '+(b!=null?fmt(b):'--'));}).join('');
   $('tracks').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{sel=+b.dataset.i;buildTrack(TR[sel]);reset();if(mode=='tt')startRace(sel,null);else menuDiff();});show('m1');}
 function menuDiff(){const sv=mode=='career'?savedCareer():null;
-  $('mt').textContent=mode=='career'?'URA · VALITSE VAIKEUS':(TR[sel].e+' '+TR[sel].n+' · VALITSE VAIKEUS').toUpperCase();
-  $('difs').innerHTML=(sv?card('data-c="1"','#2f6fe0','▶','JATKA','KISA '+(sv.round+1)+' / '+TR.length):'')+DIFS.map((d,i)=>card(`data-d="${i}"`,d[2],'',d[0].toUpperCase(),'★'.repeat(i+1)+'☆'.repeat(2-i))).join('');
+  $('mt').textContent=mode=='career'?'CAREER · CHOOSE DIFFICULTY':(TR[sel].e+' '+TR[sel].n+' · CHOOSE DIFFICULTY').toUpperCase();
+  $('difs').innerHTML=(sv?card('data-c="1"','#2f6fe0','▶','CONTINUE','RACE '+(sv.round+1)+' / '+TR.length):'')+DIFS.map((d,i)=>card(`data-d="${i}"`,d[2],'',d[0].toUpperCase(),'★'.repeat(i+1)+'☆'.repeat(2-i))).join('');
   $('difs').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{career=sv;startRace(career.round,career.d);});
   $('difs').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const d=+b.dataset.d;
     if(mode=='career'){career={round:0,d,pts:{}};store.set('ap_career',JSON.stringify(career));startRace(0,d);}else startRace(sel,d);});show('m2');}
@@ -314,24 +315,24 @@ function drive(c,dt){
 }
 const order=()=>[...cars].sort((a,b)=>(a.fin!=null&&b.fin!=null)?a.fin-b.fin:a.fin!=null?-1:b.fin!=null?1:b.prog-a.prog);
 const hc={},setT=(id,v)=>{if(hc[id]!==v){hc[id]=v;$(id).textContent=v;}};
-const OBFX={oil:1,ice:1,puddle:0,sand:0,leaves:0,snow:0,cones:0},OBM={oil:'ÖLJYÄ!',ice:'JÄÄTÄ!',puddle:'VESILIUKU!',sand:'HIEKKAA!',leaves:'LEHTIÄ!',snow:'LUMIKASA!',cones:'KARTIOITA!'};
+const OBFX={oil:1,ice:1,puddle:0,sand:0,leaves:0,snow:0,cones:0},OBM={oil:'OIL!',ice:'ICE!',puddle:'AQUAPLANING!',sand:'SAND!',leaves:'LEAVES!',snow:'SNOWBANK!',cones:'CONES!'};
 function hitObs(c,o){c.obsCd=1.3;c.why=OBM[o.k];if(OBFX[o.k]){c.spin=.9;c.dir=Math.random()<.5?-1:1;}else c.slowT=1.8;if(c.me)thud(OBFX[o.k]?.5:.25);}
 function lapDone(t){me.lastLap=t;if(!me.bestLap||t<me.bestLap)me.bestLap=t;if(rec==null||t<rec){rec=t;newRec=true;store.set('ap_best_'+curTrack,String(t));}}
 function results(){
-  const o=order(),f=c=>c.fin!=null?fmt(c.fin):'AJOSSA',p=o.indexOf(me)+1;let h='';
+  const o=order(),f=c=>c.fin!=null?fmt(c.fin):'RACING',p=o.indexOf(me)+1;let h='';
   if(mode=='tt'){
-    h=`<h2>🏁 MAALI!</h2><div>AIKA ${fmt(me.fin)}</div><div>PARAS KIERROS ${me.bestLap?fmt(me.bestLap):'--'}</div><div style="color:#ffd54a;margin-top:10px">${newRec?'★ UUSI RATAENNÄTYS! ★':'ENNÄTYS '+(rec!=null?fmt(rec):'--')}</div>`;
+    h=`<h2>🏁 FINISH!</h2><div>TIME ${fmt(me.fin)}</div><div>BEST LAP ${me.bestLap?fmt(me.bestLap):'--'}</div><div style="color:#ffd54a;margin-top:10px">${newRec?'★ NEW TRACK RECORD! ★':'RECORD '+(rec!=null?fmt(rec):'--')}</div>`;
   }else{
-    h=`<h2>🏁 MAALI! TOP 3</h2><ol>${o.slice(0,3).map(c=>`<li class="${c.me?'me':''}">${c.nm} – ${f(c)}</li>`).join('')}</ol>`+(p>3?`<div>SIJOITUKSESI: ${p}.</div>`:'')+`<div style="margin-top:6px">PARAS KIERROS ${me.bestLap?fmt(me.bestLap):'--'}${newRec?' ★ ENNÄTYS':''}</div>`;
+    h=`<h2>🏁 FINISH! TOP 3</h2><ol>${o.slice(0,3).map(c=>`<li class="${c.me?'me':''}">${c.nm} – ${f(c)}</li>`).join('')}</ol>`+(p>3?`<div>YOUR POSITION: ${p}.</div>`:'')+`<div style="margin-top:6px">BEST LAP ${me.bestLap?fmt(me.bestLap):'--'}${newRec?' ★ RECORD':''}</div>`;
     if(mode=='career'){
       o.forEach((c,i)=>career.pts[c.nm]=(career.pts[c.nm]||0)+(PTS[i]||0));career.round++;
       store.set('ap_career',career.round<TR.length?JSON.stringify(career):'');
       const st=Object.entries(career.pts).sort((a,b)=>b[1]-a[1]),mp=st.findIndex(e=>e[0]==me.nm)+1;
-      h+=`<div style="margin-top:12px;color:#ffd54a">MESTARUUSPISTEET</div><ol>${st.slice(0,3).map(e=>`<li class="${e[0]==me.nm?'me':''}">${e[0]} – ${e[1]} p</li>`).join('')}</ol>`+(mp>3?`<div>SINÄ: ${mp}. (${career.pts[me.nm]} p)</div>`:'');
-      if(career.round>=TR.length)h+=`<div style="color:#ffd54a;margin-top:8px">${mp==1?'🏆 OLET MESTARI!':'URA PÄÄTTYI'}</div>`;
+      h+=`<div style="margin-top:12px;color:#ffd54a">CHAMPIONSHIP POINTS</div><ol>${st.slice(0,3).map(e=>`<li class="${e[0]==me.nm?'me':''}">${e[0]} – ${e[1]} p</li>`).join('')}</ol>`+(mp>3?`<div>YOU: ${mp}. (${career.pts[me.nm]} p)</div>`:'');
+      if(career.round>=TR.length)h+=`<div style="color:#ffd54a;margin-top:8px">${mp==1?'🏆 YOU ARE THE CHAMPION!':'CAREER OVER'}</div>`;
     }}
   const nx=mode=='career'&&career.round<TR.length;
-  h+='<div style="margin-top:14px">'+(nx?'<button class="card mini" id="rn" style="--c:#2e8b57">SEURAAVA ▶</button>':(mode=='career'?'':'<button class="card mini" id="rr" style="--c:#2e8b57">UUDESTAAN</button>'))+'<button class="card mini" id="rm" style="--c:#a8501a">VALIKKO</button></div>';
+  h+='<div style="margin-top:14px">'+(nx?'<button class="card mini" id="rn" style="--c:#2e8b57">NEXT ▶</button>':(mode=='career'?'':'<button class="card mini" id="rr" style="--c:#2e8b57">AGAIN</button>'))+'<button class="card mini" id="rm" style="--c:#a8501a">MENU</button></div>';
   $('res').innerHTML=h;$('res').style.display='block';
   if($('rn'))$('rn').onclick=()=>startRace(career.round,career.d);if($('rr'))$('rr').onclick=()=>reset();if($('rm'))$('rm').onclick=toMenu;}
 
@@ -358,7 +359,7 @@ function frame(now){
   for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
     const a=cars[i],b=cars[j],dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz);
     if(d<3.6&&d>0.01){const o=(3.6-d)/2,nx=dx/d,nz=dz/d;a.x-=nx*o;a.z-=nz*o;b.x+=nx*o;b.z+=nz*o;a.v*=.985;b.v*=.985;
-      if(a.me||b.me){const pl=a.me?a:b,q=a.me?b:a;if(go&&pl.spin<=0&&pl.imm<=0&&(Math.abs(pl.v)>8||Math.abs(pl.v-q.v)>8)){pl.spin=.9;pl.dir=Math.random()<.5?-1:1;pl.why='KOLARI!';thud(.7);}else if(pl.spin<=0)thud(.12);}}}
+      if(a.me||b.me){const pl=a.me?a:b,q=a.me?b:a;if(go&&pl.spin<=0&&pl.imm<=0&&(Math.abs(pl.v)>8||Math.abs(pl.v-q.v)>8)){pl.spin=.9;pl.dir=Math.random()<.5?-1:1;pl.why='CRASH!';thud(.7);}else if(pl.spin<=0)thud(.12);}}}
   cars.forEach(c=>{
     const ni=near(c);let dl=ni-c.idx;if(dl<-N/2)dl+=N;if(dl>N/2)dl-=N;c.prog+=dl;c.idx=ni;
     if(c.d>HW+BAR){const q=pts[ni],k=(HW+BAR)/c.d;c.x=q.x+(c.x-q.x)*k;c.z=q.z+(c.z-q.z)*k;c.d=HW+BAR;c.v*=Math.exp(-4*dt);if(c.me&&Math.abs(c.v)>20)thud(.3);}
@@ -386,12 +387,12 @@ function frame(now){
   const sIn=(keys.right?1:0)-(keys.left?1:0);
   steerVis+=((go&&me.spin<=0&&me.auto<=0&&!me.fin?sIn*(1-.4*Math.min(1,Math.abs(me.v)/MAXV)):0)-steerVis)*Math.min(1,9*dt);
   $('wsvg').style.transform='rotate('+(steerVis*105).toFixed(1)+'deg)';$('wtxt').textContent=Math.round(Math.abs(me.v)*4);
-  $('wheel').style.display=camMode==2?'block':'none';setT('msg',me.spin>0?(me.why||'KOLARI!'):(me.why||'HIDASTUS!'));$('msg').style.display=(me.spin>0||me.slowT>0)?'block':'none';
+  $('wheel').style.display=camMode==2?'block':'none';setT('msg',me.spin>0?(me.why||'CRASH!'):(me.why||'SLOWED!'));$('msg').style.display=(me.spin>0||me.slowT>0)?'block':'none';
   setT('spd',Math.round(Math.abs(me.v)*4)+' km/h');
-  setT('lap',(mode=='career'?'URA '+(career.round+1)+'/'+TR.length+' · ':'')+'KIERROS '+Math.min(LAPS,Math.max(1,Math.floor(me.prog/N)+1))+'/'+LAPS);
-  setT('time','AIKA '+race.toFixed(1)+' s');
-  setT('pos',cars.length>1?'SIJA '+(order().indexOf(me)+1)+'/'+cars.length:'');
-  setT('bl',(me.lastLap?'VIIM '+fmt(me.lastLap)+'  ':'')+(rec!=null?'ENN '+fmt(rec):''));
+  setT('lap',(mode=='career'?'CAREER '+(career.round+1)+'/'+TR.length+' · ':'')+'LAP '+Math.min(LAPS,Math.max(1,Math.floor(me.prog/N)+1))+'/'+LAPS);
+  setT('time','TIME '+race.toFixed(1)+' s');
+  setT('pos',cars.length>1?'POS '+(order().indexOf(me)+1)+'/'+cars.length:'');
+  setT('bl',(me.lastLap?'LAST '+fmt(me.lastLap)+'  ':'')+(rec!=null?'REC '+fmt(rec):''));
   ren.render(scene,cam);requestAnimationFrame(frame);}
 cam.position.set(me.x,75,me.z);cam.rotation.set(-Math.PI/2,0,0);
 requestAnimationFrame(frame);

@@ -34,7 +34,7 @@ function addButton() {
   const btn = document.createElement("button");
   btn.id = "rr-end-btn";
   btn.type = "button";
-  btn.title = "Tallentaa pelin ja palaa launcheriin (F10)";
+  btn.title = "Saves the game and returns to the launcher (F10)";
   btn.innerHTML = "<i></i><span>Save &amp; End Game</span><kbd>F10</kbd>";
 
   // Pysäytetään klikkaus, ettei peli luule sitä omaksi klikkaukseksi
@@ -46,7 +46,7 @@ function addButton() {
     e.preventDefault();
     if (btn.disabled) return;
     btn.disabled = true;
-    btn.querySelector("span").textContent = "Tallennetaan…";
+    btn.querySelector("span").textContent = "Saving…";
     ipcRenderer.send("game-save-and-end");
   });
   document.body.appendChild(btn);
@@ -69,7 +69,7 @@ ipcRenderer.on("rr-saving", () => {
   const btn = document.getElementById("rr-end-btn");
   if (btn) {
     btn.disabled = true;
-    btn.querySelector("span").textContent = "Tallennetaan…";
+    btn.querySelector("span").textContent = "Saving…";
   }
 });
 

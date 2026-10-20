@@ -66,7 +66,7 @@ function setupDataDir() {
   try {
     if (!fs.existsSync(dir) && fs.existsSync(old)) fs.renameSync(old, dir);
   } catch (err) {
-    console.error("Vanhan datakansion siirto epäonnistui:", err.message);
+    console.error("Moving the old data folder failed:", err.message);
   }
   app.setPath("userData", dir);
 }

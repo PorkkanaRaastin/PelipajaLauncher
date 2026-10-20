@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fi">
+<html lang="en">
 <head><meta charset="utf-8"><title>2048</title></head>
 <body>
 <script src="../_mini.js"></script>
@@ -69,7 +69,7 @@ function move(dx, dy) {
     }
     if (!canMove()) {
       const isBest = submitScore(score);
-      over({ title: "Ei enää siirtoja", color: C.p2, lines: [`Pisteet: ${score}`, `Suurin laatta: ${Math.max(...cells.flat().map((c) => c.v))}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+      over({ title: "No moves left", color: C.p2, lines: [`Score: ${score}`, `Largest tile: ${Math.max(...cells.flat().map((c) => c.v))}`, isBest ? "New best!" : `Best: ${best()}`] });
     }
   }
 }
@@ -77,9 +77,9 @@ function move(dx, dy) {
 Mini.run({
   id: "2048",
   title: "2048",
-  description: "Liu'uta laattoja. Samat numerot yhdistyvät. Tavoite: 2048.",
+  description: "Slide the tiles. Matching numbers merge. Goal: 2048.",
   players: 1,
-  controls: [[null, ["W", "A", "S", "D"], "tai nuolet: liu'uta"]],
+  controls: [[null, ["W", "A", "S", "D"], "or arrows: slide"]],
   reset() {
     cells = Array.from({ length: N }, () => Array(N).fill(null));
     score = 0; won = false;
@@ -108,10 +108,10 @@ Mini.run({
     Mini.grid();
     text("2048", BX, 52, 40, C.text, "left", 800);
     rect(BX + BW - 250, 26, 116, 52, C.panel, 10);
-    text("PISTEET", BX + BW - 192, 42, 11, C.muted, "center", 800);
+    text("SCORE", BX + BW - 192, 42, 11, C.muted, "center", 800);
     text(String(score), BX + BW - 192, 62, 20, C.text, "center", 800);
     rect(BX + BW - 124, 26, 124, 52, C.panel, 10);
-    text("ENNÄTYS", BX + BW - 62, 42, 11, C.muted, "center", 800);
+    text("BEST", BX + BW - 62, 42, 11, C.muted, "center", 800);
     text(String(Math.max(best(), score)), BX + BW - 62, 62, 20, C.accent, "center", 800);
     rect(BX, BY, BW, BW, C.panel, 14);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) rect(BX + GAP + x * (SIZE + GAP), BY + GAP + y * (SIZE + GAP), SIZE, SIZE, C.panel2, 10);
@@ -127,7 +127,7 @@ Mini.run({
         const fs = c.v < 100 ? 44 : c.v < 1000 ? 38 : 30;
         text(String(c.v), cx, cy + 2, fs * s, c.v >= 2048 ? C.bg : c.v <= 4 ? C.muted : C.text, "center", 800);
       }
-    if (won) text("2048 saavutettu! Jatka vielä isompaan.", W / 2, BY + BW + 24, 16, C.accent, "center", 700);
+    if (won) text("2048 reached! Keep going for bigger tiles.", W / 2, BY + BW + 24, 16, C.accent, "center", 700);
   },
 });
 </script>

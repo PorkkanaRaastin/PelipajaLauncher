@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
-<html lang="fi"><head><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Goat Mechanic – Demo</title>
 <style>
@@ -75,26 +75,26 @@ canvas{display:block}
 .row.shop b{flex:1}.row.shop button{border:0;background:#1a73e8;color:#fff;padding:6px 14px;border-radius:5px;cursor:pointer}.row.shop button:disabled{background:#aaa;cursor:default}.row.shop{cursor:default}.row.shop span{opacity:.7}
 </style></head><body>
 <div id="notes"></div>
-<div id="ui"><div id="obj"><small id="ocap">TUTORIAALI</small><span id="ot"></span></div><div id="todo"></div><div id="money">€ 100</div><div id="prog"><span id="pl"></span><div class="bar"><i id="pf"></i></div></div><div id="inv"></div><div id="cross"></div><div id="prompt"></div>
-<div id="hint">WASD liiku · hiiri katso · E käytä · Shift juokse · M musiikki · Esc vapauta hiiri</div></div>
-<div id="dlg"><b id="dname">Pekka Virtanen</b><p id="dtext"></p><small>[E] jatka</small></div>
+<div id="ui"><div id="obj"><small id="ocap">TUTORIAL</small><span id="ot"></span></div><div id="todo"></div><div id="money">€ 100</div><div id="prog"><span id="pl"></span><div class="bar"><i id="pf"></i></div></div><div id="inv"></div><div id="cross"></div><div id="prompt"></div>
+<div id="hint">WASD move · mouse look · E use · Shift run · M music · Esc release mouse</div></div>
+<div id="dlg"><b id="dname">Pekka Virtanen</b><p id="dtext"></p><small>[E] continue</small></div>
 <div id="pc"><div id="screenPC">
  <div id="deskarea">
-  <div id="loading">Käynnistetään…</div>
+  <div id="loading">Starting…</div>
   <div id="gicon" class="icon" style="display:none"><div class="ico"><svg width="30" height="22" viewBox="0 0 30 22"><rect x="1" y="1" width="28" height="20" rx="2" fill="#fff" stroke="#c0392b" stroke-width="2"/><path d="M2 3l13 10L28 3" fill="none" stroke="#c0392b" stroke-width="2"/></svg><span id="badge">1</span></div><span>Gmail</span></div>
-  <div id="sicon" class="icon" style="left:110px;display:none"><div class="ico" style="background:#2f7d4f;color:#fff;font-weight:700">€</div><span>Varaosat</span></div>
-  <div class="icon" style="top:128px;opacity:.5;cursor:default"><div class="ico" style="background:#dfe6ee;color:#555"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M3 7h16l-1.5 17h-13z" fill="none" stroke="#555" stroke-width="2"/><path d="M1 5h20M8 5V2h6v3" fill="none" stroke="#555" stroke-width="2"/></svg></div><span>Roskakori</span></div>
-  <div id="win"><div id="wbar"><span id="wt">Gmail – Saapuneet</span><button id="wback" style="display:none">← Takaisin</button><button id="wx">×</button></div><div id="wbody"></div></div>
+  <div id="sicon" class="icon" style="left:110px;display:none"><div class="ico" style="background:#2f7d4f;color:#fff;font-weight:700">€</div><span>Parts</span></div>
+  <div class="icon" style="top:128px;opacity:.5;cursor:default"><div class="ico" style="background:#dfe6ee;color:#555"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M3 7h16l-1.5 17h-13z" fill="none" stroke="#555" stroke-width="2"/><path d="M1 5h20M8 5V2h6v3" fill="none" stroke="#555" stroke-width="2"/></svg></div><span>Recycle Bin</span></div>
+  <div id="win"><div id="wbar"><span id="wt">Gmail – Inbox</span><button id="wback" style="display:none">← Back</button><button id="wx">×</button></div><div id="wbody"></div></div>
  </div>
- <div id="taskbar"><span>Käynnistä</span><span id="clock">17:50</span><button id="pcclose">Sulje tietokone (Esc)</button></div>
+ <div id="taskbar"><span>Start</span><span id="clock">17:50</span><button id="pcclose">Close computer (Esc)</button></div>
 </div></div>
-<div id="endcard"><div><h2>Ensimmäinen asiakas hoidettu!</h2><p>Ansio: <b>129 €</b> · Tehtävät: 6/6</p><p>Ensimmäinen asiakas on hoidettu. Työpäivä jatkuu: sähköpostiin alkaa tulla uusia yhteydenottoja. Vastaa niihin, niin asiakkaat tulevat korjaamolle vastausjärjestyksessä.</p><button id="endok">Jatka työpäivää</button></div></div>
-<div id="start"><h1>The Goat<i>Mechanic</i></h1><button id="startbtn">Aloita peli</button><pre id="err" style="display:none;color:#ff8a8a;max-width:80vw;white-space:pre-wrap;font-size:13px"></pre></div>
+<div id="endcard"><div><h2>First customer done!</h2><p>Earned: <b>129 €</b> · Tasks: 6/6</p><p>Your first customer is taken care of. The workday continues: new requests will start arriving by email. Reply to them and customers will come to the garage in the order you replied.</p><button id="endok">Continue the workday</button></div></div>
+<div id="start"><h1>The Goat<i>Mechanic</i></h1><button id="startbtn">Start game</button><pre id="err" style="display:none;color:#ff8a8a;max-width:80vw;white-space:pre-wrap;font-size:13px"></pre></div>
 <script>
 window.G={started:false};
 window.__err=function(m){var e=document.getElementById('err');if(e){e.style.display='block';e.textContent+=m+'\n'}};
-window.addEventListener('error',function(ev){window.__err('Virhe: '+ev.message+(ev.lineno?' (rivi '+ev.lineno+')':''))});
-window.addEventListener('load',function(){if(!window.THREE)window.__err('three.js ei latautunut (verkko tai estetty). Kokeile ladata sivu uudelleen.')});
+window.addEventListener('error',function(ev){window.__err('Error: '+ev.message+(ev.lineno?' (line '+ev.lineno+')':''))});
+window.addEventListener('load',function(){if(!window.THREE)window.__err('three.js failed to load (network or blocked). Try reloading the page.')});
 document.addEventListener('DOMContentLoaded',function(){var st=document.getElementById('start');
  function go(){window.G.started=true;st.style.display='none'}
  st.addEventListener('click',go);st.addEventListener('touchend',function(e){e.preventDefault();go()});
@@ -144,7 +144,7 @@ function goatMark(g,cx,cy,s,c){g.save();g.fillStyle=c;g.strokeStyle=c;g.lineCap=
  g.beginPath();g.moveTo(cx+s*.28,cy-s*.1);g.bezierCurveTo(cx+s*.7,cy-s*.2,cx+s*.75,cy-s*.85,cx+s*.35,cy-s*.95);g.stroke();
  g.beginPath();g.moveTo(cx-s*.34,cy-s*.15);g.lineTo(cx+s*.34,cy-s*.15);g.lineTo(cx+s*.2,cy+s*.5);g.lineTo(cx,cy+s*.62);g.lineTo(cx-s*.2,cy+s*.5);g.closePath();g.fill();
  g.beginPath();g.moveTo(cx-s*.08,cy+s*.6);g.lineTo(cx,cy+s*1.05);g.lineTo(cx+s*.08,cy+s*.6);g.fill();g.restore()}
-let scrLine='1 uusi viesti';
+let scrLine='1 new message';
 const scrDraw=(g,w,h)=>{g.fillStyle='#0b2a4a';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 44px sans-serif';g.textAlign='center';goatMark(g,w/2,56,24,'#ffc21a');g.fillText('THE GOAT',w/2,125);g.fillText('MECHANIC',w/2,175);g.font='26px sans-serif';g.fillStyle='#8fd1ff';g.fillText(scrLine,w/2,240)};
 const scrTex=tex(512,300,scrDraw);
 const scr=plane(.72,.42,scrTex,0,1.28,10.23);
@@ -269,7 +269,7 @@ const cdoor=new THREE.Group();cdoor.position.set(.93,.66,.62);car.add(cdoor);
 {const m=new THREE.Mesh(new THREE.BoxGeometry(.035,.5,1.0),paintS);m.position.set(0,0,-.5);cdoor.add(m)}
 const dpanel=box(.34,.5,.08,0x2b3038,3.2,1.3,-9.94);
 const dbtn=new THREE.Mesh(new THREE.BoxGeometry(.16,.16,.05),new THREE.MeshLambertMaterial({color:0x2ecc71}));dbtn.position.set(3.2,1.38,-9.88);scene.add(dbtn);dbtn.userData.a='door';inter.push(dbtn);
-plane(.3,.1,tex(150,50,(g,w,h)=>{g.fillStyle='#111';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText('OVI',w/2,36)}),3.2,1.14,-9.895);
+plane(.3,.1,tex(150,50,(g,w,h)=>{g.fillStyle='#111';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText('DOOR',w/2,36)}),3.2,1.14,-9.895);
 const marker=new THREE.Mesh(new THREE.ConeGeometry(.16,.34,4),new THREE.MeshBasicMaterial({color:0xffd60a,depthTest:false}));marker.rotation.x=Math.PI;marker.renderOrder=999;marker.visible=false;scene.add(marker);
 const spot=new THREE.Mesh(new THREE.PlaneGeometry(3,1.4),new THREE.MeshBasicMaterial({color:0xffd60a,transparent:true,opacity:.35}));spot.rotation.x=-Math.PI/2;spot.position.set(0,.03,1.6);spot.visible=false;scene.add(spot);
 function makeNPC(){const g=new THREE.Group();
@@ -302,7 +302,7 @@ function arrow(ch,bg){return tex(64,64,(g)=>{g.fillStyle=bg;g.fillRect(0,0,64,64
 function btn(y,ch,bg,a){const b=new THREE.Mesh(new THREE.BoxGeometry(.16,.16,.05),new THREE.MeshLambertMaterial({color:0x888888}));b.position.set(-3,y,.64);scene.add(b);b.userData.a=a;inter.push(b);
   const p=plane(.15,.15,arrow(ch,bg),-3,y,.666);return b}
 const bUp=btn(1.0,'▲','#1f9d4c','up'),bDown=btn(.78,'▼','#c0392b','down');
-plane(.3,.12,tex(150,60,(g,w,h)=>{g.fillStyle='#111';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 30px sans-serif';g.textAlign='center';g.fillText('LIFTI',w/2,42)}),-3,1.13,.666);
+plane(.3,.12,tex(150,60,(g,w,h)=>{g.fillStyle='#111';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 30px sans-serif';g.textAlign='center';g.fillText('LIFT',w/2,42)}),-3,1.13,.666);
 const lamp=new THREE.Mesh(new THREE.BoxGeometry(.08,.05,.03),new THREE.MeshBasicMaterial({color:0x00e060}));lamp.position.set(-3,.62,.64);scene.add(lamp);
 
 // työpöytä + työkalut
@@ -311,15 +311,15 @@ box(.8,.05,3.1,0x5a4028,4.5,.3,-3.5);col(4.0,5,-5.2,-1.8);
 const TY=.93;
 const TOOLS={};
 function tool(name,label,x,z,build){const g=new THREE.Group();g.position.set(x,TY,z);scene.add(g);build(g);const hb=new THREE.Mesh(new THREE.BoxGeometry(.42,.25,.55),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(x,TY+.08,z);hb.userData={a:'pick',t:name};scene.add(hb);inter.push(hb);TOOLS[name]={g,hb,label}}
-tool('wrench','Jakoavain',4.3,-4.7,g=>{box(.03,.012,.32,0xaab1ba,0,0,0,g);const r=new THREE.Mesh(new THREE.TorusGeometry(.035,.012,6,14),M(0xaab1ba));r.rotation.x=Math.PI/2;r.position.z=.19;g.add(r);const r2=r.clone();r2.position.z=-.19;g.add(r2);g.rotation.y=.3});
-tool('filter','Uusi öljynsuodatin',4.65,-4.7,g=>{cyl(.05,.14,0x2c7be5,0,.07,0,g);cyl(.052,.02,0xd8d8d8,0,.145,0,g)});
-tool('pads','Jarrupalat',4.65,-4.15,g=>{box(.2,.03,.12,0x333333,0,.015,0,g);box(.2,.03,.12,0x444444,0,.05,0,g);box(.2,.012,.12,0xb08040,0,.07,0,g)});
-tool('gauge','Rengasmittari',4.35,-3.6,g=>{cyl(.035,.12,0x555555,0,.04,0,g,Math.PI/2);box(.07,.05,.07,0xc0392b,0,.05,.08,g)});
-tool('can','Öljykannu',4.35,-2.1,g=>{cyl(.05,.12,0xe0a800,0,.06,0,g);cyl(.012,.1,0xe0a800,.05,.14,0,g,.6)});
+tool('wrench','Wrench',4.3,-4.7,g=>{box(.03,.012,.32,0xaab1ba,0,0,0,g);const r=new THREE.Mesh(new THREE.TorusGeometry(.035,.012,6,14),M(0xaab1ba));r.rotation.x=Math.PI/2;r.position.z=.19;g.add(r);const r2=r.clone();r2.position.z=-.19;g.add(r2);g.rotation.y=.3});
+tool('filter','New oil filter',4.65,-4.7,g=>{cyl(.05,.14,0x2c7be5,0,.07,0,g);cyl(.052,.02,0xd8d8d8,0,.145,0,g)});
+tool('pads','Brake pads',4.65,-4.15,g=>{box(.2,.03,.12,0x333333,0,.015,0,g);box(.2,.03,.12,0x444444,0,.05,0,g);box(.2,.012,.12,0xb08040,0,.07,0,g)});
+tool('gauge','Tyre gauge',4.35,-3.6,g=>{cyl(.035,.12,0x555555,0,.04,0,g,Math.PI/2);box(.07,.05,.07,0xc0392b,0,.05,.08,g)});
+tool('can','Oil can',4.35,-2.1,g=>{cyl(.05,.12,0xe0a800,0,.06,0,g);cyl(.012,.1,0xe0a800,.05,.14,0,g,.6)});
 { const g=new THREE.Group();g.position.set(4.62,TY+.015,-3.7);scene.add(g);cyl(.015,.36,0x8b5a2b,0,0,0,g,Math.PI/2);box(.05,.05,.14,0x555a62,0,0,.17,g);g.rotation.y=-.4}
-tool('impact','Mutterinväännin',4.5,-3.1,g=>{box(.1,.1,.22,0xe0a800,0,.07,0,g);box(.06,.14,.07,0x2a2d31,0,.0,-.04,g);cyl(.025,.1,0x8d9399,0,.07,.16,g,Math.PI/2)});
+tool('impact','Impact wrench',4.5,-3.1,g=>{box(.1,.1,.22,0xe0a800,0,.07,0,g);box(.06,.14,.07,0x2a2d31,0,.0,-.04,g);cyl(.025,.1,0x8d9399,0,.07,.16,g,Math.PI/2)});
 {const g=new THREE.Group();scene.add(g);const st=[];for(let i=0;i<4;i++){const t=new THREE.Mesh(new THREE.TorusGeometry(.24,.1,8,18),M(0x151515));t.rotation.x=Math.PI/2;t.position.set(3.55,.12+i*.2,-3.5);g.add(t);st.push(t)}
- const hb=new THREE.Mesh(new THREE.BoxGeometry(.8,.9,.8),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(3.55,.45,-3.5);hb.userData={a:'pick',t:'tyres'};scene.add(hb);inter.push(hb);TOOLS.tyres={g,hb,label:'Renkaat',st};col(3.2,3.9,-3.9,-3.1)}
+ const hb=new THREE.Mesh(new THREE.BoxGeometry(.8,.9,.8),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(3.55,.45,-3.5);hb.userData={a:'pick',t:'tyres'};scene.add(hb);inter.push(hb);TOOLS.tyres={g,hb,label:'Tyres',st};col(3.2,3.9,-3.9,-3.1)}
 { box(.26,.04,.16,0xc0392b,4.6,TY+.01,-2.5);for(let i=0;i<5;i++)cyl(.02,.03,0x9aa0a8,4.5+i*.05,TY+.045,-2.5);}
 
 // sisustusta
@@ -351,9 +351,9 @@ const newFilt=cyl(.045,.15,0x2c7be5,.33,.2,.85,car);newFilt.visible=false;
 const fillStream=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.3,8),new THREE.MeshBasicMaterial({color:0xd9a520}));fillStream.position.set(.1,1.22,1.55);fillStream.visible=false;car.add(fillStream);
 wheels[2].scale.set(1,.92,.92);
 const fallers=[];
-const LBL={tyres:['Renkaat',3.55,-3.5],pads:['Jarrupalat',4.65,-4.15],filter:['Öljynsuodatin',4.65,-4.7],can:['Moottoriöljy',4.35,-2.1]};const lblTex={};
+const LBL={tyres:['Tyres',3.55,-3.5],pads:['Brake pads',4.65,-4.15],filter:['Oil filter',4.65,-4.7],can:['Engine oil',4.35,-2.1]};const lblTex={};
 function drawLabel(k){const L=LBL[k];if(!lblTex[k]){const t=tex(256,64,()=>{});const m=new THREE.Mesh(new THREE.PlaneGeometry(.5,.125),new THREE.MeshBasicMaterial({map:t,transparent:true}));m.position.set(L[1],1.3,L[2]);m.rotation.y=-Math.PI/2;scene.add(m);lblTex[k]=t}
- const t=lblTex[k],g=t.image.getContext('2d');g.clearRect(0,0,256,64);g.fillStyle='#e8dcb8';g.fillRect(0,0,256,64);g.strokeStyle='#5a4a2a';g.lineWidth=4;g.strokeRect(2,2,252,60);g.fillStyle=stock[k]>0?'#2a2418':'#a02020';g.font='bold 26px sans-serif';g.textAlign='center';g.fillText(L[0]+(stock[k]>0?'  ×'+stock[k]:'  LOPPU'),128,41);t.needsUpdate=true}
+ const t=lblTex[k],g=t.image.getContext('2d');g.clearRect(0,0,256,64);g.fillStyle='#e8dcb8';g.fillRect(0,0,256,64);g.strokeStyle='#5a4a2a';g.lineWidth=4;g.strokeRect(2,2,252,60);g.fillStyle=stock[k]>0?'#2a2418':'#a02020';g.font='bold 26px sans-serif';g.textAlign='center';g.fillText(L[0]+(stock[k]>0?'  ×'+stock[k]:'  OUT'),128,41);t.needsUpdate=true}
 
 /* ---------- ääni ---------- */
 let AC=null,master=null,musicBus=null,muted=false,engOsc=null,engGain=null,mum=null,lastV=0;
@@ -375,7 +375,7 @@ function initAudio(){
   musicBus=AC.createGain();musicBus.gain.value=0;musicBus.connect(master);musicBus.connect(conv);musicBus.gain.linearRampToValueAtTime(.2,AC.currentTime+8);
   startMusic();
   engGain=AC.createGain();engGain.gain.value=0;const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=260;engOsc=AC.createOscillator();engOsc.type='sawtooth';engOsc.frequency.value=50;engOsc.connect(lp);lp.connect(engGain);engGain.connect(master);engOsc.start()
- }catch(e){window.__err('Ääni ei käynnisty: '+e.message)}}
+ }catch(e){window.__err('Audio won\'t start: '+e.message)}}
 ['pointerdown','keydown'].forEach(ev=>addEventListener(ev,initAudio));
 function startMumble(){if(!AC||mum)return;try{const o=AC.createOscillator(),g=AC.createGain(),f1=AC.createBiquadFilter(),f2=AC.createBiquadFilter(),lp=AC.createBiquadFilter(),mix=AC.createGain();
  o.type='sawtooth';o.frequency.value=110;f1.type='bandpass';f2.type='bandpass';f1.Q.value=5;f2.Q.value=7;lp.type='lowpass';lp.frequency.value=2200;g.gain.value=0;mix.gain.value=3;
@@ -399,7 +399,7 @@ const $=id=>document.getElementById(id),prompt_=$('prompt'),notesEl=$('notes'),s
 function target(){ray.setFromCamera({x:0,y:0},cam);const h=ray.intersectObjects(inter)[0];return h?h.object:null}
 function toast(t,ms){const n=document.createElement('div');n.className='note';n.textContent=t;notesEl.appendChild(n);while(notesEl.children.length>3)notesEl.firstChild.remove();setTimeout(()=>{n.classList.add('out');setTimeout(()=>n.remove(),320)},Math.min(ms||2000,2600))}
 let everLocked=false;
-function enterFallback(){if(fallback)return;fallback=true;start.style.display='none';$('hint').textContent='Katselu: pidä hiiren vasenta painiketta pohjassa ja vedä · nuolet vasen/oikea kääntävät · WASD liiku · E käytä · M musiikki';toast('Hiiren lukitus ei ole käytössä – katsele pitämällä hiiren painiketta pohjassa',4500)}
+function enterFallback(){if(fallback)return;fallback=true;start.style.display='none';$('hint').textContent='Look: hold the left mouse button and drag · left/right arrows turn · WASD move · E use · M music';toast('Mouse lock isn\'t available – look around by holding the mouse button',4500)}
 function tryLock(){if(fallback)return;const el=R.domElement,fail=()=>{if(!everLocked&&!document.pointerLockElement)enterFallback()};
  try{let p;try{p=el.requestPointerLock({unadjustedMovement:true})}catch(e){p=el.requestPointerLock()}
   if(p&&p.catch)p.catch(()=>{try{const q=el.requestPointerLock();if(q&&q.catch)q.catch(fail)}catch(e2){fail()}})}catch(e){fail()}}
@@ -409,36 +409,36 @@ let step=-1,carState='hidden',pcOpen=false,dlgOn=false,endOn=false,mail='new',np
 const done={},inv={},got={};const queue=[];let closing=false,firstEnd=true,mailOn=false,mailT=18,arrT=5,curJob=null,jobsDone=0;
 const stock={pads:4,filter:2,can:2,tyres:0},CONS={pads:2,filter:1,can:1,tyres:4};let money=100,act=null,shopOpen=false,shopT=0;const orders=[];
 const wk={plug:0,drainT:0,hood:0,fill:0,fillT:0,brk:[0,0],brkN:0,tyre:[0,0,0,0],tyreT:[0,0,0,0],tyreN:0,sw:[0,0,0,0],swN:0,pw:new THREE.Vector3()};
-const PRESS=[2.2,2.1,1.5,2.2],TNAME=['oikea etu','vasen etu','oikea taka','vasen taka'];
-const ALLT=[['lift','Nosta auto liftillä'],['exh','Kiristä pakoputken liitos'],['drain','Tyhjennä vanha öljy'],['plug','Kiristä tyhjennystulppa'],['filt','Vaihda öljynsuodatin'],['brk','Vaihda jarrupalat'],['swap','Vaihda renkaat'],['low','Laske auto alas'],['fill','Täytä uusi öljy'],['tyre','Tarkista rengaspaineet'],['ret','Luovuta auto asiakkaalle']];
+const PRESS=[2.2,2.1,1.5,2.2],TNAME=['front right','front left','rear right','rear left'];
+const ALLT=[['lift','Raise the car on the lift'],['exh','Tighten the exhaust joint'],['drain','Drain the old oil'],['plug','Tighten the drain plug'],['filt','Replace the oil filter'],['brk','Replace the brake pads'],['swap','Replace the tyres'],['low','Lower the car'],['fill','Fill new oil'],['tyre','Check tyre pressures'],['ret','Hand the car back to the customer']];
 const TNEED={exh:'exh',drain:'oil',plug:'oil',filt:'oil',fill:'oil',brk:'brk',swap:'swap',tyre:'press'};
 const tasksNow=()=>ALLT.filter(t=>!TNEED[t[0]]||curJob.need[TNEED[t[0]]]);
 const recent={},prevDone={},shown={};
 function renderTodo(){const now=performance.now();
  tasksNow().forEach(t=>{if(done[t[0]]&&!prevDone[t[0]]){prevDone[t[0]]=true;recent[t[0]]=now;setTimeout(renderTodo,1800)}});
  const vis=[];let und=0;tasksNow().forEach(t=>{const id=t[0];if(done[id]){if(recent[id]&&now-recent[id]<1700)vis.push(t)}else if(und<3){vis.push(t);und++}});
- todoEl.innerHTML='<h3>TEHTÄVÄT</h3>'+vis.map(t=>{const id=t[0];let lab=t[1];if(id==='brk')lab+=' '+wk.brkN+'/2';if(id==='tyre')lab+=' '+wk.tyreN+'/4';if(id==='swap')lab+=' '+wk.swN+'/4';const fresh=!shown[id];shown[id]=true;
+ todoEl.innerHTML='<h3>TASKS</h3>'+vis.map(t=>{const id=t[0];let lab=t[1];if(id==='brk')lab+=' '+wk.brkN+'/2';if(id==='tyre')lab+=' '+wk.tyreN+'/4';if(id==='swap')lab+=' '+wk.swN+'/4';const fresh=!shown[id];shown[id]=true;
   return '<div class="tk'+(done[id]?' ok':'')+(fresh?' fresh':'')+'"><i></i><span>'+lab+'</span></div>'}).join('')}
-const OBJ={0:['Mene tietokoneelle toimiston pöydän luo ja paina E',[0,1.95,10]],
- 2:['Mene vajan perälle ja avaa tallin ovi painikkeesta (E)',[3.2,2.0,-9.7]],
- 3:['Ovi aukeaa…',[0,.9,1.6]],
- 4:['Mene puhumaan asiakkaalle (E)',[0,2.15,0]],
- 6:['Nosta auto liftillä: paina vihreää ▲-nappia liftin vieressä (E)',[-3,1.45,.64]],
- 7:['',null],8:['Mene puhumaan asiakkaalle (E)',[0,2.15,0]],9:['Asiakas lähtee…',null],
- 10:['Odota uutta yhteydenottoa',null]};
+const OBJ={0:['Go to the computer at the office desk and press E',[0,1.95,10]],
+ 2:['Go to the back of the shed and open the garage door with the button (E)',[3.2,2.0,-9.7]],
+ 3:['The door is opening…',[0,.9,1.6]],
+ 4:['Go and talk to the customer (E)',[0,2.15,0]],
+ 6:['Raise the car on the lift: press the green ▲ button next to the lift (E)',[-3,1.45,.64]],
+ 7:['',null],8:['Go and talk to the customer (E)',[0,2.15,0]],9:['The customer is leaving…',null],
+ 10:['Wait for a new request',null]};
 function setObj(t){$('ot').textContent=t}
-function setStep(n){step=n;lastHint='';const o=OBJ[n];$('ocap').textContent=n<=6?'TUTORIAALI':n===10?'TYÖPÄIVÄ':'TEHTÄVÄ';objEl.style.display=o?'block':'none';if(o)setObj(o[0]);mBase=o&&o[1]?o[1].slice():null;marker.visible=!!mBase}
+function setStep(n){step=n;lastHint='';const o=OBJ[n];$('ocap').textContent=n<=6?'TUTORIAL':n===10?'WORKDAY':'TASK';objEl.style.display=o?'block':'none';if(o)setObj(o[0]);mBase=o&&o[1]?o[1].slice():null;marker.visible=!!mBase}
 const inZone=()=>px>-1.6&&px<1.6&&pz>.7&&pz<2.5;
 const underCar=()=>px>-1.5&&px<1.5&&pz>-5.5&&pz<-.5;
 const allWork=()=>{const N=curJob.need;return !!((!N.exh||done.exh)&&(!N.oil||(done.drain&&done.plug&&done.filt&&done.fill))&&(!N.brk||done.brk)&&(!N.swap||done.swap)&&(!N.press||done.tyre))};
 const upDone=()=>{const N=curJob.need;return !!((!N.exh||done.exh)&&(!N.oil||(done.drain&&done.plug&&done.filt))&&(!N.brk||done.brk)&&(!N.swap||done.swap))};
-const INVS=[['wrench','JAKOAVAIN','<circle cx="33" cy="15" r="10" fill="#aab1ba"/><rect x="31" y="2" width="8" height="10" fill="#262a30" transform="rotate(45 33 15)"/><path d="M12 38 28 22" stroke="#aab1ba" stroke-width="7" stroke-linecap="round"/>'],
- ['filter','SUODATIN','<rect x="14" y="13" width="20" height="26" rx="3" fill="#2c7be5"/><rect x="12" y="8" width="24" height="7" rx="2" fill="#d8d8d8"/><rect x="14" y="23" width="20" height="5" fill="#f1c40f"/>'],
- ['pads','JARRUPALAT','<rect x="7" y="14" width="34" height="8" fill="#3a3a3a"/><rect x="7" y="22" width="34" height="5" fill="#b08040"/><rect x="7" y="30" width="34" height="5" fill="#b08040"/><rect x="7" y="35" width="34" height="8" fill="#3a3a3a"/>'],
- ['can','ÖLJY','<rect x="11" y="16" width="24" height="26" rx="3" fill="#e0a800"/><rect x="15" y="8" width="9" height="9" fill="#e0a800"/><path d="M24 10l13-5v5l-13 5z" fill="#e0a800"/><rect x="15" y="25" width="16" height="9" fill="#fff3bf"/>'],
- ['impact','VÄÄNNIN','<rect x="6" y="12" width="26" height="12" rx="3" fill="#e0a800"/><rect x="28" y="15" width="10" height="6" fill="#8d9399"/><rect x="36" y="12" width="5" height="12" fill="#aab1ba"/><rect x="11" y="24" width="9" height="16" rx="2" fill="#333"/>'],
- ['tyres','RENKAAT','<circle cx="24" cy="24" r="17" fill="#1b1b1b"/><circle cx="24" cy="24" r="9" fill="#aab1ba"/><circle cx="24" cy="24" r="3" fill="#1b1b1b"/>'],
- ['gauge','MITTARI','<circle cx="21" cy="25" r="13" fill="#cfd3d8"/><circle cx="21" cy="25" r="9" fill="#14171a"/><path d="M21 25l5-6" stroke="#e0a800" stroke-width="2.5"/><rect x="32" y="21" width="12" height="8" fill="#555"/>']];
+const INVS=[['wrench','WRENCH','<circle cx="33" cy="15" r="10" fill="#aab1ba"/><rect x="31" y="2" width="8" height="10" fill="#262a30" transform="rotate(45 33 15)"/><path d="M12 38 28 22" stroke="#aab1ba" stroke-width="7" stroke-linecap="round"/>'],
+ ['filter','FILTER','<rect x="14" y="13" width="20" height="26" rx="3" fill="#2c7be5"/><rect x="12" y="8" width="24" height="7" rx="2" fill="#d8d8d8"/><rect x="14" y="23" width="20" height="5" fill="#f1c40f"/>'],
+ ['pads','PADS','<rect x="7" y="14" width="34" height="8" fill="#3a3a3a"/><rect x="7" y="22" width="34" height="5" fill="#b08040"/><rect x="7" y="30" width="34" height="5" fill="#b08040"/><rect x="7" y="35" width="34" height="8" fill="#3a3a3a"/>'],
+ ['can','OIL','<rect x="11" y="16" width="24" height="26" rx="3" fill="#e0a800"/><rect x="15" y="8" width="9" height="9" fill="#e0a800"/><path d="M24 10l13-5v5l-13 5z" fill="#e0a800"/><rect x="15" y="25" width="16" height="9" fill="#fff3bf"/>'],
+ ['impact','IMPACT','<rect x="6" y="12" width="26" height="12" rx="3" fill="#e0a800"/><rect x="28" y="15" width="10" height="6" fill="#8d9399"/><rect x="36" y="12" width="5" height="12" fill="#aab1ba"/><rect x="11" y="24" width="9" height="16" rx="2" fill="#333"/>'],
+ ['tyres','TYRES','<circle cx="24" cy="24" r="17" fill="#1b1b1b"/><circle cx="24" cy="24" r="9" fill="#aab1ba"/><circle cx="24" cy="24" r="3" fill="#1b1b1b"/>'],
+ ['gauge','GAUGE','<circle cx="21" cy="25" r="13" fill="#cfd3d8"/><circle cx="21" cy="25" r="9" fill="#14171a"/><path d="M21 25l5-6" stroke="#e0a800" stroke-width="2.5"/><rect x="32" y="21" width="12" height="8" fill="#555"/>']];
 function updateInv(){const own=INVS.filter(x=>(inv[x[0]]||0)>0);$('inv').style.display=own.length?'flex':'none';$('inv').innerHTML=own.map(x=>{const n=inv[x[0]]||0;return '<div class="slot"><svg viewBox="0 0 48 48" stroke="#0e1012" stroke-width="1.5" stroke-linejoin="round">'+x[2]+'</svg><b>'+x[1]+'</b>'+(n>1?'<u>×'+n+'</u>':'')+'</div>'}).join('')}
 function setMoney(d){money+=d;$('money').textContent='€ '+money}
 function refreshStock(){['pads','filter','can','tyres'].forEach(k=>{TOOLS[k].g.visible=stock[k]>0;drawLabel(k)});TOOLS.tyres.st.forEach((m,i)=>m.visible=i<stock.tyres)}
@@ -452,43 +452,43 @@ function hintNow(){
  const ti=wk.tyre.findIndex(x=>!x),nb=wk.brk[0]?hbBrake[1]:hbBrake[0],nt=hbTyre[ti>=0?ti:0];
  const si=wk.sw.findIndex(x=>x<3),ns=hbTyre[si>=0?si:0],mt=wk.sw.filter(x=>x>=2).length,tyHave=(inv.tyres||0),tyOk=stock.tyres+tyHave>=4-mt;
  const S=[];
- S.push([()=>done.lift,'Nosta auto liftillä: paina vihreää ▲-nappia liftin vieressä (E)',()=>BU,0]);
- if(N.exh||N.oil)S.push([()=>inv.wrench||((!N.exh||done.exh)&&(!N.oil||done.plug)),'Mene työpöydälle (vajan oikea seinä) ja poimi JAKOAVAIN (E)',()=>tp('wrench'),0]);
- if(N.exh)S.push([()=>done.exh,'Mene auton alle ja kiristä pakoputken oranssi liitos (E)',()=>wp(hbExh),1]);
+ S.push([()=>done.lift,'Raise the car on the lift: press the green ▲ button next to the lift (E)',()=>BU,0]);
+ if(N.exh||N.oil)S.push([()=>inv.wrench||((!N.exh||done.exh)&&(!N.oil||done.plug)),'Go to the workbench (right wall of the shed) and pick up the WRENCH (E)',()=>tp('wrench'),0]);
+ if(N.exh)S.push([()=>done.exh,'Go under the car and tighten the orange exhaust joint (E)',()=>wp(hbExh),1]);
  if(N.oil){
-  S.push([()=>done.drain,wk.plug===1?'Odota että öljy valuu astiaan…':'Avaa tyhjennystulppa moottorin alta (E) – öljy valuu astiaan',()=>wp(hbPlug),1]);
-  S.push([()=>done.plug,'Kiristä tyhjennystulppa takaisin (E)',()=>wp(hbPlug),1]);
-  S.push([()=>inv.filter||done.filt,stock.filter>0?'Hae työpöydältä UUSI ÖLJYNSUODATIN (sininen)':'Suodatin on loppu! Tilaa lisää tietokoneelta (Varaosat)',()=>stock.filter>0?tp('filter'):PCM,0]);
-  S.push([()=>done.filt,'Vaihda vanha öljynsuodatin (oranssi, moottorin alla) uuteen (E)',()=>wp(hbFilt),1])}
+  S.push([()=>done.drain,wk.plug===1?'Wait for the oil to drain into the pan…':'Open the drain plug under the engine (E) – the oil drains into the pan',()=>wp(hbPlug),1]);
+  S.push([()=>done.plug,'Tighten the drain plug back in (E)',()=>wp(hbPlug),1]);
+  S.push([()=>inv.filter||done.filt,stock.filter>0?'Get a NEW OIL FILTER from the workbench (blue)':'Out of filters! Order more on the computer (Parts)',()=>stock.filter>0?tp('filter'):PCM,0]);
+  S.push([()=>done.filt,'Swap the old oil filter (orange, under the engine) for the new one (E)',()=>wp(hbFilt),1])}
  if(N.brk){
-  S.push([()=>(inv.pads||0)+wk.brkN>=2,stock.pads>0?'Hae työpöydältä JARRUPALAT':'Jarrupalat loppu! Tilaa lisää tietokoneelta (Varaosat)',()=>stock.pads>0?tp('pads'):PCM,0]);
-  S.push([()=>done.brk,'Vaihda jarrupalat molempiin etupyöriin – punaiset satulat pyörien sisäpuolella ('+wk.brkN+'/2)',()=>wp(nb),1])}
+  S.push([()=>(inv.pads||0)+wk.brkN>=2,stock.pads>0?'Get the BRAKE PADS from the workbench':'Out of brake pads! Order more on the computer (Parts)',()=>stock.pads>0?tp('pads'):PCM,0]);
+  S.push([()=>done.brk,'Replace the brake pads on both front wheels – red calipers inside the wheels ('+wk.brkN+'/2)',()=>wp(nb),1])}
  if(N.swap){
-  S.push([()=>inv.impact||done.swap,'Hae työpöydältä MUTTERIVÄÄNNIN',()=>tp('impact'),0]);
-  S.push([()=>tyHave>=4-mt||done.swap,tyOk?'Hae UUDET RENKAAT (rengaspino pöydän vieressä)':'Renkaat loppu! Tilaa renkaat tietokoneelta (Varaosat)',()=>tyOk?tp('tyres'):PCM,0]);
-  S.push([()=>done.swap,'Vaihda renkaat ('+wk.swN+'/4): irrota rengas, asenna uusi ja kiristä mutterit (E kolme kertaa / rengas)',()=>wp(ns),1])}
- S.push([()=>liftG.position.y<.2,'Poistu auton alta ja laske lifti alas (▼-nappi)',()=>BD,0]);
+  S.push([()=>inv.impact||done.swap,'Get the IMPACT WRENCH from the workbench',()=>tp('impact'),0]);
+  S.push([()=>tyHave>=4-mt||done.swap,tyOk?'Get NEW TYRES (tyre stack next to the bench)':'Out of tyres! Order tyres on the computer (Parts)',()=>tyOk?tp('tyres'):PCM,0]);
+  S.push([()=>done.swap,'Replace the tyres ('+wk.swN+'/4): remove the tyre, fit a new one and tighten the nuts (E three times per tyre)',()=>wp(ns),1])}
+ S.push([()=>liftG.position.y<.2,'Get out from under the car and lower the lift (▼ button)',()=>BD,0]);
  if(N.oil){
-  S.push([()=>inv.can||done.fill,stock.can>0?'Hae työpöydältä MOOTTORIÖLJY (keltainen kannu)':'Öljy on loppu! Tilaa lisää tietokoneelta (Varaosat)',()=>stock.can>0?tp('can'):PCM,0]);
-  S.push([()=>done.fill,wk.hood?'Paina E uudelleen konepellillä: täytä uusi öljy':'Avaa konepelti (E)',()=>wp(hbHood),2])}
+  S.push([()=>inv.can||done.fill,stock.can>0?'Get the ENGINE OIL from the workbench (yellow can)':'Out of oil! Order more on the computer (Parts)',()=>stock.can>0?tp('can'):PCM,0]);
+  S.push([()=>done.fill,wk.hood?'Press E again at the hood: fill new oil':'Open the hood (E)',()=>wp(hbHood),2])}
  if(N.press){
-  S.push([()=>inv.gauge||done.tyre,'Hae työpöydältä RENGASMITTARI',()=>tp('gauge'),0]);
-  S.push([()=>done.tyre,'Mittaa kaikkien renkaiden paine ('+wk.tyreN+'/4)',()=>wp(nt),2])}
+  S.push([()=>inv.gauge||done.tyre,'Get the TYRE GAUGE from the workbench',()=>tp('gauge'),0]);
+  S.push([()=>done.tyre,'Measure the pressure of every tyre ('+wk.tyreN+'/4)',()=>wp(nt),2])}
  const T=S.length+1;
- for(let i=0;i<S.length;i++){const q=S[i];if(q[0]())continue;const pre='Vaihe '+(i+1)+'/'+T+' · ';
-  if(q[3]===1&&!up)return[pre+'Nosta ensin lifti (▲) – tämä työ tehdään auton alta',BU];
-  if(q[3]===2&&up)return[pre+'Laske ensin lifti alas (▼) ja poistu auton alta',BD];
+ for(let i=0;i<S.length;i++){const q=S[i];if(q[0]())continue;const pre='Step '+(i+1)+'/'+T+' · ';
+  if(q[3]===1&&!up)return[pre+'Raise the lift first (▲) – this job is done from under the car',BU];
+  if(q[3]===2&&up)return[pre+'Lower the lift first (▼) and get out from under the car',BD];
   return[pre+q[1],q[2]()]}
- return['Vaihe '+T+'/'+T+' · Hienoa työtä! Asiakas tulee pian hakemaan auton…',null]}
+ return['Step '+T+'/'+T+' · Great work! The customer will pick up the car soon…',null]}
 
 /* työt ja asiakkaat */
-const MAIL_BODY='Hei!\n\nAutossani (GOAT GT, rekisterinumero '+PLATE+') pitäisi katsoa pari juttua. Öljynvaihto on myöhässä ja pakoputkesta kuuluu outoa ääntä. Ehtisitkö ottaa sen työn alle jo tänään?\n\nTerveisin,\nPekka Virtanen';
-const LINES1=['Moi! Kiitos kun otit auton heti vastaan.','Autossa on pari ongelmaa. Moottorin öljynvaihto on myöhässä ja koneesta kuuluu outoa ääntä.','Pakoputkesta kuuluu kolinaa, ja jarrut tuntuvat vähän pehmeiltä.','Katsotko samalla rengaspaineet? Käyn kahvilla sillä aikaa, tulen takaisin kun työ on valmis. Kiitos!'];
-const LINES2=['Hei taas! Miltä auto näyttää?','Hienoa! Pakoputken kolina on poissa ja auto tuntuu paljon paremmalta.','Tässä maksu: 129 €. Kiitos, hyvin hoidettu!'];
-const REPLIES0=[['Hei Pekka! Kiitos viestistä. Tuo auto tänään, otan sen heti työn alle. Avaan tallin oven kun saavut.',1],['Moi! Se onnistuu. Tule paikalle, niin katsotaan auto yhdessä läpi.',1],['Ei ole aikaa tänään. Kokeile ensi kuussa.',0]];
+const MAIL_BODY='Hi!\n\nMy car (GOAT GT, plate '+PLATE+') needs a couple of things looked at. The oil change is overdue and there\'s a weird noise from the exhaust. Could you take it in today?\n\nBest regards,\nPekka Virtanen';
+const LINES1=['Hi! Thanks for taking the car in right away.','There are a couple of problems. The oil change is overdue and the engine is making a weird noise.','The exhaust is rattling, and the brakes feel a bit soft.','Could you check the tyre pressures too? I\'ll grab a coffee meanwhile and come back when it\'s done. Thanks!'];
+const LINES2=['Hi again! How\'s the car looking?','Great! The exhaust rattle is gone and the car feels much better.','Here\'s the payment: 129 €. Thanks, great job!'];
+const REPLIES0=[['Hi Pekka! Thanks for the message. Bring the car in today and I\'ll get on it right away. I\'ll open the garage door when you arrive.',1],['Hi! No problem. Come over and we\'ll go through the car together.',1],['No time today. Try next month.',0]];
 const NAMES=['Maija Koskinen','Jari Lehtonen','Sanna Heikkinen','Timo Mäkelä','Laura Nieminen','Kalle Järvinen','Eeva Korhonen','Mikko Laine','Heidi Salo','Antti Rantanen','Pia Virtanen','Olli Hakala'];let nameIdx=Math.floor(Math.random()*NAMES.length);
 const COLS=[0xa11d1d,0x1f4e8c,0x2e7d4f,0xcfd3d8,0x23262b,0xd9a400,0xd2691e,0x5b2d8a];
-const SERV={oil:['Öljynvaihto','moottorin öljynvaihto on myöhässä',45],exh:['Pakoputki','pakoputkesta kuuluu kolinaa',30],brk:['Jarrut','jarrupalat ovat kuluneet',50],swap:['Renkaat','autoon pitäisi vaihtaa uudet renkaat',100],press:['Paineet','rengaspaineet pitäisi tarkistaa',15]};
+const SERV={oil:['Oil change','the oil change is overdue',45],exh:['Exhaust','the exhaust is rattling',30],brk:['Brakes','the brake pads are worn',50],swap:['Tyres','the car needs new tyres',100],press:['Pressures','the tyre pressures need checking',15]};
 const rnd=n=>Math.floor(Math.random()*n);
 const mkPlate=()=>{const L='BCDFHJKLMNPRSTXYZ',r=()=>L[rnd(L.length)];return r()+r()+r()+'-'+(100+rnd(900))};
 const noAcc=t=>t.toLowerCase().replace(/[äå]/g,'a').replace(/ö/g,'o');
@@ -496,23 +496,23 @@ function mkJob(name,need){
  const ks=['oil','exh','brk','swap','press'].filter(k=>need[k]);const items=ks.map(k=>SERV[k][1]);
  const pay=20+ks.reduce((q,k)=>q+SERV[k][2],0),plate=mkPlate(),list=items.join('; ');
  return {name,need,plate,pay,color:COLS[rnd(COLS.length)],shirt:[0xe67e22,0x2e86c1,0x27ae60,0x8e44ad,0xc0392b,0x7f8c8d][rnd(6)],cap:[0x1f4e8c,0x222222,0x7b241c,0x145a32][rnd(4)],
-  email:noAcc(name).replace(' ','.')+'@example.com',subject:need.swap?'Renkaiden vaihto':need.oil?'Öljynvaihto':'Auton huolto',
-  body:'Hei!\n\nAutossani (GOAT GT, rekisterinumero '+plate+') kaipaa huoltoa: '+list+'. Ehtisitkö ottaa sen työn alle pian?\n\nTerveisin,\n'+name,
-  l1:['Moi! Kiitos kun otit auton vastaan.','Autossa on muutama asia: '+list+'.','Käyn kahvilla sillä aikaa, tulen takaisin kun työ on valmis. Kiitos!'],
-  l2:['Hei taas! Miltä auto näyttää?','Hienoa! Auto tuntuu taas kunnossa.','Tässä maksu: '+pay+' €. Kiitos, hyvin hoidettu!']}}
+  email:noAcc(name).replace(' ','.')+'@example.com',subject:need.swap?'Tyre change':need.oil?'Oil change':'Car service',
+  body:'Hi!\n\nMy car (GOAT GT, plate '+plate+') needs some work: '+list+'. Could you take it in soon?\n\nBest regards,\n'+name,
+  l1:['Hi! Thanks for taking the car in.','A few things with the car: '+list+'.','I\'ll grab a coffee meanwhile and come back when it\'s done. Thanks!'],
+  l2:['Hi again! How\'s the car looking?','Great! The car feels good again.','Here\'s the payment: '+pay+' €. Thanks, great job!']}}
 function genJob(){const pool=['oil','exh','brk','swap'],need={},n=1+(Math.random()<.55?1:0)+(Math.random()<.2?1:0);
  for(let i=0;i<n;i++)need[pool.splice(rnd(pool.length),1)[0]]=1;if(Math.random()<.45)need.press=1;
  return mkJob(NAMES[nameIdx++%NAMES.length],need)}
-const JOB0={name:'Pekka Virtanen',need:{oil:1,exh:1,brk:1,press:1},plate:PLATE,pay:129,color:0xa11d1d,email:'pekka@example.com',subject:'Auton huolto?',body:MAIL_BODY,l1:LINES1,l2:LINES2};
+const JOB0={name:'Pekka Virtanen',need:{oil:1,exh:1,brk:1,press:1},plate:PLATE,pay:129,color:0xa11d1d,email:'pekka@example.com',subject:'Car service?',body:MAIL_BODY,l1:LINES1,l2:LINES2};
 curJob=JOB0;
-const REPG=[['Hei! Kiitos viestistä. Tuo auto tänne, otan sen työn alle heti kun pääsen.',1],['Moi! Se onnistuu. Tule paikalle, niin katsotaan auto yhdessä läpi.',1],['Ei ole aikaa. Kokeile joskus myöhemmin.',0]];
+const REPG=[['Hi! Thanks for the message. Bring the car over and I\'ll get on it as soon as I can.',1],['Hi! No problem. Come over and we\'ll go through the car together.',1],['No time. Try again some other time.',0]];
 const inbox=[{job:JOB0,st:'new',time:'17:48',reps:REPLIES0}];let curMail=null,clockM=17*60+48,gShown=false,tmr=0;
 const unread=()=>inbox.filter(m=>m.st==='new').length,unrep=()=>inbox.filter(m=>m.st!=='replied').length;
-function updScr(){const n=unread();setScr(n?(n===1?'1 uusi viesti':n+' uutta viestiä'):'Ei uusia viestejä');const b=$('badge');b.textContent=n;b.style.display=n&&gShown?'flex':'none'}
+function updScr(){const n=unread();setScr(n?(n===1?'1 new message':n+' new messages'):'No new messages');const b=$('badge');b.textContent=n;b.style.display=n&&gShown?'flex':'none'}
 function newMail(){const job=genJob();clockM+=8+rnd(20);const hh=Math.floor(clockM/60)%24,mm=clockM%60;
  inbox.push({job,st:'new',time:String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'),reps:REPG.slice().sort(()=>Math.random()-.5)});
- updScr();toast('Uusi asiakasviesti tietokoneella',2600);blip(740,.25);
- if(pcOpen&&$('win').style.display==='flex'&&$('wt').textContent==='Gmail – Saapuneet')renderInbox()}
+ updScr();toast('New customer message on the computer',2600);blip(740,.25);
+ if(pcOpen&&$('win').style.display==='flex'&&$('wt').textContent==='Gmail – Inbox')renderInbox()}
 function resetJob(job){curJob=job;const N=job.need;
  [done,recent,prevDone,shown].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
  Object.assign(wk,{plug:0,drainT:0,hood:0,fill:0,fillT:0,brk:[0,0],brkN:0,tyre:[0,0,0,0],tyreT:[0,0,0,0],tyreN:0,sw:[0,0,0,0],swN:0});
@@ -531,31 +531,31 @@ function openPC(){if(pcOpen)return;pcOpen=true;if(document.pointerLockElement)do
  if(gShown){$('loading').style.display='none';$('gicon').style.display='block';$('sicon').style.display='block';updScr()}
  else{$('loading').style.display='flex';setTimeout(()=>{$('loading').style.display='none';$('gicon').style.display='block';$('sicon').style.display='block';$('gicon').classList.add('pop');gShown=true;updScr()},1300)}}
 function closePC(){if(!pcOpen)return;pcOpen=false;clearInterval(tmr);clearTimeout(tmr);clearInterval(shopT);shopOpen=false;pcEl.style.display='none';tryLock();if(inbox[0].st==='replied'&&step<2)setStep(2)}
-function renderInbox(){clearInterval(tmr);clearTimeout(tmr);$('wt').textContent='Gmail – Saapuneet';$('wback').style.display='none';
- let h='';for(let i=inbox.length-1;i>=0;i--){const m=inbox[i];h+='<div class="row'+(m.st==='new'?' unread':'')+'" id="row'+(i+1)+'"><span class="dot"></span><b>'+m.job.name+'</b><span>'+m.job.subject+'</span><i>'+m.time+'</i>'+(m.st==='replied'?'<em>vastattu</em>':'')+'</div>'}
+function renderInbox(){clearInterval(tmr);clearTimeout(tmr);$('wt').textContent='Gmail – Inbox';$('wback').style.display='none';
+ let h='';for(let i=inbox.length-1;i>=0;i--){const m=inbox[i];h+='<div class="row'+(m.st==='new'?' unread':'')+'" id="row'+(i+1)+'"><span class="dot"></span><b>'+m.job.name+'</b><span>'+m.job.subject+'</span><i>'+m.time+'</i>'+(m.st==='replied'?'<em>replied</em>':'')+'</div>'}
  $('wbody').innerHTML=h;inbox.forEach((m,i)=>{$('row'+(i+1)).onclick=()=>openMsg(m)})}
 function openMsg(m){curMail=m;$('wt').textContent='Gmail – '+m.job.name;$('wback').style.display='inline-block';
- $('wbody').innerHTML='<div class="mh"><b>'+m.job.name+'</b> &lt;'+m.job.email+'&gt;<br>Aihe: '+m.job.subject+'</div><div id="mbody" class="mb"></div><div id="rep"></div>';
+ $('wbody').innerHTML='<div class="mh"><b>'+m.job.name+'</b> &lt;'+m.job.email+'&gt;<br>Subject: '+m.job.subject+'</div><div id="mbody" class="mb"></div><div id="rep"></div>';
  if(m.st==='new')typeMail(m);else{$('mbody').textContent=m.job.body;showReplies(m)}}
-function typeMail(m){const el=$('mbody'),B=m.job.body;el.innerHTML='<span class="typing">'+m.job.name.split(' ')[0]+' kirjoittaa<span>.</span><span>.</span><span>.</span></span>';clearInterval(tmr);clearTimeout(tmr);let i=0;
+function typeMail(m){const el=$('mbody'),B=m.job.body;el.innerHTML='<span class="typing">'+m.job.name.split(' ')[0]+' is typing<span>.</span><span>.</span><span>.</span></span>';clearInterval(tmr);clearTimeout(tmr);let i=0;
  tmr=setTimeout(()=>{startMumble();tmr=setInterval(()=>{i+=2;el.textContent=B.slice(0,i);if(i>=B.length){clearInterval(tmr);stopMumble();m.st='read';updScr();showReplies(m)}},35)},1300)}
 function showReplies(m){const r=$('rep');
- if(m.st==='replied'){r.innerHTML='<div class="sent"></div><div class="okmsg">Vastaus lähetetty</div>';r.querySelector('.sent').textContent=m.sent;return}
- r.innerHTML='<div class="cap">Valitse vastaus:</div>';
+ if(m.st==='replied'){r.innerHTML='<div class="sent"></div><div class="okmsg">Reply sent</div>';r.querySelector('.sent').textContent=m.sent;return}
+ r.innerHTML='<div class="cap">Choose a reply:</div>';
  m.reps.forEach(x=>{const b=document.createElement('button');b.className='chip';b.textContent=x[0];b.onclick=()=>{
-  if(!x[1]){b.classList.add('bad');const w=document.createElement('div');w.className='warn';w.textContent='Asiakas ei vaikuta tyytyväiseltä… valitse kohteliaampi vastaus.';r.appendChild(w);setTimeout(()=>{w.remove();b.classList.remove('bad')},1800);return}
+  if(!x[1]){b.classList.add('bad');const w=document.createElement('div');w.className='warn';w.textContent='The customer doesn\'t seem happy… pick a politer reply.';r.appendChild(w);setTimeout(()=>{w.remove();b.classList.remove('bad')},1800);return}
   m.sent=x[0];m.st='replied';showReplies(m);$('pcclose').classList.add('glow');blip(600,.3);
-  if(m.job!==JOB0){queue.push(m.job);toast('Asiakas tulee korjaamolle pian',2200)}};r.appendChild(b)})}
+  if(m.job!==JOB0){queue.push(m.job);toast('The customer will come to the garage soon',2200)}};r.appendChild(b)})}
 $('gicon').onclick=()=>{shopOpen=false;clearInterval(shopT);$('win').style.display='flex';renderInbox()};
-const SHOP=[['tyres','Renkaat, sarja (4 kpl)',70,4],['pads','Jarrupalat, akselillinen (2 sarjaa)',35,2],['filter','Öljynsuodatin',12,1],['can','Moottoriöljy, kannu',25,1]];let shopMsg='';
-const ordHtml=()=>orders.length?orders.map(o=>'<div class="empty">'+o.name+' – saapuu '+Math.ceil(o.t)+' s</div>').join(''):'<div class="empty">Ei avoimia tilauksia</div>';
-function renderShop(){shopOpen=true;$('wt').textContent='Varaosakauppa';$('wback').style.display='none';
- let h='<div class="mh"><b>Saldo: '+money+' €</b> · toimitus noin 15 s</div>';
- SHOP.forEach(x=>{h+='<div class="row shop"><b>'+x[1]+'</b><span>varastossa '+stock[x[0]]+'</span><i>'+x[2]+' €</i><button data-k="'+x[0]+'"'+(money<x[2]?' disabled':'')+'>Tilaa</button></div>'});
- h+='<div class="cap">Tilaukset</div><div id="ord">'+ordHtml()+'</div>';
+const SHOP=[['tyres','Tyres, set (4 pcs)',70,4],['pads','Brake pads, one axle (2 sets)',35,2],['filter','Oil filter',12,1],['can','Engine oil, can',25,1]];let shopMsg='';
+const ordHtml=()=>orders.length?orders.map(o=>'<div class="empty">'+o.name+' – arrives in '+Math.ceil(o.t)+' s</div>').join(''):'<div class="empty">No open orders</div>';
+function renderShop(){shopOpen=true;$('wt').textContent='Parts shop';$('wback').style.display='none';
+ let h='<div class="mh"><b>Balance: '+money+' €</b> · delivery about 15 s</div>';
+ SHOP.forEach(x=>{h+='<div class="row shop"><b>'+x[1]+'</b><span>in stock '+stock[x[0]]+'</span><i>'+x[2]+' €</i><button data-k="'+x[0]+'"'+(money<x[2]?' disabled':'')+'>Order</button></div>'});
+ h+='<div class="cap">Orders</div><div id="ord">'+ordHtml()+'</div>';
  if(shopMsg)h+='<div class="warn">'+shopMsg+'</div>';
  $('wbody').innerHTML=h;
- $('wbody').querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=SHOP.find(y=>y[0]===b.dataset.k);if(money<x[2]){shopMsg='Ei tarpeeksi rahaa.';renderShop();return}
+ $('wbody').querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=SHOP.find(y=>y[0]===b.dataset.k);if(money<x[2]){shopMsg='Not enough money.';renderShop();return}
   setMoney(-x[2]);orders.push({k:x[0],n:x[3],t:15,name:x[1]});shopMsg='';blip(480,.2);renderShop()})}
 $('sicon').onclick=()=>{$('win').style.display='flex';shopMsg='';renderShop();clearInterval(shopT);shopT=setInterval(()=>{const e=$('ord');if(shopOpen&&e)e.innerHTML=ordHtml()},1000)};
 $('wx').onclick=()=>{clearInterval(tmr);clearTimeout(tmr);clearInterval(shopT);shopOpen=false;stopMumble();$('win').style.display='none'};
@@ -570,27 +570,27 @@ function startDialog(lines,end){$('dname').textContent=curJob.name;LINES=lines;d
 function advance(){if(typing){clearInterval(typeTimer);$('dtext').textContent=curLine;typing=false;stopMumble();return}li++;
  if(li>=LINES.length){dlgEl.style.display='none';dlgOn=false;stopMumble();if(dlgEnd)dlgEnd()}else showLine()}
 const LEAVE=[[2.6,-2],[2.7,-8],[1.3,-9.4],[1.3,-13],[3,-21]],RET=[[1.3,-13],[1.3,-9.4],[2.7,-8],[2.6,-2],[1.9,-.5]],ENTER=[[1.7,-1.5],[1.35,-2.3],[1.15,-2.7]],NPCPATH=[[1.35,-2.3],[1.75,-1.5],[1.9,-.5]];
-function endDialog1(){renderTodo();todoEl.classList.add('show');toast('Tehtävälista päivitetty',3200);setStep(6);walkNPC(LEAVE,()=>{npc.visible=false;npcMode='gone'})}
-function endDialog2(){done.ret=true;jobsDone++;setMoney(curJob.pay);renderTodo();toast('Maksu '+curJob.pay+' € vastaanotettu!',3500);blip(660,.5);setStep(9);cdoorTarget=-1.1;walkNPC(ENTER,()=>{npc.visible=false;npcMode='gone';cdoorTarget=0;carLeaveT=.8})}
+function endDialog1(){renderTodo();todoEl.classList.add('show');toast('Task list updated',3200);setStep(6);walkNPC(LEAVE,()=>{npc.visible=false;npcMode='gone'})}
+function endDialog2(){done.ret=true;jobsDone++;setMoney(curJob.pay);renderTodo();toast('Payment of '+curJob.pay+' € received!',3500);blip(660,.5);setStep(9);cdoorTarget=-1.1;walkNPC(ENTER,()=>{npc.visible=false;npcMode='gone';cdoorTarget=0;carLeaveT=.8})}
 function showEnd(){endOn=true;if(document.pointerLockElement)document.exitPointerLock();$('endcard').style.display='flex'}
 function startFree(){mailOn=true;mailT=18;arrT=5}
 function afterCar(){setStep(10);todoEl.classList.remove('show');clearDropped();arrT=4}
 function closeDoor(){doorTarget=0;gdoor.visible=true;gdoor.position.y=2.6;closing=true}
 function startNextJob(){const job=queue.shift();resetJob(job);car.position.z=-22;car.visible=false;carState='hidden';npcMode='gone';npc.visible=false;cdoorTarget=0;cdoor.rotation.y=0;
  const u=npc.userData;u.torso.material.color.setHex(job.shirt);u.arms.forEach(a=>a.children[0].material.color.setHex(job.shirt));u.cap.material.color.setHex(job.cap);
- gdoor.visible=true;gdoor.position.y=0;closing=false;doorTarget=2.6;setStep(3);setObj('Asiakas saapuu – ovi aukeaa…');toast('Asiakas saapuu: '+job.name,2600)}
+ gdoor.visible=true;gdoor.position.y=0;closing=false;doorTarget=2.6;setStep(3);setObj('Customer arriving – the door is opening…');toast('Customer arriving: '+job.name,2600)}
 $('endok').onclick=()=>{endOn=false;$('endcard').style.display='none';setStep(10);todoEl.classList.remove('show');startFree();tryLock()};
 
 /* auto ja asiakas */
-function stopCar(){carState='stopped';stopTimer=1.3;setObj('Auto on paikallaan…')}
+function stopCar(){carState='stopped';stopTimer=1.3;setObj('The car is in place…')}
 function walkNPC(path,end){NPATH=path;npcIdx=0;nOnEnd=end;npcMode='walk'}
 let NPATH=[],nOnEnd=null;
 function updateCar(dt){let v=0;
- if(carState==='drive1'){v=4;if(car.position.z>=-5.5){carState='waiting';setObj('Auto odottaa oven sisäpuolella – mene keltaiselle merkille nosturin eteen')}}
- else if(carState==='waiting'){if(inZone()){carState='drive2';setObj('Auto ajaa sisään…')}}
+ if(carState==='drive1'){v=4;if(car.position.z>=-5.5){carState='waiting';setObj('The car is waiting inside the door – go to the yellow mark in front of the lift')}}
+ else if(carState==='waiting'){if(inZone()){carState='drive2';setObj('The car is driving in…')}}
  else if(carState==='drive2'){v=Math.max(.45,Math.min(2.4,-car.position.z*1.1+.2));if(car.position.z>=-.02){car.position.z=0;v=0;stopCar()}}
  else if(carState==='leaving'){v=-3;if(car.position.z<-24){carState='gone';car.visible=false;v=0;closeDoor();if(firstEnd){firstEnd=false;showEnd()}else afterCar()}}
- else if(carState==='stopped'){stopTimer-=dt;if(stopTimer<=0){carState='parked';cdoorTarget=-1.1;npc.visible=true;npc.scale.setScalar(.2);npc.position.set(1.2,0,-2.7);setObj('Asiakas nousee autosta…');walkNPC(NPCPATH,()=>{npcMode='stand';cdoorTarget=0;setStep(4)})}}
+ else if(carState==='stopped'){stopTimer-=dt;if(stopTimer<=0){carState='parked';cdoorTarget=-1.1;npc.visible=true;npc.scale.setScalar(.2);npc.position.set(1.2,0,-2.7);setObj('The customer is getting out…');walkNPC(NPCPATH,()=>{npcMode='stand';cdoorTarget=0;setStep(4)})}}
  if(carLeaveT>0){carLeaveT-=dt;if(carLeaveT<=0)carState='leaving'}
  if(v!==0){const d=v*dt;car.position.z+=d;wheels.forEach(w=>w.rotation.x+=d/.33)}
  if(Math.abs(v-lastV)>.01){lastV=v;engineSnd(Math.abs(v))}}
@@ -617,89 +617,89 @@ function updateAct(dt){const a=act;a.t+=dt;const p=Math.min(1,a.t/a.dur);fpAnima
  if(a.t>=a.dur){act=null;$('prog').style.display='none';fp.visible=false;if(a.fin)a.fin()}}
 function updateWork(dt){
  if(wk.plug===1){wk.drainT+=dt;const k=Math.min(1,wk.drainT/5),top=wk.pw.y-.02,surf=.05+k*.05,L=top-surf;stream.scale.set(k>.85?(1-k)/.15:1,L,k>.85?(1-k)/.15:1);stream.position.set(wk.pw.x,(top+surf)/2,wk.pw.z);panOil.position.y=.03+k*.05;
-  if(k>=1){wk.plug=2;stream.visible=false;done.drain=true;renderTodo();toast('Öljy on valunut. Kiristä tyhjennystulppa jakoavaimella.',3200);blip(480)}}
+  if(k>=1){wk.plug=2;stream.visible=false;done.drain=true;renderTodo();toast('The oil has drained. Tighten the drain plug with the wrench.',3200);blip(480)}}
  hood.rotation.x+=(hoodTarget-hood.rotation.x)*Math.min(1,dt*5);
  if(looseRing.visible&&!act){const k=1+.15*Math.sin(performance.now()/180);looseRing.scale.set(k,k,k)}
  for(let i=fallers.length-1;i>=0;i--){const f=fallers[i];f.vy-=9.8*dt;f.m.position.y+=f.vy*dt;f.m.rotation.x+=dt*2;if(f.out&&Math.abs(f.m.position.x)<1.35)f.m.position.x+=f.out*dt*1.1;if(f.m.position.y<=f.floor){f.m.position.y=f.floor;f.m.rotation.x=0;fallers.splice(i,1)}}
- for(let i=orders.length-1;i>=0;i--){const o=orders[i];o.t-=dt;if(o.t<=0){orders.splice(i,1);stock[o.k]+=o.n;refreshStock();toast('Paketti saapui: '+o.name,3500);blip(620,.4);if(shopOpen)renderShop()}}}
+ for(let i=orders.length-1;i>=0;i--){const o=orders[i];o.t-=dt;if(o.t<=0){orders.splice(i,1);stock[o.k]+=o.n;refreshStock();toast('Package arrived: '+o.name,3500);blip(620,.4);if(shopOpen)renderShop()}}}
 
 function pickTool(t){const T=TOOLS[t];
- if(CONS[t]){if(stock[t]<=0){toast('Varasto loppu! Tilaa lisää tietokoneelta (Varaosat).');return}
-  const n=Math.min(CONS[t]-(inv[t]||0),stock[t]);if(n<=0){toast('Sinulla on jo tämä mukana.');return}
+ if(CONS[t]){if(stock[t]<=0){toast('Out of stock! Order more on the computer (Parts).');return}
+  const n=Math.min(CONS[t]-(inv[t]||0),stock[t]);if(n<=0){toast('You\'re already carrying this.');return}
   inv[t]=(inv[t]||0)+n;stock[t]-=n;refreshStock()}
  else{inv[t]=1;T.g.visible=false;const i=inter.indexOf(T.hb);if(i>=0)inter.splice(i,1)}
- got[t]=true;updateInv();blip(440,.15);toast('Poimit: '+T.label)}
+ got[t]=true;updateInv();blip(440,.15);toast('Picked up: '+T.label)}
 function promptFor(o){const u=o.userData,a=u.a;
- if(a==='pc')return '[E] Käytä tietokonetta';
- if(a==='up')return '[E] Nosta lifti';if(a==='down')return '[E] Laske lifti';if(a==='door')return '[E] Avaa tallin ovi';
- if(a==='npc')return (step===4||step===8)?'[E] Puhu asiakkaalle':null;
- if(a==='pick'){if(step<6)return null;if(CONS[u.t])return stock[u.t]>0?'[E] Poimi: '+TOOLS[u.t].label+' (varastossa '+stock[u.t]+')':'Loppu – tilaa tietokoneelta';return '[E] Poimi: '+TOOLS[u.t].label}
+ if(a==='pc')return '[E] Use the computer';
+ if(a==='up')return '[E] Raise the lift';if(a==='down')return '[E] Lower the lift';if(a==='door')return '[E] Open the garage door';
+ if(a==='npc')return (step===4||step===8)?'[E] Talk to the customer':null;
+ if(a==='pick'){if(step<6)return null;if(CONS[u.t])return stock[u.t]>0?'[E] Pick up: '+TOOLS[u.t].label+' (in stock '+stock[u.t]+')':'Out – order on the computer';return '[E] Pick up: '+TOOLS[u.t].label}
  if(step<7||act)return null;
  const N=curJob.need;if((a==='plug'||a==='filt'||a==='hood')&&!N.oil||a==='exh'&&!N.exh||a==='brake'&&!N.brk)return null;
- if(a==='plug')return wk.plug===0?'[E] Avaa tyhjennystulppa (jakoavain)':wk.plug===2?'[E] Kiristä tyhjennystulppa (jakoavain)':null;
- if(a==='filt')return done.filt?null:'[E] Vaihda öljynsuodatin (uusi suodatin)';
- if(a==='exh')return done.exh?null:'[E] Kiristä löysä liitos (jakoavain)';
- if(a==='brake')return wk.brk[u.k]?null:'[E] Vaihda jarrupalat';
- if(a==='hood')return done.fill&&!wk.hood?null:wk.hood?(wk.fill===0?'[E] Täytä uusi öljy (moottoriöljy)':null):'[E] Avaa konepelti';
- if(a==='tyre'){const i=u.i;if(N.swap&&wk.sw[i]<3){const q=wk.sw[i];return q===0?'[E] Irrota rengas (mutterinväännin)':q===1?'[E] Asenna uusi rengas':'[E] Kiristä pyöränmutterit (mutterinväännin)'}return N.press&&!wk.tyre[i]?'[E] Mittaa rengaspaine (rengasmittari)':null}
+ if(a==='plug')return wk.plug===0?'[E] Open the drain plug (wrench)':wk.plug===2?'[E] Tighten the drain plug (wrench)':null;
+ if(a==='filt')return done.filt?null:'[E] Replace the oil filter (new filter)';
+ if(a==='exh')return done.exh?null:'[E] Tighten the loose joint (wrench)';
+ if(a==='brake')return wk.brk[u.k]?null:'[E] Replace the brake pads';
+ if(a==='hood')return done.fill&&!wk.hood?null:wk.hood?(wk.fill===0?'[E] Fill new oil (engine oil)':null):'[E] Open the hood';
+ if(a==='tyre'){const i=u.i;if(N.swap&&wk.sw[i]<3){const q=wk.sw[i];return q===0?'[E] Remove the tyre (impact wrench)':q===1?'[E] Fit a new tyre':'[E] Tighten the wheel nuts (impact wrench)'}return N.press&&!wk.tyre[i]?'[E] Measure the tyre pressure (tyre gauge)':null}
  return null}
 function interact(){
  if(dlgOn){advance();return}
  if(pcOpen||endOn||act)return;
  const o=target();if(!o)return;const u=o.userData,a=u.a;
  if(a==='pc'){openPC();return}
- if(a==='door'){if(step===2){doorTarget=2.6;setStep(3);setObj('Ovi aukeaa…');toast('Ovi aukeaa…')}else if(step<2)toast('Ensin tietokoneelle – asiakkaalle pitää vastata.');else if(step>=10)toast('Ovi aukeaa itsestään, kun asiakas saapuu.');else toast('Ovi on jo auki.');return}
+ if(a==='door'){if(step===2){doorTarget=2.6;setStep(3);setObj('The door is opening…');toast('The door is opening…')}else if(step<2)toast('Computer first – the customer needs a reply.');else if(step>=10)toast('The door opens by itself when the customer arrives.');else toast('The door is already open.');return}
  if(a==='npc'){if(step===4)startDialog(curJob.l1,endDialog1);else if(step===8)startDialog(curJob.l2,endDialog2);return}
- if(a==='up'||a==='down'){if(step<6){toast('Nosturi ei ole vielä käytössä – seuraa tehtävää.');return}
-  if(a==='down'&&underCar()){toast('Poistu auton alta ennen kuin lasket nosturin!');return}liftTarget=a==='up'?HIGH:LOW;return}
- if(a==='pick'){if(step<6){toast('Työkaluja tarvitaan vasta myöhemmin.');return}pickTool(u.t);return}
+ if(a==='up'||a==='down'){if(step<6){toast('The lift isn\'t in use yet – follow the task.');return}
+  if(a==='down'&&underCar()){toast('Get out from under the car before lowering the lift!');return}liftTarget=a==='up'?HIGH:LOW;return}
+ if(a==='pick'){if(step<6){toast('You\'ll need tools later.');return}pickTool(u.t);return}
  if(step<7)return;
  {const N=curJob.need;if((a==='plug'||a==='filt'||a==='hood')&&!N.oil||a==='exh'&&!N.exh||a==='brake'&&!N.brk)return}
  if(a==='plug'){
-  if(wk.plug===0){if(!need('wrench','Tarvitset jakoavaimen pöydältä.'))return;
-   startAct('Avataan tyhjennystulppaa',1.8,'wrench',p=>{plugM.position.y=.085-p*.05;plugM.rotation.y=p*20},()=>{wk.plug=1;wk.drainT=0;scene.updateMatrixWorld(true);plugM.getWorldPosition(wk.pw);plugM.visible=false;plugM.position.y=.085;pan.position.set(wk.pw.x,0,wk.pw.z);pan.visible=true;stream.visible=true;toast('Tulppa irti – öljy valuu astiaan…');blip(300)})}
-  else if(wk.plug===1)toast('Odota että öljy on valunut.');
-  else if(wk.plug===2){if(!need('wrench','Tarvitset jakoavaimen.'))return;plugM.visible=true;plugM.position.y=.02;
-   startAct('Kiristetään tyhjennystulppa',1.6,'wrench',p=>{plugM.position.y=.02+p*.065;plugM.rotation.y=p*18},()=>{wk.plug=3;done.plug=true;plugM.position.y=.085;pan.visible=false;renderTodo();toast('Tyhjennystulppa kiristetty');blip(520)})}}
- else if(a==='filt'){if(done.filt)return;if(!need('filter','Tarvitset uuden öljynsuodattimen pöydältä.'))return;let dropped=false;
-  startAct('Vaihdetaan öljynsuodatin',3.2,'filter',p=>{
+  if(wk.plug===0){if(!need('wrench','You need the wrench from the bench.'))return;
+   startAct('Opening the drain plug',1.8,'wrench',p=>{plugM.position.y=.085-p*.05;plugM.rotation.y=p*20},()=>{wk.plug=1;wk.drainT=0;scene.updateMatrixWorld(true);plugM.getWorldPosition(wk.pw);plugM.visible=false;plugM.position.y=.085;pan.position.set(wk.pw.x,0,wk.pw.z);pan.visible=true;stream.visible=true;toast('Plug out – the oil is draining into the pan…');blip(300)})}
+  else if(wk.plug===1)toast('Wait for the oil to drain.');
+  else if(wk.plug===2){if(!need('wrench','You need the wrench.'))return;plugM.visible=true;plugM.position.y=.02;
+   startAct('Tightening the drain plug',1.6,'wrench',p=>{plugM.position.y=.02+p*.065;plugM.rotation.y=p*18},()=>{wk.plug=3;done.plug=true;plugM.position.y=.085;pan.visible=false;renderTodo();toast('Drain plug tightened');blip(520)})}}
+ else if(a==='filt'){if(done.filt)return;if(!need('filter','You need a new oil filter from the bench.'))return;let dropped=false;
+  startAct('Replacing the oil filter',3.2,'filter',p=>{
    if(p<.45){oldFilt.rotation.y+=.5;oldFilt.position.y=.2-p/.45*.07}
    else{if(!dropped){dropped=true;scene.attach(oldFilt);fallers.push({m:oldFilt,vy:-.5,floor:.075});newFilt.visible=true}
     const q=(p-.45)/.55;newFilt.position.y=.1+.1*q;newFilt.rotation.y=(1-q)*12}},
-   ()=>{inv.filter=0;updateInv();newFilt.position.y=.2;done.filt=true;renderTodo();toast('Öljynsuodatin vaihdettu');blip(520)})}
- else if(a==='exh'){if(done.exh)return;if(!need('wrench','Tarvitset jakoavaimen pöydältä.'))return;
-  startAct('Kiristetään pakoputken liitosta',2.6,'wrench',p=>{boltG.forEach((b,i)=>{b.rotation.z=p*14+i;b.position.z=.025*(1-p)});looseRing.scale.setScalar(1-.35*p)},
-   ()=>{done.exh=true;looseRing.visible=false;boltG.forEach(b=>b.position.z=0);renderTodo();toast('Pakoputken liitos kiristetty – kolina loppui!',3000);blip(560)})}
- else if(a==='brake'){const k=u.k;if(wk.brk[k])return;if(!(inv.pads>0)){toast('Jarrupalat ovat kuluneet! Tarvitset uudet jarrupalat pöydältä.');return}
+   ()=>{inv.filter=0;updateInv();newFilt.position.y=.2;done.filt=true;renderTodo();toast('Oil filter replaced');blip(520)})}
+ else if(a==='exh'){if(done.exh)return;if(!need('wrench','You need the wrench from the bench.'))return;
+  startAct('Tightening the exhaust joint',2.6,'wrench',p=>{boltG.forEach((b,i)=>{b.rotation.z=p*14+i;b.position.z=.025*(1-p)});looseRing.scale.setScalar(1-.35*p)},
+   ()=>{done.exh=true;looseRing.visible=false;boltG.forEach(b=>b.position.z=0);renderTodo();toast('Exhaust joint tightened – the rattle stopped!',3000);blip(560)})}
+ else if(a==='brake'){const k=u.k;if(wk.brk[k])return;if(!(inv.pads>0)){toast('The brake pads are worn! You need new brake pads from the bench.');return}
   const cx=calipers[k].position.x;oldPad[k].visible=true;oldPad[k].position.y=.4;newPad[k].visible=false;
-  startAct('Vaihdetaan jarrupalat',2.6,'pads',p=>{calipers[k].position.x=cx+Math.sin(p*70)*.004;
+  startAct('Replacing the brake pads',2.6,'pads',p=>{calipers[k].position.x=cx+Math.sin(p*70)*.004;
    if(p<.5){oldPad[k].position.y=.4-p*.5}else{oldPad[k].visible=false;newPad[k].visible=true;newPad[k].position.y=.15+(p-.5)/.5*.25}},
-   ()=>{calipers[k].position.x=cx;newPad[k].position.y=.4;inv.pads--;updateInv();wk.brk[k]=1;wk.brkN++;calipers[k].material.color.setHex(0x2ecc71);if(wk.brkN===2)done.brk=true;renderTodo();toast('Jarrupalat vaihdettu ('+wk.brkN+'/2)');blip(500)})}
+   ()=>{calipers[k].position.x=cx;newPad[k].position.y=.4;inv.pads--;updateInv();wk.brk[k]=1;wk.brkN++;calipers[k].material.color.setHex(0x2ecc71);if(wk.brkN===2)done.brk=true;renderTodo();toast('Brake pads replaced ('+wk.brkN+'/2)');blip(500)})}
  else if(a==='hood'){
-  if(!wk.hood){if(done.fill)return;wk.hood=1;hoodTarget=-1.1;blip(300,.15);toast('Konepelti auki');return}
-  if(wk.fill===0){if(!need('can','Tarvitset moottoriöljyä pöydältä.'))return;wk.fill=1;
-   startAct('Täytetään moottoriöljyä',3.4,'can',p=>{capM.position.y=1.06+(p<.12?p/.12*.12:p>.88?(1-p)/.12*.12:.12);fillStream.visible=p>.18&&p<.88},
-    ()=>{fillStream.visible=false;capM.position.y=1.06;inv.can=0;updateInv();wk.fill=2;done.fill=true;wk.hood=0;hoodTarget=0;renderTodo();toast('Uusi öljy täytetty');blip(560)})}}
+  if(!wk.hood){if(done.fill)return;wk.hood=1;hoodTarget=-1.1;blip(300,.15);toast('Hood open');return}
+  if(wk.fill===0){if(!need('can','You need engine oil from the bench.'))return;wk.fill=1;
+   startAct('Filling engine oil',3.4,'can',p=>{capM.position.y=1.06+(p<.12?p/.12*.12:p>.88?(1-p)/.12*.12:.12);fillStream.visible=p>.18&&p<.88},
+    ()=>{fillStream.visible=false;capM.position.y=1.06;inv.can=0;updateInv();wk.fill=2;done.fill=true;wk.hood=0;hoodTarget=0;renderTodo();toast('New oil filled');blip(560)})}}
  else if(a==='tyre'){const i=u.i,N=curJob.need;
   if(N.swap&&wk.sw[i]<3){
-   if(liftG.position.y<1.85){toast('Nosta auto ensin liftillä.');return}
+   if(liftG.position.y<1.85){toast('Raise the car on the lift first.');return}
    const q=wk.sw[i],side=i%2?1:-1,x0=side*.8,w=wheels[i];
-   if(q===0){if(!need('impact','Tarvitset mutterinvääntimen pöydältä.'))return;
-    startAct('Irrotetaan pyöränmutterit',1.8,'impact',p=>{w.position.x=x0+Math.sin(p*90)*.004},()=>{w.position.x=x0;w.visible=false;dropTyre(i);wk.sw[i]=1;toast('Vanha rengas irti');blip(300,.2)})}
-   else if(q===1){if(!(inv.tyres>0)){toast('Tarvitset uuden renkaan. Hae renkaat pöydän vierestä.');return}
-    startAct('Asennetaan uusi rengas',1.6,'tyres',p=>{w.visible=true;w.children[0].material=tireM;w.position.x=x0+side*.6*(1-p)},()=>{w.position.x=x0;inv.tyres--;updateInv();wk.sw[i]=2;w.scale.set(1,1,1);blip(420,.15)})}
-   else{if(!need('impact','Tarvitset mutterinvääntimen pöydältä.'))return;
-    startAct('Kiristetään pyöränmutterit',2,'impact',p=>{w.position.x=x0+Math.sin(p*90)*.003},()=>{w.position.x=x0;wk.sw[i]=3;wk.swN++;if(wk.swN===4)done.swap=true;renderTodo();toast('Rengas vaihdettu ('+wk.swN+'/4)');blip(500)})}
+   if(q===0){if(!need('impact','You need the impact wrench from the bench.'))return;
+    startAct('Removing the wheel nuts',1.8,'impact',p=>{w.position.x=x0+Math.sin(p*90)*.004},()=>{w.position.x=x0;w.visible=false;dropTyre(i);wk.sw[i]=1;toast('Old tyre off');blip(300,.2)})}
+   else if(q===1){if(!(inv.tyres>0)){toast('You need a new tyre. Get tyres from next to the bench.');return}
+    startAct('Fitting a new tyre',1.6,'tyres',p=>{w.visible=true;w.children[0].material=tireM;w.position.x=x0+side*.6*(1-p)},()=>{w.position.x=x0;inv.tyres--;updateInv();wk.sw[i]=2;w.scale.set(1,1,1);blip(420,.15)})}
+   else{if(!need('impact','You need the impact wrench from the bench.'))return;
+    startAct('Tightening the wheel nuts',2,'impact',p=>{w.position.x=x0+Math.sin(p*90)*.003},()=>{w.position.x=x0;wk.sw[i]=3;wk.swN++;if(wk.swN===4)done.swap=true;renderTodo();toast('Tyre replaced ('+wk.swN+'/4)');blip(500)})}
    return}
-  if(!N.press||wk.tyre[i])return;if(!need('gauge','Tarvitset rengasmittarin pöydältä.'))return;const pr=wk.sw[i]===3?2.2:PRESS[i];
+  if(!N.press||wk.tyre[i])return;if(!need('gauge','You need the tyre gauge from the bench.'))return;const pr=wk.sw[i]===3?2.2:PRESS[i];
   const ok=()=>{wk.tyre[i]=2;wk.tyreN++;if(wk.tyreN===4)done.tyre=true;renderTodo();blip(500)};
-  startAct('Mitataan rengaspainetta',1.3,'gauge',null,()=>{
-   if(pr>=2){ok();toast('Rengas ('+TNAME[i]+'): '+pr+' bar – ok')}
-   else{toast('Rengas ('+TNAME[i]+'): '+pr+' bar – liian matala, täytetään…',2200);hiss(2.2);
-    startAct('Täytetään rengasta',2.2,'gauge',p=>{wheels[i].scale.set(1,.92+.08*p,.92+.08*p)},()=>{wheels[i].scale.set(1,1,1);ok();toast('Rengas ('+TNAME[i]+'): 2.2 bar – täytetty')})}})}}
+  startAct('Measuring tyre pressure',1.3,'gauge',null,()=>{
+   if(pr>=2){ok();toast('Tyre ('+TNAME[i]+'): '+pr+' bar – ok')}
+   else{toast('Tyre ('+TNAME[i]+'): '+pr+' bar – too low, inflating…',2200);hiss(2.2);
+    startAct('Inflating the tyre',2.2,'gauge',p=>{wheels[i].scale.set(1,.92+.08*p,.92+.08*p)},()=>{wheels[i].scale.set(1,1,1);ok();toast('Tyre ('+TNAME[i]+'): 2.2 bar – inflated')})}})}}
 addEventListener('keydown',e=>{keys[e.code]=true;
  if(e.code==='Space'&&G.started)e.preventDefault();
- if(e.code==='KeyM'&&!e.repeat){muted=!muted;if(master)master.gain.value=muted?0:.9;toast(muted?'Musiikki pois':'Musiikki päällä',1500)}
+ if(e.code==='KeyM'&&!e.repeat){muted=!muted;if(master)master.gain.value=muted?0:.9;toast(muted?'Music off':'Music on',1500)}
  if(!G.started)return;
  if(e.code==='KeyE'&&!e.repeat)interact();
  if(e.code==='Escape'&&pcOpen){stopMumble();closePC()}});
@@ -727,7 +727,7 @@ function loop(){requestAnimationFrame(loop);try{started=G.started;if(started&&st
     if(!act){if(free(px+dx,pz))px+=dx;if(free(px,pz+dz))pz+=dz}}
   mdx=mdy=0;
   if(started){
-    if(doorTarget>0&&gdoor.position.y<doorTarget){gdoor.position.y=Math.min(doorTarget,gdoor.position.y+1.3*dt);if(gdoor.position.y>=doorTarget){gdoor.visible=false;carState='drive1';car.position.z=-22;car.visible=true;setObj('Mene nosturin eteen keltaiselle merkille')}}
+    if(doorTarget>0&&gdoor.position.y<doorTarget){gdoor.position.y=Math.min(doorTarget,gdoor.position.y+1.3*dt);if(gdoor.position.y>=doorTarget){gdoor.visible=false;carState='drive1';car.position.z=-22;car.visible=true;setObj('Go to the yellow mark in front of the lift')}}
     if(closing){gdoor.position.y=Math.max(0,gdoor.position.y-1.3*dt);if(gdoor.position.y<=0)closing=false}
     if(mailOn){mailT-=dt;if(mailT<=0){mailT=25+Math.random()*35;if(unrep()<2&&queue.length<3)newMail()}}
     if(step===10){if(queue.length){arrT-=dt;if(arrT<=0)startNextJob()}else arrT=4}
@@ -736,20 +736,20 @@ function loop(){requestAnimationFrame(loop);try{started=G.started;if(started&&st
   const d=liftTarget-liftG.position.y,st=.45*dt,moving=Math.abs(d)>.001;
   liftG.position.y+=Math.abs(d)<st?d:Math.sign(d)*st;lamp.material.color.setHex(moving?0xffa000:0x00e060);
   if(step===7&&done.lift&&upDone()&&!done.low&&liftG.position.y<.2){done.low=true;renderTodo()}
-  if(step>=6&&step<7&&!done.lift&&liftG.position.y>HIGH-.03){done.lift=true;renderTodo();toast('Auto on nosturissa. Hae työkalut pöydältä!',3200);blip(520);setStep(7)}
+  if(step>=6&&step<7&&!done.lift&&liftG.position.y>HIGH-.03){done.lift=true;renderTodo();toast('The car is on the lift. Get the tools from the bench!',3200);blip(520);setStep(7)}
   if(step===7&&!retStarted){const h=hintNow();if(h[0]!==lastHint){lastHint=h[0];setObj(h[0])}mBase=h[1]?h[1].slice():null;
    if(allWork()&&liftG.position.y<.2&&retT<0)retT=2.5}
-  if(retT>0){retT-=dt;if(retT<=0){retT=-5;retStarted=true;npc.visible=true;npc.scale.setScalar(1);npc.position.set(3,0,-20);setObj('Asiakas saapuu…');mBase=null;toast('Asiakas tulee hakemaan autoa',3000);walkNPC(RET,()=>{npcMode='stand';setStep(8)})}}
-  if(step===10){const un=unrep()>0,t=un?'Uusi asiakasviesti – mene tietokoneelle ja vastaa':queue.length?'Seuraava asiakas saapuu pian…':'Ei töitä juuri nyt – odota uutta yhteydenottoa';if(t!==lastHint){lastHint=t;setObj(t)}mBase=un?PCM.slice():null}
+  if(retT>0){retT-=dt;if(retT<=0){retT=-5;retStarted=true;npc.visible=true;npc.scale.setScalar(1);npc.position.set(3,0,-20);setObj('Customer arriving…');mBase=null;toast('The customer is coming to pick up the car',3000);walkNPC(RET,()=>{npcMode='stand';setStep(8)})}}
+  if(step===10){const un=unrep()>0,t=un?'New customer message – go to the computer and reply':queue.length?'The next customer arrives soon…':'No work right now – wait for a new request';if(t!==lastHint){lastHint=t;setObj(t)}mBase=un?PCM.slice():null}
   if((step===4||step===8)&&npcMode==='stand')mBase=[npc.position.x,2.15,npc.position.z];
   if(mBase&&!busy){marker.visible=true;marker.rotation.x=mBase[3]?0:Math.PI;marker.position.set(mBase[0],mBase[1]+Math.sin(performance.now()/250)*.08,mBase[2])}else marker.visible=false;
   if(!started){menuT+=dt;const a=menuT*.12,r=3.7+Math.sin(menuT*.21)*.25;cam.position.set(Math.sin(a)*r,1.45+Math.sin(menuT*.3)*.3,-3+Math.cos(a)*r);cam.lookAt(0,.95,-3)}
   else{cam.position.set(px,1.65,pz);cam.rotation.set(pitch,yaw,0)}
-  if(uiOn!==started){uiOn=started;$('ui').style.display=started?'':'none';$('startbtn').textContent=step>=0?'Jatka peliä':'Aloita peli'}
+  if(uiOn!==started){uiOn=started;$('ui').style.display=started?'':'none';$('startbtn').textContent=step>=0?'Continue':'Start game'}
   const o=started&&!busy?target():null;[bUp,bDown,dbtn].forEach(b=>b.material.emissive.setHex(b===o?0x555555:0));
   const pt=o?promptFor(o):null;
   if(pt){prompt_.textContent=pt;prompt_.style.display='block'}else prompt_.style.display='none';
-  R.render(scene,cam)}catch(err){if(!loop.e){loop.e=1;window.__err('Silmukkavirhe: '+err.message)}}}
+  R.render(scene,cam)}catch(err){if(!loop.e){loop.e=1;window.__err('Loop error: '+err.message)}}}
 updateInv();refreshStock();loop();
 
 // Pelipaja: Save & End Game + lataus

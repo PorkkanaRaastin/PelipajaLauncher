@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Peak Pals</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#141826;font-family:"Segoe UI",system-ui,sans-serif;color:#f4efe6}
+canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh}
+#hud{position:fixed;left:0;right:0;top:12px;display:flex;justify-content:center;gap:10px;pointer-events:none;z-index:5}
+#hud[hidden]{display:none}
+.pill{background:rgba(12,14,24,.72);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;backdrop-filter:blur(4px)}
+.pill small{font-weight:700;color:#b9b2a6;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+#sunBar{width:120px;height:8px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
+#sunFill{height:100%;background:linear-gradient(90deg,#ff6a3d,#ffd36a);border-radius:9px}
+#time.low{color:#ff8c6a}
+#alt{min-width:118px}
+.pp{position:fixed;bottom:14px;pointer-events:none;z-index:5;background:rgba(12,14,24,.72);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px;min-width:170px}
+.pp b{display:flex;align-items:center;gap:8px}.pp b i{width:11px;height:11px;border-radius:50%}
+.pp span{display:block;color:#b9b2a6;font-size:12px;font-weight:700;margin-top:3px}
+#pp1{left:14px}#pp2{right:14px}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="ov"></canvas>
+<div id="hud" hidden>
+  <div class="pill"><small id="lvName">Saana</small></div>
+  <div class="pill"><small>Sunset</small><div id="sunBar"><div id="sunFill"></div></div><span id="time">4:00</span></div>
+  <div class="pill"><small>Altitude</small><span id="alt">0 m</span></div>
+  <div class="pill"><small>Sausages</small><span id="saus">0</span></div>
+</div>
+<div class="pp" id="pp1" hidden><b><i style="background:#ff8a3d"></i><span style="color:inherit;display:inline;margin:0" id="n1">PATE</span></b><span id="k1"></span></div>
+<div class="pp" id="pp2" hidden><b><i style="background:#33d1c4"></i><span style="color:inherit;display:inline;margin:0" id="n2">MASA</span></b><span id="k2"></span></div>
+
+<script src="../_shared/three.min.js"></script>
+<script src="../_shared/peerjs.min.js"></script>
+<script src="../_shared/coop.js"></script>
+<script>
+// Tunturiin! – kiivetkää kaksin tunturin huipulle ennen auringonlaskua ja paistakaa makkarat.
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+function mulberry32(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+const T = 32;                 // ruudun koko
+const PW = 10, PH = 34;       // pelaajan puolileveys ja korkeus
+const GRAV = 1500, JUMP = 520, CLIMB = 95, WALK = 200;
+const NAMES = ["PATE", "MASA"], COLS = ["#ff8a3d", "#33d1c4"];
+const FELLS = [
+  { n: "Saana", m: 1029, base: 480, top: 58, time: 240 },
+  { n: "Pallas Fell", m: 807, base: 400, top: 80, time: 300 },
+  { n: "Halti", m: 1324, base: 700, top: 104, time: 360 },
+];
+function fell(lv) {
+  const b = FELLS[(lv - 1) % 3], loop = Math.floor((lv - 1) / 3);
+  return { n: b.n + (loop ? " #" + (loop + 1) : ""), m: b.m, base: b.base, top: b.top + loop * 16, time: b.time + loop * 30, maxR: Math.min(11, 6 + lv) };
+}
+
+// ---------- maailma ----------
+let W = 0, hgt = null, notch = new Set(), icy = null, saus = [], cps = [], summit = null, F = null;
+const nk = (cx, cy) => cx * 4096 + cy;
+function solid(cx, cy) { if (cx < 0 || cx >= W) return true; if (cy < 0) return true; return cy < hgt[cx] || notch.has(nk(cx, cy)); }
+const solidAt = (x, y) => solid(Math.floor(x / T), Math.floor(y / T));
+
+function buildMap(seed, lv) {
+  const R = mulberry32(seed);
+  F = fell(lv);
+  const H = new Array(1500).fill(0), ice = new Array(1500).fill(0);
+  notch = new Set(); saus = []; cps = [];
+  let x = 0, h = 3;
+  for (; x < 14; x++) H[x] = 3;
+  let steps = 0;
+  while (h < F.top - 4) {
+    const upper = h > F.top * 0.62;
+    // kuilu: tasanteella railo, johon voi pudota
+    if (steps > 2 && R() < 0.14) {
+      const w = 2 + Math.floor(R() * 2);
+      for (let i = 0; i < w; i++) H[x + i] = Math.max(1, h - 5);
+      x += w;
+      for (let i = 0; i < 2; i++) H[x + i] = h;
+      x += 2;
+    }
+    const early = steps < 3;
+    const r = early ? 2 + Math.floor(R() * 3) : 2 + Math.floor(R() * (F.maxR - 1));
+    // korkeassa seinämässä on puolivälissä kapea askelma lepäämistä varten
+    if (r >= 7) {
+      const mid = h + Math.floor(r / 2);
+      H[x] = mid;
+      if (R() < 0.5) saus.push({ x: x * T + T / 2, y: mid * T + 10, e: false });
+      x += 1;
+    }
+    const t = 3 + Math.floor(R() * 6);
+    for (let i = 0; i < t; i++) { H[x + i] = h + r; if (upper && R() < 0.5) ice[x + i] = 1; }
+    // makkara tasanteelle
+    if (R() < 0.55) saus.push({ x: (x + Math.floor(t / 2)) * T + T / 2, y: (h + r) * T + 10, e: false });
+    steps++;
+    if (steps % 5 === 0 && t >= 4) cps.push({ x: (x + 1) * T + T, y: (h + r) * T, i: cps.length });
+    x += t;
+    h += r;
+  }
+  // huippu
+  const sx = x;
+  for (let i = 0; i < 12; i++) H[x + i] = h;
+  summit = { x0: sx * T, x1: (sx + 12) * T, y: h * T, gx: (sx + 6) * T };
+  x += 12;
+  // toinen rinne alas
+  while (h > 3) { h = Math.max(3, h - 1 - Math.floor(R() * 3)); for (let i = 0; i < 2; i++) H[x + i] = h; x += 2; }
+  for (let i = 0; i < 10; i++) H[x + i] = 3;
+  x += 10;
+  W = x;
+  hgt = new Int16Array(W); icy = new Uint8Array(W);
+  for (let i = 0; i < W; i++) { hgt[i] = H[i]; icy[i] = ice[i]; }
+}
+
+// ---------- pelaajat ----------
+function mkP(i) {
+  return { i, x: (4 + i * 3) * T, y: 3 * T, vx: 0, vy: 0, ground: true, cling: 0, st: 100, tired: false, face: 1, stun: 0, fallTop: 3 * T, coyote: 0, rescue: 0, climbing: false, hang: false, falls: 0 };
+}
+let P = [], G = {};
+
+function boxHit(x, y) {
+  // törmääkö pelaajan laatikko (x = keskikohta, y = jalat)
+  const x0 = Math.floor((x - PW) / T), x1 = Math.floor((x + PW - 0.01) / T);
+  const y0 = Math.floor(y / T), y1 = Math.floor((y + PH - 0.01) / T);
+  for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) if (solid(cx, cy)) return true;
+  return false;
+}
+function moveP(p, dt) {
+  // liike pienin askelin; törmätessä edetään yksikkö kerrallaan seinään asti
+  const along = (dx, dy) => {
+    const n = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / 6);
+    for (let i = 0; i < n; i++) {
+      const sx = dx / n, sy = dy / n;
+      if (!boxHit(p.x + sx, p.y + sy)) { p.x += sx; p.y += sy; continue; }
+      const m = Math.ceil(Math.max(Math.abs(sx), Math.abs(sy)));
+      for (let j = 0; j < m; j++) {
+        const ux = sx / m, uy = sy / m;
+        if (boxHit(p.x + ux, p.y + uy)) return true;
+        p.x += ux; p.y += uy;
+      }
+      return true;
+    }
+    return false;
+  };
+  if (along(p.vx * dt, 0)) p.vx = 0;
+  p.ground = false;
+  if (along(0, p.vy * dt)) { if (p.vy < 0) p.ground = true; p.vy = 0; }
+  if (!p.ground && p.vy <= 0 && boxHit(p.x, p.y - 1)) p.ground = true;
+}
+// seinä vieressä? palauttaa {up, low} kummallekin puolelle
+function wallInfo(p, side) {
+  const cx = Math.floor((p.x + side * (PW + 2)) / T);
+  const low = solid(cx, Math.floor((p.y + 4) / T));
+  const mid = solid(cx, Math.floor((p.y + PH / 2) / T));
+  const up = solid(cx, Math.floor((p.y + PH - 4) / T));
+  const below = solid(cx, Math.floor((p.y - 6) / T)); // tasanteen reuna jalkojen alla
+  return { any: low || mid || up, up: up || mid, low, below };
+}
+const anchored = (p) => p.cling !== 0 || p.ground;
+
+// ---------- pelilogiikka (isäntä) ----------
+function step(dt, inputs) {
+  G.time -= dt;
+  G.t += dt;
+  const [A, B] = P;
+  // kädestä kiinni: molemmat pitävät tarttumisnäppäintä ja ovat lähekkäin
+  const d = Math.hypot(B.x - A.x, (B.y + PH / 2) - (A.y + PH / 2));
+  const bothGrab = inputs[0].a && inputs[1].a && A.stun <= 0 && B.stun <= 0 && A.rescue <= 0 && B.rescue <= 0;
+  if (!G.link) {
+    // tarttuminen kädestä vaatii uuden painalluksen, eikä molemmat saa roikkua seinässä
+    const reach = inputs[0].aP || inputs[1].aP;
+    if (bothGrab && reach && d < 52 && !(A.cling && B.cling)) { G.link = true; G.linkLen = Math.max(30, d); Coop.emit("link", (A.x + B.x) / 2, (A.y + B.y) / 2 + PH); }
+  } else if (!bothGrab || d > 110) { G.link = false; if (d > 110) Coop.emit("snap", B.x, B.y); }
+
+  for (const p of P) {
+    let inp = inputs[p.i];
+    const o = P[1 - p.i];
+    if (p.rescue > 0) {
+      p.rescue -= dt;
+      if (p.rescue <= 0) {
+        const cp = cps[G.cp];
+        p.x = cp.x + (p.i ? 20 : -20); p.y = cp.y; p.vx = p.vy = 0; p.fallTop = p.y; p.st = 100;
+        Coop.emit("poro", p.i, p.x, p.y);
+      }
+      continue;
+    }
+    if (p.stun > 0) { p.stun -= dt; inp = { x: 0, y: 0, a: false, b: false, aP: false, bP: false }; }
+    if (inp.x) p.face = Math.sign(inp.x);
+
+    // tarttuminen seinään
+    const sides = inp.x ? [Math.sign(inp.x), -Math.sign(inp.x)] : [p.face, -p.face];
+    let wall = 0, wi = null;
+    for (const s of sides) { const w = wallInfo(p, s); if (w.any) { wall = s; wi = w; break; } }
+    const wasCling = p.cling;
+    // lipsahtamisen jälkeen pitää ensin levätä hetki (kestävyys 35)
+    if (p.tired && p.st >= 35) p.tired = false;
+    if (inp.a && wall && !p.tired && p.st > 0 && (!p.ground || inp.y < 0)) p.cling = wall; else p.cling = 0;
+    // seinän yläreuna: noustaan tasanteelle
+    if (wasCling && inp.a && inp.y < 0) {
+      const w = wallInfo(p, wasCling);
+      if (!w.up && (w.low || w.below)) { p.cling = 0; p.vy = 330; p.vx = wasCling * 170; Coop.emit("mantle", p.i); }
+    }
+    p.climbing = false;
+    const hanging = G.link && !anchored(p) && anchored(o);
+    p.hang = hanging;
+
+    if (p.cling) {
+      const up = -inp.y;
+      p.vy = up * CLIMB;
+      p.vx = 0;
+      p.climbing = up !== 0;
+      let drain = 6 + (up > 0 ? 17 : up < 0 ? 6 : 0);
+      if (G.link && !anchored(o)) drain += 14; // kaveri roikkuu kädestä
+      p.st -= drain * dt;
+      if (p.st <= 0) { p.st = 0; p.cling = 0; p.tired = true; Coop.emit("slip", p.i, p.x, p.y + PH); }
+      if (inp.bP && p.st > 8) {
+        const s = p.cling;
+        p.cling = 0; p.vy = 470; p.vx = -s * 230; p.st -= 10;
+        Coop.emit("jump", p.i);
+      }
+    } else {
+      const ice = p.ground && icy[Math.floor(p.x / T)];
+      const target = inp.x * WALK;
+      const acc = p.ground ? (ice ? 2.5 : 12) : 4;
+      p.vx += (target - p.vx) * Math.min(1, acc * dt);
+      p.vy = Math.max(p.vy - GRAV * dt, -900);
+      p.coyote = p.ground ? 0.1 : Math.max(0, p.coyote - dt);
+      if (inp.bP) {
+        if (hanging) {
+          // heitto: kaveri heittää roikkujan ylös
+          G.link = false; p.vy = 640; p.vx = (o.x - p.x) * 2; o.st = Math.max(0, o.st - 18);
+          Coop.emit("toss", p.i, p.x, p.y + PH);
+        } else if (p.ground || p.coyote > 0) { p.vy = JUMP; p.coyote = 0; Coop.emit("jump", p.i); }
+      }
+      if (p.ground) p.st = Math.min(100, p.st + 32 * dt);
+    }
+    // lyhyt hyppy, jos nappi päästetään irti
+    if (!inp.b && p.vy > 200 && !p.cling && !hanging) p.vy -= 1400 * dt;
+
+    const wasGround = p.ground;
+    moveP(p, dt);
+    // putoaminen: korkealta tömähdys
+    if (p.ground || p.cling) {
+      const fell = p.fallTop - p.y;
+      if (!wasGround && p.ground && fell > 8 * T) {
+        p.stun = 1.1; p.falls++; G.falls++;
+        Coop.emit("thud", p.i, p.x, p.y, Math.min(14, fell / 40));
+        // poro hakee takaisin kodalle, jos putosi selvästi sen alapuolelle
+        const cp = cps[G.cp];
+        if (G.cp >= 0 && cp && p.y < cp.y - 6 * T) { p.rescue = 1.6; G.time -= 10; Coop.emit("poroCall", p.i, p.x, p.y); }
+      }
+      p.fallTop = p.y;
+    } else p.fallTop = Math.max(p.fallTop, p.y);
+    if (p.ground && Math.abs(p.vx) < 1) p.fallTop = p.y;
+  }
+
+  // kädestä kiinni: rajoitetaan etäisyyttä
+  if (G.link) {
+    const pull = P.some((p) => p.hang && inputs[p.i].y < 0);
+    G.linkLen = pull ? Math.max(26, G.linkLen - 70 * dt) : Math.min(50, G.linkLen + 20 * dt);
+    const ax = A.x, ay = A.y + PH / 2, bx = B.x, by = B.y + PH / 2;
+    const dd = Math.hypot(bx - ax, by - ay);
+    if (dd > G.linkLen) {
+      const nx = (bx - ax) / dd, ny = (by - ay) / dd, over = dd - G.linkLen;
+      let wa = 0.5, wb = 0.5;
+      if (anchored(A) && !anchored(B)) { wa = 0; wb = 1; }
+      else if (anchored(B) && !anchored(A)) { wa = 1; wb = 0; }
+      else if (anchored(A) && anchored(B)) { wa = wb = 0; }
+      const tryMove = (p, mx, my) => { if (!boxHit(p.x + mx, p.y + my)) { p.x += mx; p.y += my; } else if (!boxHit(p.x, p.y + my)) p.y += my; };
+      if (wa) tryMove(A, nx * over * wa, ny * over * wa);
+      if (wb) tryMove(B, -nx * over * wb, -ny * over * wb);
+      const rel = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
+      if (rel > 0) { A.vx += nx * rel * wa; A.vy += ny * rel * wa; B.vx -= nx * rel * wb; B.vy -= ny * rel * wb; }
+    }
+  }
+
+  // makkarat
+  for (const s of saus) {
+    if (s.e) continue;
+    for (const p of P) {
+      if (Math.abs(p.x - s.x) < 22 && Math.abs(p.y + PH / 2 - s.y) < 30) {
+        s.e = true; G.saus++; p.st = Math.min(100, p.st + 50);
+        Coop.emit("eat", p.i, s.x, s.y);
+        break;
+      }
+    }
+  }
+  // kodat (välietapit)
+  for (const cp of cps) {
+    if (cp.i <= G.cp) continue;
+    const near = (p) => Math.abs(p.x - cp.x) < 90 && Math.abs(p.y - cp.y) < 40 && p.rescue <= 0;
+    if (P.every(near)) { G.cp = cp.i; Coop.emit("cp", cp.i, cp.x, cp.y); }
+  }
+  // huippu
+  const atTop = (p) => p.x > summit.x0 && p.x < summit.x1 && p.y >= summit.y - 2 && p.rescue <= 0;
+  if (P.every(atTop)) {
+    G.topT += dt;
+    if (G.topT > 1.6) return finish(true);
+  } else G.topT = 0;
+  if (G.time <= 0) { G.time = 0; return finish(false); }
+}
+
+function finish(ok) {
+  const f = F, used = f.time - G.time;
+  const mm = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+  Coop.end({
+    ok,
+    kicker: f.n + " · " + f.m + " m",
+    title: ok ? "Summit! Fire up the grill." : "The sun went down",
+    text: ok ? pick(["The sausages are sizzling and the view looks like a postcard. Next up: higher.", "The summit wind nearly blows the grill out, but the sausages cook anyway.", "A reindeer watches enviously. Great climbing!"])
+      : pick(["No climbing in the dark. The trip starts over tomorrow.", "The headlamps were left in the car. You climbed down safely."]),
+    stamp: ok ? "SUMMIT" : "TOO DARK",
+    stats: [["Time used", mm(used)], ["Sausages eaten", G.saus + " / " + saus.length], ["Huts", (G.cp + 1) + " / " + cps.length], ["Falls", G.falls]],
+    next: "Next fell",
+    retry: "Try again",
+  });
+}
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+
+// ---------- nettipeli: tilannekuva ----------
+const r1 = (v) => Math.round(v * 10) / 10;
+function snapshot() {
+  return {
+    t: r1(G.time), cp: G.cp, l: G.link ? 1 : 0, ll: r1(G.linkLen), sa: G.saus, f: G.falls,
+    e: saus.map((s) => (s.e ? 1 : 0)).join(""),
+    P: P.map((p) => [r1(p.x), r1(p.y), r1(p.vx), r1(p.vy), Math.round(p.st), p.cling, p.face, r1(p.stun), r1(p.rescue), p.ground ? 1 : 0, p.climbing ? 1 : 0, p.hang ? 1 : 0, p.tired ? 1 : 0]),
+  };
+}
+function apply(s, first) {
+  G.time = s.t; G.cp = s.cp; G.link = !!s.l; G.linkLen = s.ll; G.saus = s.sa; G.falls = s.f;
+  for (let i = 0; i < saus.length; i++) saus[i].e = s.e[i] === "1";
+  s.P.forEach((a, i) => {
+    const p = P[i];
+    p.tx = a[0]; p.ty = a[1]; p.vx = a[2]; p.vy = a[3]; p.st = a[4]; p.cling = a[5]; p.face = a[6]; p.stun = a[7]; p.rescue = a[8]; p.ground = !!a[9]; p.climbing = !!a[10]; p.hang = !!a[11]; p.tired = !!a[12];
+    if (first) { p.x = a[0]; p.y = a[1]; }
+  });
+}
+
+// ---------- 3D ----------
+const glc = $("gl");
+const renderer = new THREE.WebGLRenderer({ canvas: glc, antialias: true });
+renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, 1, 10, 9000);
+const hemi = new THREE.HemisphereLight("#bcd4ff", "#3b3022", 0.75);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight("#ffd6a0", 1.1);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+const sc = sun.shadow.camera; sc.left = -900; sc.right = 900; sc.top = 700; sc.bottom = -700; sc.near = 10; sc.far = 4000;
+scene.add(sun, sun.target);
+scene.fog = new THREE.Fog("#8fb0d8", 1400, 4200);
+const ov = $("ov"), og = ov.getContext("2d");
+let vw = 0, vh = 0, odpr = 1;
+function resize() {
+  vw = innerWidth; vh = innerHeight; odpr = Math.min(2, devicePixelRatio || 1);
+  renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.updateProjectionMatrix();
+  ov.width = vw * odpr; ov.height = vh * odpr;
+}
+addEventListener("resize", resize);
+resize();
+
+const MATS = {};
+const mat = (c, o) => { const k = c + JSON.stringify(o || {}); return MATS[k] || (MATS[k] = new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.85 }, o || {}))); };
+function add(g, geo, m, x, y, z) { const me = new THREE.Mesh(geo, m); me.position.set(x || 0, y || 0, z || 0); me.castShadow = true; me.receiveShadow = true; g.add(me); return me; }
+const BOX = new THREE.BoxGeometry(1, 1, 1);
+
+let world = null, sausMeshes = [], cpMeshes = [], players3 = [], linkMesh = null, fire = null, snow = null;
+function buildWorld() {
+  if (world) { scene.remove(world); world.traverse((o) => { if (o.geometry && o.geometry !== BOX) o.geometry.dispose(); }); }
+  world = new THREE.Group();
+  scene.add(world);
+  const tmp = new THREE.Object3D(), col = new THREE.Color();
+  const topY = F.top * T;
+  // pylväät (jokainen sarake yhtenä laatikkona) + pintakerros
+  const front = new THREE.InstancedMesh(BOX, new THREE.MeshStandardMaterial({ roughness: 0.95, flatShading: true }), W * 2 + notch.size);
+  let k = 0;
+  for (let x = 0; x < W; x++) {
+    const h = hgt[x] * T;
+    const rel = hgt[x] / F.top;
+    tmp.position.set(x * T + T / 2, h / 2, 0); tmp.scale.set(T + 0.5, h, 90); tmp.rotation.set(0, 0, 0); tmp.updateMatrix();
+    front.setMatrixAt(k, tmp.matrix);
+    const n = (Math.sin(x * 12.9898) * 43758.5453) % 1;
+    col.setHSL(0.07 + n * 0.03, 0.1 + n * 0.06, 0.22 + rel * 0.1 + n * 0.08);
+    front.setColorAt(k++, col);
+    // pinta: ylhäällä lunta, keskellä kiveä ja jäkälää, alhaalla kanervaa
+    tmp.position.set(x * T + T / 2, h - 3, 0); tmp.scale.set(T + 1, 8, 92); tmp.updateMatrix();
+    front.setMatrixAt(k, tmp.matrix);
+    if (icy[x]) col.set("#cfe8ff");
+    else if (rel > 0.66) col.set("#eef3f8");
+    else if (rel > 0.33) col.setHSL(0.16, 0.28, 0.42 + n * 0.05);
+    else col.setHSL(0.3, 0.32, 0.3 + n * 0.05);
+    front.setColorAt(k++, col);
+  }
+  for (const key of notch) {
+    const cx = Math.floor(key / 4096), cy = key % 4096;
+    tmp.position.set(cx * T + T / 2, cy * T + T / 2, 0); tmp.scale.set(T, T, 80); tmp.updateMatrix();
+    front.setMatrixAt(k, tmp.matrix); col.set("#4a4440"); front.setColorAt(k++, col);
+  }
+  front.count = k;
+  front.castShadow = front.receiveShadow = true;
+  world.add(front);
+  // kiviä ja lohkareita (koriste)
+  const stoneGeo = new THREE.DodecahedronGeometry(1, 0);
+  const stones = new THREE.InstancedMesh(stoneGeo, new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true }), W * 3);
+  let ks = 0;
+  const RS = mulberry32(G.seed + 99);
+  for (let x = 0; x < W && ks < W * 3 - 3; x++) {
+    const h = hgt[x] * T;
+    for (let j = 0; j < 2; j++) {
+      const sy = RS() * h * 0.92, sz = 40 + RS() * 6, s = 5 + RS() * 9;
+      tmp.position.set(x * T + RS() * T, sy, sz); tmp.scale.set(s, s * (0.6 + RS() * 0.5), s * 0.6); tmp.rotation.set(RS() * 3, RS() * 3, RS() * 3); tmp.updateMatrix();
+      stones.setMatrixAt(ks, tmp.matrix); col.setHSL(0.08, 0.06, 0.2 + RS() * 0.15); stones.setColorAt(ks++, col);
+    }
+    if (RS() < 0.25) {
+      const s = 6 + RS() * 8;
+      tmp.position.set(x * T + RS() * T, h + s * 0.35, -20 + RS() * 50); tmp.scale.set(s, s * 0.7, s); tmp.rotation.set(RS() * 3, RS() * 3, RS() * 3); tmp.updateMatrix();
+      stones.setMatrixAt(ks, tmp.matrix); col.setHSL(0.08, 0.05, 0.3 + RS() * 0.15); stones.setColorAt(ks++, col);
+    }
+  }
+  stones.count = ks; stones.castShadow = stones.receiveShadow = true;
+  world.add(stones);
+  // tunturin takaosa (syvyys)
+  const back = new THREE.InstancedMesh(BOX, new THREE.MeshStandardMaterial({ color: "#3a3f4c", roughness: 1, flatShading: true }), Math.ceil(W / 3));
+  let kb = 0;
+  for (let x = 0; x < W; x += 3) {
+    let m = 0; for (let i = -4; i <= 6; i++) m = Math.max(m, hgt[clamp(x + i, 0, W - 1)]);
+    const h = (m + 2) * T;
+    tmp.position.set(x * T + T * 1.5, h / 2, -110); tmp.scale.set(T * 3 + 1, h, 120); tmp.updateMatrix(); back.setMatrixAt(kb++, tmp.matrix);
+  }
+  back.count = kb; back.receiveShadow = true;
+  world.add(back);
+  // kaukaiset tunturit
+  const farM = new THREE.MeshStandardMaterial({ color: "#5e6f8e", roughness: 1, flatShading: true });
+  const R = mulberry32(G.seed + 7);
+  for (let i = 0; i < 14; i++) {
+    const r = 500 + R() * 900, h = 400 + R() * 1100;
+    const c = add(world, new THREE.ConeGeometry(r, h, 7), farM, -800 + i * (W * T + 1600) / 14, h / 2 - 60, -1100 - R() * 900);
+    c.castShadow = false; c.rotation.y = R() * 3;
+    const cap = add(world, new THREE.ConeGeometry(r * 0.35, h * 0.32, 7), mat("#e9eef6"), c.position.x, h - h * 0.16 - 58, c.position.z);
+    cap.rotation.y = c.rotation.y; cap.castShadow = false;
+  }
+  // maa edessä ja takana
+  const ground = add(world, new THREE.PlaneGeometry(W * T + 6000, 3000), mat("#2c3a2e"), W * T / 2, 2, 0);
+  ground.rotation.x = -Math.PI / 2; ground.castShadow = false;
+  // tunturikoivuja alarinteillä
+  const birch = new THREE.Group();
+  for (let x = 2; x < W; x += 3) {
+    if (hgt[x] / F.top > 0.35 || R() < 0.5) continue;
+    const tr = new THREE.Group();
+    add(tr, new THREE.CylinderGeometry(2, 3, 34, 5), mat("#e8e2d6"), 0, 17, 0);
+    add(tr, new THREE.IcosahedronGeometry(16, 0), mat("#4d7a3a", { flatShading: true }), 0, 40, 0);
+    tr.position.set(x * T + R() * T, hgt[x] * T, -60 - R() * 40); tr.scale.setScalar(0.7 + R() * 0.6);
+    birch.add(tr);
+  }
+  world.add(birch);
+  // makkarat
+  sausMeshes = saus.map((s) => {
+    const g = new THREE.Group();
+    const m = add(g, new THREE.CylinderGeometry(4, 4, 20, 8), mat("#b5523b", { roughness: 0.5 }), 0, 0, 0);
+    m.rotation.z = Math.PI / 2;
+    for (const sx of [-8, 0, 8]) add(g, BOX, mat("#7a2f22"), sx, 4.2, 0).scale.set(1.2, 0.6, 7);
+    g.position.set(s.x, s.y, 20);
+    world.add(g);
+    return g;
+  });
+  // kodat
+  cpMeshes = cps.map((cp) => {
+    const g = new THREE.Group();
+    add(g, new THREE.ConeGeometry(30, 52, 8, 1, true), mat("#6b4a2f", { side: THREE.DoubleSide, flatShading: true }), 0, 26, 0);
+    for (let i = 0; i < 6; i++) { const p = add(g, new THREE.CylinderGeometry(1.2, 1.2, 64, 4), mat("#3a2818"), Math.cos(i) * 6, 30, Math.sin(i) * 6); p.rotation.z = Math.cos(i) * 0.2; p.rotation.x = Math.sin(i) * 0.2; }
+    const flag = add(g, BOX, mat("#c0392b", { emissive: "#000" }), 22, 52, 0); flag.scale.set(18, 12, 1);
+    add(g, new THREE.CylinderGeometry(1, 1, 60, 4), mat("#ddd"), 13, 30, 0);
+    g.userData.flag = flag;
+    g.position.set(cp.x, cp.y, -20);
+    world.add(g);
+    return g;
+  });
+  // huippu: kyltti, lippu ja grilli
+  const top = new THREE.Group();
+  add(top, BOX, mat("#5a3d25"), 0, 22, 0).scale.set(4, 44, 4);
+  const sign = add(top, BOX, mat("#e9dcc0"), 0, 46, 3); sign.scale.set(70, 22, 2);
+  const tex = (() => { const c = document.createElement("canvas"); c.width = 256; c.height = 80; const g = c.getContext("2d"); g.fillStyle = "#e9dcc0"; g.fillRect(0, 0, 256, 80); g.fillStyle = "#2a1a0b"; g.font = "bold 34px Segoe UI, sans-serif"; g.textAlign = "center"; g.fillText(F.n.split(" ")[0].toUpperCase(), 128, 38); g.font = "bold 26px Segoe UI, sans-serif"; g.fillText(F.m + " m", 128, 70); const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; })();
+  const sp = add(top, new THREE.PlaneGeometry(68, 21), new THREE.MeshBasicMaterial({ map: tex }), 0, 46, 4.2); sp.castShadow = false;
+  const grill = new THREE.Group();
+  for (let i = 0; i < 7; i++) add(grill, new THREE.DodecahedronGeometry(6, 0), mat("#6b6b6b", { flatShading: true }), Math.cos(i) * 16, 4, Math.sin(i) * 16);
+  fire = add(grill, new THREE.ConeGeometry(9, 22, 6), mat("#ff8a2a", { emissive: "#ff6a00", emissiveIntensity: 1.6 }), 0, 12, 0);
+  fire.visible = false;
+  grill.position.set(70, 0, 10);
+  top.add(grill);
+  top.position.set(summit.gx, summit.y, -10);
+  world.add(top);
+  // pelaajat
+  players3 = P.map((p) => playerModel(p.i));
+  players3.forEach((m) => world.add(m));
+  linkMesh = add(world, new THREE.CylinderGeometry(2.2, 2.2, 1, 6), mat("#f0d7b5"), 0, 0, 0);
+  linkMesh.visible = false;
+  // lumihiutaleet huipun lähellä
+  const N = 500, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { pos[i * 3] = summit.gx + (Math.random() - 0.5) * 2400; pos[i * 3 + 1] = topY * 0.5 + Math.random() * topY; pos[i * 3 + 2] = -200 + Math.random() * 400; }
+  const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: "#ffffff", size: 4, transparent: true, opacity: 0.8 }));
+  world.add(snow);
+}
+function playerModel(i) {
+  const g = new THREE.Group(), rig = new THREE.Group();
+  g.add(rig);
+  const c = COLS[i];
+  add(rig, new THREE.CylinderGeometry(9, 10, 18, 8), mat(c), 0, 16, 0);
+  add(rig, new THREE.SphereGeometry(8, 10, 8), mat("#f2c9a0"), 0, 31, 0);
+  const hat = add(rig, new THREE.ConeGeometry(8.6, 11, 8), mat(i ? "#1e6f68" : "#a8461f"), 0, 40, 0);
+  add(rig, new THREE.SphereGeometry(3, 6, 6), mat("#fff"), 0, 46, 0);
+  add(rig, BOX, mat("#3b4a5f"), 0, 18, -9).scale.set(14, 16, 7); // reppu
+  for (const s of [-1, 1]) add(rig, new THREE.SphereGeometry(1.6, 6, 6), mat("#222"), s * 3, 32, 7.2);
+  const legs = [-1, 1].map((s) => { const l = add(rig, BOX, mat("#2b3140"), s * 4, 4, 0); l.scale.set(6, 9, 6); return l; });
+  const arms = [-1, 1].map((s) => {
+    const piv = new THREE.Group(); piv.position.set(s * 10, 24, 0); rig.add(piv);
+    const a = add(piv, BOX, mat(c), 0, -7, 0); a.scale.set(4.5, 15, 4.5);
+    add(piv, new THREE.SphereGeometry(3, 6, 6), mat("#f2c9a0"), 0, -15, 0);
+    return piv;
+  });
+  g.userData = { rig, arms, legs, hat };
+  return g;
+}
+
+let ctxSky = new THREE.Color(), camX = 0, camY = 0, camD = 900, shake = 0, texts = [], fx = [];
+function syncPlayer(p, m, tt) {
+  const u = m.userData;
+  m.position.set(p.x, p.y, 10);
+  const walk = p.ground ? Math.sin(tt * 12 + p.i) * Math.min(1, Math.abs(p.vx) / WALK) : 0;
+  m.rotation.y = p.cling ? (p.cling > 0 ? Math.PI / 2 : -Math.PI / 2) : p.face > 0 ? 0.5 : -0.5;
+  u.legs[0].position.z = walk * 4; u.legs[1].position.z = -walk * 4;
+  u.rig.position.y = p.stun > 0 ? -6 : 0;
+  u.rig.rotation.z = p.stun > 0 ? Math.sin(tt * 20) * 0.15 : 0;
+  m.visible = p.rescue <= 0;
+  u.arms.forEach((a, k) => {
+    if (p.cling) a.rotation.set(-2.6 + (p.climbing ? Math.sin(tt * 10 + k * Math.PI) * 0.4 : 0), 0, 0);
+    else if (p.hang || (G.link && !p.ground)) a.rotation.set(0, 0, (k ? -1 : 1) * 2.8);
+    else if (!p.ground) a.rotation.set(0, 0, (k ? -1 : 1) * 2.2);
+    else a.rotation.set(walk * 0.8 * (k ? 1 : -1), 0, (k ? -1 : 1) * 0.12);
+  });
+}
+function render(dt, now, phase) {
+  const tt = now / 1000;
+  if (!P.length) { renderer.render(scene, camera); return; }
+  // kaverin koneella pehmeä liike kohti tilannekuvaa
+  if (Coop.mode === "client") for (const p of P) if (p.tx != null) { const k = Math.min(1, 14 * dt); p.x += (p.tx - p.x) * k; p.y += (p.ty - p.y) * k; }
+  P.forEach((p, i) => syncPlayer(p, players3[i], tt));
+  // linkki
+  if (G.link) {
+    const [A, B] = P, ax = A.x, ay = A.y + 26, bx = B.x, by = B.y + 26, len = Math.hypot(bx - ax, by - ay);
+    linkMesh.visible = true; linkMesh.position.set((ax + bx) / 2, (ay + by) / 2, 14); linkMesh.scale.set(1, len, 1); linkMesh.rotation.set(0, 0, Math.atan2(by - ay, bx - ax) - Math.PI / 2);
+  } else linkMesh.visible = false;
+  saus.forEach((s, i) => { const m = sausMeshes[i]; m.visible = !s.e; m.rotation.y = tt * 1.5 + i; m.position.y = s.y + Math.sin(tt * 3 + i) * 3; });
+  cpMeshes.forEach((m, i) => { m.userData.flag.material = mat(i <= G.cp ? "#3fbf5f" : "#c0392b"); m.userData.flag.rotation.y = Math.sin(tt * 3 + i) * 0.3; });
+  if (fire) { fire.visible = phase === "end" || (G.topT > 0); fire.scale.y = 1 + Math.sin(tt * 18) * 0.2; }
+  // auringonlasku: taivas ja valo muuttuvat ajan mukana
+  const k = clamp(1 - G.time / F.time, 0, 1);
+  const day = new THREE.Color("#8fb0d8"), eve = new THREE.Color("#f08a5a"), night = new THREE.Color("#2a2e52");
+  ctxSky.copy(k < 0.7 ? day.clone().lerp(eve, k / 0.7) : eve.clone().lerp(night, (k - 0.7) / 0.3));
+  scene.background = ctxSky; scene.fog.color.copy(ctxSky);
+  sun.intensity = lerp(1.15, 0.35, k); sun.color.set(k < 0.6 ? "#ffe2b8" : "#ff9a5a");
+  hemi.intensity = lerp(0.8, 0.35, k);
+  // kamera
+  const [A, B] = P;
+  const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2 + 40;
+  const span = Math.max(Math.abs(A.x - B.x) * 0.9, Math.abs(A.y - B.y) * 1.4);
+  const want = clamp(560 + span, 560, 1700);
+  const kc = Math.min(1, 3 * dt);
+  camX += (mx - camX) * kc; camY += (my - camY) * kc; camD += (want - camD) * kc;
+  shake = Math.max(0, shake - dt * 30);
+  const sx = (Math.random() - 0.5) * shake, sy = (Math.random() - 0.5) * shake;
+  camera.position.set(camX + sx, camY + 120 + sy, camD);
+  camera.lookAt(camX + sx, camY + sy, 0);
+  sun.position.set(camX + 900 - k * 1300, camY + 900 - k * 700, 700); sun.target.position.set(camX, camY, 0);
+  if (snow) { const a = snow.geometry.attributes.position; for (let i = 0; i < a.count; i++) { let y = a.getY(i) - 40 * dt; if (y < F.top * T * 0.5) y += F.top * T * 0.9; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(tt + i) * 0.3); } a.needsUpdate = true; }
+  for (const f of fx) { f.t += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.vy -= 500 * dt; }
+  fx = fx.filter((f) => f.t < f.life);
+  for (const t of texts) t.t += dt;
+  texts = texts.filter((t) => t.t < t.life);
+  renderer.render(scene, camera);
+  drawOverlay(phase);
+  if (phase === "play" || phase === "pause") updateHud();
+}
+const pv = new THREE.Vector3();
+function project(x, y, z = 10) { pv.set(x, y, z).project(camera); return [(pv.x + 1) / 2 * vw, (1 - pv.y) / 2 * vh, pv.z]; }
+function drawOverlay(phase) {
+  og.setTransform(odpr, 0, 0, odpr, 0, 0);
+  og.clearRect(0, 0, vw, vh);
+  if (phase === "menu" || !P.length) return;
+  og.textAlign = "center";
+  for (const f of fx) { const [x, y] = project(f.x, f.y, 20); og.globalAlpha = 1 - f.t / f.life; og.fillStyle = f.c; og.fillRect(x - 3, y - 3, 6, 6); }
+  og.globalAlpha = 1;
+  for (const p of P) {
+    if (p.rescue > 0) continue;
+    const [x, y] = project(p.x, p.y + 64);
+    og.font = "900 13px Segoe UI, sans-serif"; og.lineWidth = 3; og.strokeStyle = "rgba(0,0,0,.6)";
+    const name = NAMES[p.i] + (Coop.mode !== "local" && Coop.me === p.i ? " (you)" : "");
+    og.strokeText(name, x, y); og.fillStyle = COLS[p.i]; og.fillText(name, x, y);
+    // kestävyys
+    const w = 46, st = p.st / 100;
+    og.fillStyle = "rgba(0,0,0,.55)"; og.fillRect(x - w / 2 - 1, y + 5, w + 2, 7);
+    og.fillStyle = st > 0.5 ? "#7ee081" : st > 0.25 ? "#ffd36a" : "#ff6b5e"; og.fillRect(x - w / 2, y + 6, w * st, 5);
+    if (p.stun > 0) { og.font = "800 16px Segoe UI, sans-serif"; og.fillStyle = "#fff"; og.fillText("Oof…", x, y - 14); }
+    if (p.tired) { og.font = "800 14px Segoe UI, sans-serif"; og.fillStyle = "#ffd36a"; og.fillText("Panting…", x, y - 14); }
+    else if (p.cling && p.st < 25) { og.font = "800 14px Segoe UI, sans-serif"; og.fillStyle = "#ff8c6a"; og.fillText("Losing grip!", x, y - 14); }
+  }
+  for (const t of texts) {
+    const k = t.t / t.life, [x, y] = project(t.x, t.y + 70 + k * 50);
+    og.globalAlpha = 1 - k * k; og.font = `900 ${t.s}px Segoe UI, sans-serif`;
+    og.fillStyle = "rgba(0,0,0,.5)"; og.fillText(t.m, x + 2, y + 2); og.fillStyle = t.c; og.fillText(t.m, x, y);
+  }
+  og.globalAlpha = 1;
+  // huipun suunta
+  if (phase === "play") {
+    const [x, y] = project(summit.gx, summit.y + 80);
+    if (x < 30 || x > vw - 30 || y < 30) {
+      const ax = clamp(x, 40, vw - 40), ay = clamp(y, 70, vh - 60);
+      og.fillStyle = "rgba(12,14,24,.7)"; og.beginPath(); og.arc(ax, ay, 22, 0, 7); og.fill();
+      og.fillStyle = "#ffd36a"; og.font = "900 12px Segoe UI, sans-serif"; og.fillText("SUMMIT", ax, ay + 4);
+    }
+  }
+}
+let hudKey = "";
+function updateHud() {
+  const s = Math.max(0, Math.ceil(G.time)), mm = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  const maxY = Math.max(P[0].y, P[1].y) / T;
+  const alt = Math.round(F.base + (F.m - F.base) * clamp(maxY / F.top, 0, 1));
+  const ctl = (i) => Coop.mode !== "local" ? (Coop.me === i ? "You · WASD/arrows · F/Enter grab · Space jump" : "Friend online · ping " + Coop.net.ping + " ms") : i ? "Arrows · Enter grab · Right Shift jump" : "WASD · F grab · Space jump";
+  const key = [mm, alt, G.saus, ctl(0), ctl(1), G.link].join("|");
+  if (key === hudKey) return;
+  hudKey = key;
+  $("time").textContent = mm; $("time").classList.toggle("low", s <= 30);
+  $("sunFill").style.width = clamp(G.time / F.time, 0, 1) * 100 + "%";
+  $("alt").textContent = alt + " / " + F.m + " m";
+  $("saus").textContent = G.saus + " / " + saus.length;
+  $("lvName").textContent = F.n;
+  $("k1").textContent = ctl(0); $("k2").textContent = ctl(1);
+}
+function showHud(on) { for (const id of ["hud", "pp1", "pp2"]) $(id).hidden = !on; }
+
+// ---------- efektit ----------
+function text(x, y, m, c = "#fff", s = 18, life = 1.2) { texts.push({ x, y, m, c, s, life, t: 0 }); }
+function burst(x, y, c, n = 10, sp = 160) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, v = sp * (0.3 + Math.random()); fx.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v + 100, c, t: 0, life: 0.6 + Math.random() * 0.5 }); } }
+const T_ = Coop.tone;
+function onEvent(name, a) {
+  switch (name) {
+    case "jump": T_(330, 0.12, "triangle", 0.06, 520); break;
+    case "mantle": T_(260, 0.12, "triangle", 0.06, 420); break;
+    case "eat": T_(880, 0.08, "square", 0.05); T_(1180, 0.12, "square", 0.05, null, 0.08); text(a[1], a[2], "YUM! +stamina", "#ffd36a", 16); burst(a[1], a[2], "#b5523b", 8, 120); break;
+    case "slip": T_(500, 0.35, "sawtooth", 0.06, 180); text(a[1], a[2], "SLIPPED!", "#ff8c6a", 20); break;
+    case "thud": Coop.noise(0.35, 0.25, 300); T_(90, 0.25, "sine", 0.12, 50); shake = Math.max(shake, a[3]); text(a[1], a[2], pick(["THUD!", "OUCH!", "OOPS!"]), "#fff", 22); burst(a[1], a[2] + 4, "#d8d2c4", 12, 140); break;
+    case "link": T_(660, 0.08, "triangle", 0.06); T_(990, 0.1, "triangle", 0.06, null, 0.07); text(a[0], a[1], "HOLDING HANDS!", "#7ee081", 16); break;
+    case "snap": T_(300, 0.15, "square", 0.05, 150); break;
+    case "toss": T_(400, 0.25, "triangle", 0.07, 900); text(a[1], a[2], "THROW!", "#ffd36a", 22); shake = Math.max(shake, 5); break;
+    case "cp": [523, 659, 784].forEach((f, i) => T_(f, 0.18, "triangle", 0.08, null, i * 0.1)); Coop.toast("HUT REACHED<small>If you fall, a reindeer carries you back here (−10 s)</small>", 2600, true); break;
+    case "poroCall": text(a[1], a[2], "A reindeer is coming to get you…", "#e9dcc0", 16, 1.6); break;
+    case "poro": Coop.toast(NAMES[a[0]] + " BACK AT THE HUT<small>The reindeer handled it. −10 seconds</small>", 2200, true); T_(200, 0.3, "sawtooth", 0.05, 120); break;
+  }
+}
+
+// ---------- Coop ----------
+function init(seed, lv) {
+  G = { seed, time: 0, t: 0, link: false, linkLen: 50, saus: 0, cp: -1, falls: 0, topT: 0 };
+  buildMap(seed, lv);
+  G.time = F.time;
+  P = [mkP(0), mkP(1)];
+  texts = []; fx = [];
+  buildWorld();
+  camX = P[0].x; camY = P[0].y; camD = 900;
+  hudKey = "";
+  showHud(true);
+  Coop.toast(F.n.toUpperCase() + "<small>" + F.m + " m · reach the summit before sunset</small>", 2600, true);
+}
+function preview() {
+  // valikon taustalle tunturi
+  G = { seed: 1234, time: 200, t: 0, link: false, linkLen: 50, saus: 0, cp: -1, falls: 0, topT: 0 };
+  buildMap(1234, 1); G.time = F.time * 0.7;
+  P = [mkP(0), mkP(1)];
+  P[0].x = 30 * T; P[0].y = hgt[30] * T; P[1].x = 33 * T; P[1].y = hgt[33] * T;
+  buildWorld();
+  camX = 34 * T; camY = hgt[34] * T + 140; camD = 1300;
+}
+// automaattitestejä varten (vain osoitteella #test)
+if (location.hash === "#test") window.__g = { get P() { return P; }, get G() { return G; }, get saus() { return saus; }, get cps() { return cps; }, get summit() { return summit; }, get F() { return F; }, hgtAt: (x) => hgt[x], solid, T, step, get W() { return W; }, snapCam: (d) => { camX = (P[0].x + P[1].x) / 2; camY = (P[0].y + P[1].y) / 2 + 40; camD = d || 560; } };
+Coop.start({
+  id: "tunturiin",
+  title: "Peak Pals",
+  kicker: "Co-op climbing · 2 players · same computer or online",
+  description: "Pate and Masa set off to conquer the Lapland fells with a pack of sausages. Reach the summit before the sun sets and light the grill.",
+  rules: [
+    "Hold <b>grab</b> next to a rock face to hang on the wall. Climbing uses stamina, and it recovers while you rest on a ledge.",
+    "When you both press grab side by side, you <b>hold hands</b>. The one hanging on the wall can hold up their friend, and the dangling one can <b>jump</b> to get thrown upward.",
+    "Sausages give you extra energy. Huts are checkpoints, and after a fall a reindeer carries you back.",
+    "Icy ledges are slippery. At the summit, both of you must stand by the grill.",
+  ],
+  netVersion: "tunturiin-1",
+  names: ["Pate", "Masa"],
+  colors: COLS,
+  labels: { move: "WASD or arrows", a: "F or Enter = grab", b: "Space = jump" },
+  help: [
+    "<kbd>A</kbd><kbd>D</kbd> move · <kbd>W</kbd><kbd>S</kbd> climb<br><kbd>F</kbd> grab (hold) · <kbd>Space</kbd> jump",
+    "<kbd>←</kbd><kbd>→</kbd> move · <kbd>↑</kbd><kbd>↓</kbd> climb<br><kbd>Enter</kbd> grab (hold) · <kbd>Right Shift</kbd> jump",
+  ],
+  keys: [
+    { left: ["KeyA"], right: ["KeyD"], up: ["KeyW"], down: ["KeyS"], a: ["KeyF"], b: ["Space"] },
+    { left: ["ArrowLeft"], right: ["ArrowRight"], up: ["ArrowUp"], down: ["ArrowDown"], a: ["Enter", "NumpadEnter"], b: ["ShiftRight", "Numpad0"] },
+  ],
+  levelName: (lv) => fell(lv).n,
+  theme: { accent: "#ffb347", accentInk: "#2a1405", card: "#1a1d2b", bg: "rgba(16,18,30,.78)" },
+  game: {
+    init, step, snapshot, apply, render, onEvent, preview,
+    onMenu: () => { showHud(false); preview(); },
+    save: () => true,
+  },
+});
+})();
+</script>
+</body>
+</html>

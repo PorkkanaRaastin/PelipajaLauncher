@@ -1,7 +1,7 @@
 {
   "name": "pelipaja",
-  "version": "1.4.0",
-  "description": "Pelipaja – Rasmuksen pelit yhdessä paikassa",
+  "version": "2.0.0",
+  "description": "Pelipaja – all of Rasmus's games in one place",
   "main": "app/boot.js",
   "author": "Rasmus Rautanen",
   "private": true,

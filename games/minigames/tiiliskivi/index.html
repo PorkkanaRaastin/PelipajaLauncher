@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="fi">
-<head><meta charset="utf-8"><title>Tiiliskivi</title></head>
+<html lang="en">
+<head><meta charset="utf-8"><title>Brick Breaker</title></head>
 <body>
 <script src="../_mini.js"></script>
 <script>
@@ -26,10 +26,10 @@ function newBall() {
 
 Mini.run({
   id: "tiiliskivi",
-  title: "Tiiliskivi",
-  description: "Kimmota pallo mailalla ja riko kaikki tiilet. Kolme elämää.",
+  title: "Brick Breaker",
+  description: "Bounce the ball with the paddle and break every brick. Three lives.",
   players: 1,
-  controls: [[null, ["A", "D"], "tai ← → (tai hiiri): liiku"], [null, ["Välilyönti"], "laukaise pallo"]],
+  controls: [[null, ["A", "D"], "or ← → (or mouse): move"], [null, ["Space"], "launch the ball"]],
   reset() {
     pad = { x: W / 2, y: H - 40, w: 120, h: 14 };
     lives = 3; score = 0; level = 1; particles = []; useMouse = false;
@@ -108,7 +108,7 @@ Mini.run({
       beep(160, 0.25, "sawtooth", 0.05, -60);
       if (lives <= 0) {
         const isBest = submitScore(score);
-        over({ title: "Peli päättyi", color: C.danger, lines: [`Pisteet: ${score}  ·  Taso ${level}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+        over({ title: "Game over", color: C.danger, lines: [`Score: ${score}  ·  Level ${level}`, isBest ? "New best!" : `Best: ${best()}`] });
         return;
       }
       newBall();
@@ -136,10 +136,10 @@ Mini.run({
     rect(pad.x - pad.w / 2, pad.y - pad.h / 2, pad.w, pad.h, C.accent, 7);
     rect(pad.x - pad.w / 2, pad.y + pad.h / 2 - 4, pad.w, 4, C.accentDark, [0, 0, 7, 7]);
     for (const b of balls) circle(b.x, b.y, b.r, C.text);
-    text(`Pisteet ${score}`, W - 24, 20, 18, C.text, "right", 800);
-    text(`Taso ${level}`, W / 2, 20, 16, C.muted, "center", 700);
+    text(`Score ${score}`, W - 24, 20, 18, C.text, "right", 800);
+    text(`Level ${level}`, W / 2, 20, 16, C.muted, "center", 700);
     for (let i = 0; i < lives; i++) circle(W - 220 - i * 22, 20, 7, C.accent);
-    if (!launched && Mini.state === "play") text("Välilyönti = laukaise", W / 2, H - 90, 16, C.muted, "center", 600);
+    if (!launched && Mini.state === "play") text("Space = launch", W / 2, H - 90, 16, C.muted, "center", 600);
   },
 });
 </script>

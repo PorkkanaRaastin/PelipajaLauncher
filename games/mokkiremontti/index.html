@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cabin Rush</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#1d2a1f;font-family:"Segoe UI",system-ui,sans-serif;color:#fffaf0}
+canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh}
+#hud{position:fixed;left:0;right:0;top:12px;display:flex;justify-content:center;gap:10px;pointer-events:none;z-index:5}
+#hud[hidden],#tasks[hidden],.pp[hidden]{display:none}
+.pill{background:rgba(18,26,20,.74);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
+.pill small{font-weight:700;color:#cfe0c8;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+#time.low{color:#ff8c6a}
+#tasks{position:fixed;right:14px;top:70px;background:rgba(18,26,20,.78);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;pointer-events:none;z-index:5;min-width:220px}
+#tasks h4{margin:0 0 6px;font-size:12px;letter-spacing:.1em;color:#cfe0c8}
+#tasks div{display:flex;justify-content:space-between;gap:12px;font-weight:800;font-size:14px;padding:3px 0}
+#tasks div.done{color:#7ee081}
+#tasks div.done::after{content:" ✓"}
+.pp{position:fixed;bottom:14px;pointer-events:none;z-index:5;background:rgba(18,26,20,.74);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px;max-width:290px}
+.pp b{display:flex;align-items:center;gap:8px}.pp b i{width:11px;height:11px;border-radius:50%}
+.pp span{display:block;color:#cfe0c8;font-size:12px;font-weight:700;margin-top:3px}
+#pp1{left:14px}#pp2{right:14px}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="ov"></canvas>
+<div id="hud" hidden>
+  <div class="pill"><small id="lvName">Cabin 1</small></div>
+  <div class="pill"><small>Guests arrive in</small><span id="time">5:00</span></div>
+</div>
+<div id="tasks" hidden><h4>TO-DO LIST</h4><div id="tPaint"></div><div id="tPlank"></div><div id="tSauna"></div><div id="tWasp"></div></div>
+<div class="pp" id="pp1" hidden><b><i style="background:#ff8a3d"></i>PATE</b><span id="k1"></span><span id="h1"></span></div>
+<div class="pp" id="pp2" hidden><b><i style="background:#33d1c4"></i>MASA</b><span id="k2"></span><span id="h2"></span></div>
+
+<script src="../_shared/three.min.js"></script>
+<script src="../_shared/peerjs.min.js"></script>
+<script src="../_shared/coop.js"></script>
+<script>
+// Mökkiremontti – pomo lähti, juhannusvieraat tulevat. Maalatkaa, kantakaa, lämmittäkää ja häätäkää ampiaiset.
+(() => {
+"use strict";
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+function mulberry32(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+const COLS = ["#ff8a3d", "#33d1c4"], NAMES = ["PATE", "MASA"];
+const YW = 1500, YH = 1000;             // piha
+const PR = 16, SPEED = 210;
+// paikat pihalla
+const COT = { x: 640, z: 430, w: 380, d: 230, h: 90 };           // mökki
+const SAUNA = { x: 1230, z: 300, w: 170, d: 140, h: 70 };        // sauna rannassa
+const BUCKET = { x: 420, z: 700 };                                 // maalipurkki
+const WOOD = { x: 160, z: 260 };                                   // halkopino
+const PUMP = { x: 1340, z: 650 };                                  // vesiletkun kela
+const LUMBER = { x: 200, z: 860 };                                 // lankkupino tien vieressä
+const TERRACE = { x: 640, z: 640, w: 300, d: 110 };               // terassi mökin edessä
+const SDOOR = { x: SAUNA.x - SAUNA.w / 2 - 30, z: SAUNA.z + 30 };  // saunan ovi
+function level(lv) { return { time: Math.max(210, 330 - (lv - 1) * 25), planks: Math.min(6, 3 + Math.floor(lv / 2)), logs: Math.min(8, 4 + Math.floor(lv / 2)), wasps: Math.min(8, 3 + lv), nest: 6 + lv * 2, segs: 10 }; }
+
+let L = null, P = [], items = [], planks = [], segs = [], wasps = [], G = {};
+const SOLIDS = [COT, SAUNA, { x: TERRACE.x, z: TERRACE.z, w: 0, d: 0 }];
+
+function buildSegments() {
+  // mökin seinät paloiksi: etu, taka, sivut
+  segs = [];
+  const { x, z, w, d } = COT;
+  const n = 3;
+  for (let i = 0; i < n; i++) {
+    const sx = x - w / 2 + (i + 0.5) * (w / n);
+    segs.push({ x: sx, z: z + d / 2 + 4, nx: 0, nz: 1, len: w / n, p: 0 });
+    segs.push({ x: sx, z: z - d / 2 - 4, nx: 0, nz: -1, len: w / n, p: 0 });
+  }
+  for (let i = 0; i < 2; i++) {
+    const sz = z - d / 2 + (i + 0.5) * (d / 2);
+    segs.push({ x: x - w / 2 - 4, z: sz, nx: -1, nz: 0, len: d / 2, p: 0 });
+    segs.push({ x: x + w / 2 + 4, z: sz, nx: 1, nz: 0, len: d / 2, p: 0 });
+  }
+}
+function mkP(i) { return { i, x: 560 + i * 80, z: 880, vx: 0, vz: 0, fx: 0, fz: -1, hold: null, stun: 0, paint: 0, act: 0 }; }
+
+// ---------- törmäykset ----------
+function pushOut(o, r, s) {
+  const cx = clamp(o.x, s.x - s.w / 2, s.x + s.w / 2), cz = clamp(o.z, s.z - s.d / 2, s.z + s.d / 2);
+  let dx = o.x - cx, dz = o.z - cz;
+  const d2 = dx * dx + dz * dz;
+  if (d2 >= r * r || (s.w === 0 && s.d === 0)) return;
+  if (d2 < 1e-6) { dx = o.x - s.x || 1; dz = o.z - s.z; }
+  const d = Math.hypot(dx, dz) || 1;
+  const pen = r - Math.sqrt(d2);
+  o.x += (dx / d) * pen; o.z += (dz / d) * pen;
+}
+const near = (p, q, r) => Math.hypot(p.x - q.x, p.z - q.z) < r;
+
+// ---------- esineet ----------
+// tyypit: brush (sivellin), log (halko), hose (letku)
+function grab(p) {
+  // lähin vapaa esine
+  let best = null, bd = 50;
+  for (const it of items) { if (it.holder != null || it.placed) continue; const d = Math.hypot(it.x - p.x, it.z - p.z); if (d < bd) { bd = d; best = it; } }
+  if (best) { p.hold = { t: "item", id: best.id }; best.holder = p.i; Coop.emit("grab", p.x, p.z); return; }
+  // lankku: tartu päähän
+  let bp = null, bpd = 46, end = 0;
+  for (const pl of planks) {
+    if (pl.placed) continue;
+    for (const e of [-1, 1]) {
+      const ex = pl.x + Math.cos(pl.a) * pl.len / 2 * e, ez = pl.z + Math.sin(pl.a) * pl.len / 2 * e;
+      const d = Math.hypot(ex - p.x, ez - p.z);
+      if (d < bpd && pl.holders[e > 0 ? 1 : 0] == null) { bpd = d; bp = pl; end = e; }
+    }
+  }
+  if (bp) { bp.holders[end > 0 ? 1 : 0] = p.i; p.hold = { t: "plank", id: bp.id, end }; Coop.emit("grab", p.x, p.z); if (bp.holders.filter((h) => h != null).length < 2) Coop.emit("say", bp.x, bp.z, "Needs 2 carriers!", "#efe0b0"); else Coop.emit("say", bp.x, bp.z, "LIFT!", "#7ee081"); return; }
+  // halkopino antaa uuden halon
+  if (near(p, WOOD, 80) && G.logsIn + items.filter((i) => i.t === "log" && !i.placed).length < L.logs) {
+    const it = { id: G.nid++, t: "log", x: p.x, z: p.z, holder: p.i };
+    items.push(it); p.hold = { t: "item", id: it.id }; Coop.emit("grab", p.x, p.z); return;
+  }
+}
+function drop(p) {
+  if (!p.hold) return;
+  if (p.hold.t === "item") {
+    const it = items.find((i) => i.id === p.hold.id);
+    if (it) {
+      it.holder = null;
+      if (it.t === "log" && near(it, SDOOR, 70) && !G.saunaLit) {
+        it.placed = true; G.logsIn++;
+        Coop.emit("logIn", SDOOR.x, SDOOR.z, G.logsIn);
+      }
+    }
+  } else {
+    const pl = planks.find((q) => q.id === p.hold.id);
+    if (pl) pl.holders[p.hold.end > 0 ? 1 : 0] = null;
+  }
+  p.hold = null;
+}
+const heldItem = (p) => p.hold && p.hold.t === "item" ? items.find((i) => i.id === p.hold.id) : null;
+
+// ---------- askel ----------
+function step(dt, inputs) {
+  G.time -= dt;
+  G.t += dt;
+  for (const p of P) {
+    let inp = inputs[p.i];
+    if (p.stun > 0) { p.stun -= dt; inp = { x: 0, y: 0, a: inp.a, b: false, aP: false, bP: false }; } // pistetty: jähmettyy hetkeksi, mutta pitää esineen
+    const l = Math.hypot(inp.x, inp.y);
+    let ix = inp.x, iz = inp.y;
+    if (l > 1) { ix /= l; iz /= l; }
+    if (l > 0.15) { p.fx = ix / (l > 1 ? 1 : l || 1); p.fz = iz / (l > 1 ? 1 : l || 1); }
+    const carrying = p.hold && p.hold.t === "plank";
+    const sp = SPEED * (carrying ? 0.72 : heldItem(p) && heldItem(p).t === "log" ? 0.85 : 1);
+    p.vx = lerp(p.vx, ix * sp, Math.min(1, 12 * dt)); p.vz = lerp(p.vz, iz * sp, Math.min(1, 12 * dt));
+    // tartu (pidä pohjassa)
+    if (inp.a && !p.hold && inp.aP) grab(p);
+    if (!inp.a && p.hold) { drop(p); Coop.emit("drop", p.x, p.z); }
+    // käytä työkalua (pidä pohjassa)
+    p.act = 0;
+    const it = heldItem(p);
+    if (inp.b && it) {
+      if (it.t === "brush") {
+        if (near(p, BUCKET, 70)) { it.paint = Math.min(1, (it.paint || 0) + dt * 0.8); p.act = 2; }
+        else if ((it.paint || 0) > 0) {
+          // lähin maalaamaton seinänpala edessä
+          let best = null, bd = 70;
+          for (const s of segs) { if (s.p >= 1) continue; const d = Math.hypot(s.x - p.x, s.z - p.z); if (d < bd) { bd = d; best = s; } }
+          if (best) {
+            const was = best.p;
+            best.p = Math.min(1, best.p + dt * 0.28);
+            it.paint = Math.max(0, it.paint - dt * 0.22);
+            p.act = 1;
+            if (was < 1 && best.p >= 1) Coop.emit("segDone", best.x, best.z);
+            if (Math.random() < dt * 4) Coop.emit("brush", best.x, best.z);
+          }
+        } else if (inp.bP) Coop.emit("say", p.x, p.z, "Brush is dry, back to the paint can!", "#efe0b0");
+      } else if (it.t === "hose") {
+        const nest = G.nest;
+        if (nest.hp > 0 && near(p, nest, 160)) {
+          nest.hp = Math.max(0, nest.hp - dt);
+          p.act = 3;
+          for (const w of wasps) if (near(w, p, 170)) { w.scared = 1.5; }
+          if (nest.hp <= 0) Coop.emit("nestDown", nest.x, nest.z);
+        } else if (inp.bP) Coop.emit("splash", p.x + p.fx * 40, p.z + p.fz * 40);
+        else p.act = 4;
+      }
+    } else if (inp.bP && !it && near(p, SDOOR, 80) && G.logsIn >= L.logs && !G.saunaLit) {
+      G.saunaLit = true; Coop.emit("saunaLit", SDOOR.x, SDOOR.z);
+    } else if (inp.bP && !p.hold) {
+      // tyhjin käsin: "huikkaa" kaverille
+      Coop.emit("say", p.x, p.z, pick(["Hey!", "Over here!", "Lift!", "Grab that!"]), COLS[p.i]);
+    }
+  }
+  // lankut: liikkuvat vain, kun molemmissa päissä on kantaja
+  for (const pl of planks) {
+    if (pl.placed) continue;
+    const h = pl.holders.filter((x) => x != null);
+    if (h.length === 2) {
+      const a = P[pl.holders[0]], b = P[pl.holders[1]];
+      // päät seuraavat kantajia
+      pl.x = (a.x + b.x) / 2; pl.z = (a.z + b.z) / 2;
+      pl.a = Math.atan2(b.z - a.z, b.x - a.x);
+      const d = Math.hypot(b.x - a.x, b.z - a.z);
+      // kantajat pysyvät lankun mitan päässä toisistaan
+      if (Math.abs(d - pl.len) > 2) {
+        const k = ((d - pl.len) / d) * 0.5;
+        a.x += (b.x - a.x) * k; a.z += (b.z - a.z) * k; b.x -= (b.x - a.x) * k; b.z -= (b.z - a.z) * k;
+      }
+      if (d > pl.len + 120) { drop(a); drop(b); }
+      // terassille
+      if (Math.abs(pl.x - TERRACE.x) < TERRACE.w / 2 - 20 && Math.abs(pl.z - TERRACE.z) < TERRACE.d / 2) {
+        pl.placed = true; G.planksIn++;
+        for (const q of P) if (q.hold && q.hold.t === "plank" && q.hold.id === pl.id) q.hold = null;
+        pl.holders = [null, null];
+        pl.a = 0; pl.x = TERRACE.x; pl.z = TERRACE.z - TERRACE.d / 2 + 14 + (G.planksIn - 1) * ((TERRACE.d - 20) / Math.max(1, L.planks - 1));
+        Coop.emit("plankIn", pl.x, pl.z, G.planksIn);
+      }
+    } else if (h.length === 1) {
+      // yksin: pitää kiinni, mutta ei saa liikkeelle
+      const p = P[h[0]], e = pl.holders[1] === h[0] ? 1 : -1;
+      const ex = pl.x + Math.cos(pl.a) * pl.len / 2 * e, ez = pl.z + Math.sin(pl.a) * pl.len / 2 * e;
+      const d = Math.hypot(p.x - ex, p.z - ez);
+      if (d > 30) { p.x = ex + ((p.x - ex) / d) * 30; p.z = ez + ((p.z - ez) / d) * 30; }
+    }
+  }
+  // liike ja törmäykset
+  for (const p of P) {
+    p.x += p.vx * dt; p.z += p.vz * dt;
+    p.x = clamp(p.x, 20, YW - 20); p.z = clamp(p.z, 20, YH - 20);
+    for (const s of SOLIDS) pushOut(p, PR, s);
+    // järvi
+    if (p.x > 1380) p.x = 1380;
+  }
+  { const [a, b] = P; const d = Math.hypot(b.x - a.x, b.z - a.z); if (d < PR * 2 && d > 0) { const k = (PR * 2 - d) / d / 2; a.x -= (b.x - a.x) * k; a.z -= (b.z - a.z) * k; b.x += (b.x - a.x) * k; b.z += (b.z - a.z) * k; } }
+  // kannetut esineet seuraavat
+  for (const it of items) {
+    if (it.holder != null) { const p = P[it.holder]; it.x = p.x + p.fx * 20; it.z = p.z + p.fz * 20; }
+  }
+  // sauna lämpenee
+  if (G.saunaLit) G.temp = Math.min(80, G.temp + dt * 3);
+  // ampiaiset
+  const nest = G.nest;
+  for (const w of wasps) {
+    w.t += dt;
+    w.cd = Math.max(0, w.cd - dt);
+    if (nest.hp <= 0) { w.y += 60 * dt; w.x += Math.cos(w.ph) * 80 * dt; w.z += Math.sin(w.ph) * 80 * dt; continue; }
+    let target = null;
+    if (w.scared > 0) w.scared -= dt;
+    else for (const p of P) if (p.stun <= 0 && near(p, nest, 160) && (!target || Math.hypot(p.x - w.x, p.z - w.z) < Math.hypot(target.x - w.x, target.z - w.z))) target = p;
+    let tx, tz;
+    if (target && w.cd <= 0) { tx = target.x; tz = target.z; }
+    else { tx = nest.x + Math.cos(w.t * 2 + w.ph) * 50; tz = nest.z + Math.sin(w.t * 2.3 + w.ph) * 50; }
+    if (w.scared > 0) { tx = nest.x + Math.cos(w.ph) * 160; tz = nest.z + Math.sin(w.ph) * 160; }
+    const dx = tx - w.x, dz = tz - w.z, d = Math.hypot(dx, dz) || 1;
+    const sp = target ? 150 + G.lv * 8 : 90;
+    w.vx = lerp(w.vx, (dx / d) * sp, Math.min(1, 3 * dt)); w.vz = lerp(w.vz, (dz / d) * sp, Math.min(1, 3 * dt));
+    w.x += w.vx * dt; w.z += w.vz * dt;
+    if (target && w.cd <= 0 && near(w, target, 20)) {
+      w.cd = 4; target.stun = 1; G.stings++;
+      Coop.emit("sting", target.x, target.z, target.i);
+    }
+  }
+  // valmis?
+  const done = tasks();
+  if (done.all && !G.doneT) { G.doneT = 1; Coop.emit("allDone"); }
+  if (done.all) { G.doneT += dt; if (G.doneT > 2.5) return finish(true); }
+  if (G.time <= 0) { G.time = 0; return finish(done.all); }
+}
+function tasks() {
+  const paint = segs.reduce((a, s) => a + s.p, 0) / segs.length;
+  const t = { paint, plank: G.planksIn, sauna: G.saunaLit, wasp: G.nest.hp <= 0 };
+  t.all = paint >= 0.999 && t.plank >= L.planks && t.sauna && t.wasp;
+  return t;
+}
+function finish(ok) {
+  const t = tasks();
+  Coop.end({
+    ok,
+    kicker: "Cabin " + G.lv,
+    title: ok ? "The guests are here and the cabin is ready!" : "The guests came too early",
+    text: ok ? pick(["The sauna is warm, the walls are red and there's room to dance on the deck. Happy Midsummer!", "The boss tasted a grilled sausage and nodded in approval."]) : pick(["The cabin is still a bit unfinished. Another try next Midsummer.", "The guests stare at wet walls and wasps. Yikes."]),
+    stamp: ok ? "DONE" : "UNFINISHED",
+    stats: [["Walls painted", Math.round(t.paint * 100) + " %"], ["Deck planks", t.plank + " / " + L.planks], ["Sauna", t.sauna ? "warm (" + Math.round(G.temp) + " °C)" : "cold"], ["Wasp nest", t.wasp ? "removed" : "still there"], ["Wasp stings", G.stings]],
+    next: "Next cabin",
+  });
+}
+
+// ---------- nettipeli ----------
+const r1 = (v) => Math.round(v * 10) / 10, r2 = (v) => Math.round(v * 100) / 100;
+function snapshot() {
+  return {
+    t: r1(G.time), li: G.logsIn, pi: G.planksIn, sl: G.saunaLit ? 1 : 0, tp: r1(G.temp), nh: r2(G.nest.hp), st: G.stings, dn: G.doneT ? 1 : 0,
+    P: P.map((p) => [r1(p.x), r1(p.z), r2(p.fx), r2(p.fz), r2(p.stun), p.act, p.hold ? (p.hold.t === "plank" ? 1000 + p.hold.id : p.hold.id) : -1]),
+    I: items.map((i) => [i.id, i.t, r1(i.x), r1(i.z), i.holder == null ? -1 : i.holder, i.placed ? 1 : 0, r2(i.paint || 0)]),
+    K: planks.map((q) => [r1(q.x), r1(q.z), r2(q.a), q.placed ? 1 : 0, q.holders[0] == null ? -1 : q.holders[0], q.holders[1] == null ? -1 : q.holders[1]]),
+    S: segs.map((s) => r2(s.p)),
+    W: wasps.map((w) => [r1(w.x), r1(w.y), r1(w.z)]),
+  };
+}
+function apply(s, first) {
+  G.time = s.t; G.logsIn = s.li; G.planksIn = s.pi; G.saunaLit = !!s.sl; G.temp = s.tp; G.nest.hp = s.nh; G.stings = s.st; G.doneT = s.dn;
+  s.P.forEach((a, i) => { const p = P[i]; p.tx = a[0]; p.tz = a[1]; p.fx = a[2]; p.fz = a[3]; p.stun = a[4]; p.act = a[5]; p.hold = a[6] < 0 ? null : a[6] >= 1000 ? { t: "plank", id: a[6] - 1000 } : { t: "item", id: a[6] }; if (first) { p.x = a[0]; p.z = a[1]; } });
+  const byId = new Map(items.map((i) => [i.id, i]));
+  items = s.I.map((a) => { const o = byId.get(a[0]) || { id: a[0], t: a[1], x: a[2], z: a[3] }; o.tx = a[2]; o.tz = a[3]; o.holder = a[4] < 0 ? null : a[4]; o.placed = !!a[5]; o.paint = a[6]; if (first || !byId.has(a[0])) { o.x = a[2]; o.z = a[3]; } return o; });
+  s.K.forEach((a, i) => { const q = planks[i]; q.tx = a[0]; q.tz = a[1]; q.a = a[2]; q.placed = !!a[3]; q.holders = [a[4] < 0 ? null : a[4], a[5] < 0 ? null : a[5]]; if (first || q.placed) { q.x = a[0]; q.z = a[1]; } });
+  s.S.forEach((v, i) => (segs[i].p = v));
+  s.W.forEach((a, i) => { const w = wasps[i]; if (!w) return; w.tx = a[0]; w.ty = a[1]; w.tz = a[2]; if (first) { w.x = a[0]; w.y = a[1]; w.z = a[2]; } });
+}
+
+// ---------- 3D ----------
+const renderer = new THREE.WebGLRenderer({ canvas: $("gl"), antialias: true });
+renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#a9d4f0");
+scene.fog = new THREE.Fog("#a9d4f0", 1600, 3600);
+const camera = new THREE.PerspectiveCamera(42, 1, 5, 7000);
+scene.add(new THREE.HemisphereLight("#e8f6ff", "#4a5a30", 0.6));
+const sun = new THREE.DirectionalLight("#fff3d6", 0.95);
+sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -900, right: 900, top: 700, bottom: -700, near: 10, far: 3500 });
+sun.position.set(YW / 2 - 500, 1200, YH / 2 + 600); sun.target.position.set(YW / 2, 0, YH / 2);
+scene.add(sun, sun.target);
+const ov = $("ov"), og = ov.getContext("2d");
+let vw = 0, vh = 0, odpr = 1;
+function resize() { vw = innerWidth; vh = innerHeight; odpr = Math.min(2, devicePixelRatio || 1); renderer.setSize(vw, vh, false); camera.aspect = vw / vh; camera.updateProjectionMatrix(); ov.width = vw * odpr; ov.height = vh * odpr; }
+addEventListener("resize", resize);
+resize();
+const MATS = {};
+const mat = (c, o) => { const k = c + JSON.stringify(o || {}); return MATS[k] || (MATS[k] = new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.82 }, o || {}))); };
+function add(g, geo, m, x, y, z) { const me = new THREE.Mesh(geo, m); me.position.set(x || 0, y || 0, z || 0); me.castShadow = true; me.receiveShadow = true; g.add(me); return me; }
+const BOX = new THREE.BoxGeometry(1, 1, 1);
+
+let roofMat = null;
+let world = null, P3 = [], seg3 = [], item3 = new Map(), plank3 = [], wasp3 = [], nest3 = null, smoke = [], fx = [], texts = [], saunaLight = null;
+function buildWorld() {
+  if (world) { scene.remove(world); world.traverse((o) => { if (o.geometry && o.geometry !== BOX) o.geometry.dispose(); }); }
+  world = new THREE.Group();
+  scene.add(world);
+  item3 = new Map();
+  // nurmi
+  const grass = add(world, new THREE.PlaneGeometry(YW + 3000, YH + 3000), mat("#3f7a34"), YW / 2, 0, YH / 2);
+  grass.rotation.x = -Math.PI / 2; grass.castShadow = false;
+  const R = mulberry32(G.seed + 3);
+  // järvi ja laituri
+  const lake = add(world, new THREE.PlaneGeometry(1600, 3000), mat("#3f80b5", { roughness: 0.15, metalness: 0.1 }), 1400 + 800, 0.8, YH / 2);
+  lake.rotation.x = -Math.PI / 2; lake.castShadow = false;
+  for (let i = 0; i < 6; i++) add(world, BOX, mat("#8a6a46"), 1430 + i * 30, 6, 420).scale.set(28, 4, 70);
+  // hiekkatie
+  const road = add(world, new THREE.PlaneGeometry(260, 1800), mat("#a8916a"), 90, 0.5, YH / 2);
+  road.rotation.x = -Math.PI / 2; road.castShadow = false;
+  // puita
+  for (let i = 0; i < 40; i++) {
+    const x = R() * (YW + 600) - 300, z = R() < 0.5 ? -60 - R() * 400 : YH + 60 + R() * 400;
+    const t = new THREE.Group();
+    add(t, new THREE.CylinderGeometry(5, 7, 40, 6), mat("#5a3d25"), 0, 20, 0);
+    add(t, new THREE.ConeGeometry(34, 90, 8), mat("#2f5a32", { flatShading: true }), 0, 80, 0);
+    add(t, new THREE.ConeGeometry(26, 70, 8), mat("#376a3a", { flatShading: true }), 0, 115, 0);
+    t.position.set(x, 0, z); t.scale.setScalar(0.8 + R() * 0.7);
+    world.add(t);
+  }
+  // mökki: seinäpalat omina pintoinaan
+  const cot = new THREE.Group();
+  add(cot, BOX, mat("#9b958b"), 0, COT.h / 2, 0).scale.set(COT.w, COT.h, COT.d);
+  // harjakatto, joka häivytetään kun pelaaja on mökin lähellä (seinät näkyvät)
+  roofMat = new THREE.MeshStandardMaterial({ color: "#3a3a40", flatShading: true, transparent: true, roughness: 0.8 });
+  const roofShape = new THREE.Shape();
+  roofShape.moveTo(-COT.d / 2 - 14, 0); roofShape.lineTo(0, 70); roofShape.lineTo(COT.d / 2 + 14, 0); roofShape.lineTo(-COT.d / 2 - 14, 0);
+  const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: COT.w + 24, bevelEnabled: false });
+  const roof = add(cot, roofGeo, roofMat, -COT.w / 2 - 12, COT.h, 0);
+  roof.rotation.y = Math.PI / 2;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(cot, BOX, mat("#f4efe4"), sx * (COT.w / 2), COT.h / 2, sz * (COT.d / 2)).scale.set(8, COT.h, 8);
+  add(cot, BOX, mat("#5a3a22"), 0, 30, COT.d / 2 + 2).scale.set(46, 60, 4);
+  for (const sx of [-1, 1]) { const w = add(cot, BOX, mat("#f4efe4"), sx * 110, 52, COT.d / 2 + 2); w.scale.set(46, 36, 3); add(cot, BOX, mat("#5d8ab0", { roughness: 0.2 }), sx * 110, 52, COT.d / 2 + 3).scale.set(36, 28, 2); }
+  add(cot, BOX, mat("#8a3a2a"), 90, COT.h + 70, -30).scale.set(30, 70, 30); // savupiippu
+  cot.position.set(COT.x, 0, COT.z);
+  world.add(cot);
+  seg3 = segs.map((s) => {
+    const m = add(world, BOX, mat("#9b958b").clone(), s.x, COT.h / 2, s.z);
+    m.scale.set(s.nx ? 2 : s.len - 6, COT.h - 8, s.nz ? 2 : s.len - 6);
+    return m;
+  });
+  // terassin pohja ja lankkujen paikka
+  add(world, BOX, mat("#6b5a46"), TERRACE.x, 3, TERRACE.z).scale.set(TERRACE.w, 6, TERRACE.d);
+  const zone = add(world, new THREE.PlaneGeometry(TERRACE.w - 10, TERRACE.d - 10), new THREE.MeshBasicMaterial({ color: "#ffe9a8", transparent: true, opacity: 0.35 }), TERRACE.x, 7, TERRACE.z);
+  zone.rotation.x = -Math.PI / 2; zone.castShadow = false;
+  // sauna
+  const sa = new THREE.Group();
+  add(sa, BOX, mat("#6b4a2f"), 0, SAUNA.h / 2, 0).scale.set(SAUNA.w, SAUNA.h, SAUNA.d);
+  for (let i = 0; i < 6; i++) add(sa, BOX, mat("#5a3d25"), 0, 8 + i * 11, SAUNA.d / 2 + 1).scale.set(SAUNA.w, 3, 2);
+  const sr = add(sa, new THREE.CylinderGeometry(0.01, 1, 1, 4, 1), mat("#2e2e33", { flatShading: true }), 0, SAUNA.h + 28, 0);
+  sr.scale.set(SAUNA.w * 0.78, 56, SAUNA.d * 0.98); sr.rotation.y = Math.PI / 4;
+  add(sa, BOX, mat("#3a2818"), -SAUNA.w / 2 - 1, 30, 30).scale.set(3, 56, 34);
+  add(sa, new THREE.CylinderGeometry(8, 8, 40, 8), mat("#333"), 50, SAUNA.h + 40, -20);
+  saunaLight = add(sa, new THREE.SphereGeometry(6, 8, 8), mat("#ffb347", { emissive: "#ff8a00", emissiveIntensity: 0 }), -SAUNA.w / 2 - 2, 46, 30);
+  sa.position.set(SAUNA.x, 0, SAUNA.z);
+  world.add(sa);
+  const logZone = add(world, new THREE.RingGeometry(46, 54, 32), new THREE.MeshBasicMaterial({ color: "#ffd36a", transparent: true, opacity: 0.7 }), SDOOR.x, 1.5, SDOOR.z);
+  logZone.rotation.x = -Math.PI / 2; logZone.castShadow = false;
+  // halkopino, maalipurkki, letkukela, lankkupino
+  const wood = new THREE.Group();
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 6 - r; i++) { const l = add(wood, new THREE.CylinderGeometry(7, 7, 60, 8), mat("#a9814f"), -40 + i * 16 + r * 8, 7 + r * 13, 0); l.rotation.x = Math.PI / 2; }
+  wood.position.set(WOOD.x, 0, WOOD.z); world.add(wood);
+  const bucket = new THREE.Group();
+  add(bucket, new THREE.CylinderGeometry(18, 15, 30, 14), mat("#e8e2d6"), 0, 15, 0);
+  add(bucket, new THREE.CylinderGeometry(16, 16, 2, 14), mat("#b2341f"), 0, 30.5, 0);
+  bucket.position.set(BUCKET.x, 0, BUCKET.z); world.add(bucket);
+  const pump = new THREE.Group();
+  const reel = add(pump, new THREE.CylinderGeometry(20, 20, 16, 16), mat("#2f8a3a"), 0, 24, 0); reel.rotation.z = Math.PI / 2;
+  add(pump, BOX, mat("#555"), 0, 10, 0).scale.set(30, 20, 20);
+  pump.position.set(PUMP.x, 0, PUMP.z); world.add(pump);
+  // ampiaispesä räystään alla
+  nest3 = new THREE.Group();
+  const nb = add(nest3, new THREE.SphereGeometry(16, 10, 8), mat("#b9a98a", { flatShading: true }), 0, 0, 0); nb.scale.set(1, 1.3, 1);
+  add(nest3, new THREE.CylinderGeometry(5, 5, 3, 8), mat("#3a2e20"), 0, -20, 0);
+  nest3.position.set(G.nest.x, 72, G.nest.z);
+  world.add(nest3);
+  // pelaajat, esineet, lankut, ampiaiset
+  P3 = P.map((p) => playerModel(p.i)); P3.forEach((m) => world.add(m));
+  plank3 = planks.map(() => { const m = add(world, BOX, mat("#d8b98a"), 0, 0, 0); return m; });
+  wasp3 = wasps.map(() => { const g = new THREE.Group(); add(g, new THREE.SphereGeometry(4, 6, 6), mat("#f0b429"), 0, 0, 0).scale.set(1, 1, 1.6); add(g, BOX, mat("#222"), 0, 0, 0).scale.set(8.2, 3, 2); world.add(g); return g; });
+}
+function playerModel(i) {
+  const g = new THREE.Group(), rig = new THREE.Group();
+  g.add(rig);
+  add(rig, new THREE.CylinderGeometry(11, 12, 24, 10), mat(COLS[i]), 0, 18, 0);
+  add(rig, new THREE.SphereGeometry(10, 12, 10), mat("#f2c9a0"), 0, 38, 0);
+  const cap = add(rig, new THREE.CylinderGeometry(10.5, 10.5, 5, 12), mat(i ? "#1e6f68" : "#a8461f"), 0, 45, 0);
+  add(rig, BOX, mat(i ? "#1e6f68" : "#a8461f"), 0, 43, 9).scale.set(14, 2, 8);
+  for (const s of [-1, 1]) add(rig, new THREE.SphereGeometry(1.8, 6, 6), mat("#222"), s * 4, 40, 9);
+  const arms = [-1, 1].map((s) => { const piv = new THREE.Group(); piv.position.set(s * 12, 28, 0); rig.add(piv); const a = add(piv, BOX, mat(COLS[i]), 0, -8, 0); a.scale.set(5, 16, 5); return piv; });
+  g.userData = { rig, arms };
+  return g;
+}
+function itemModel(t) {
+  const g = new THREE.Group();
+  if (t === "brush") { add(g, BOX, mat("#c9a45a"), 0, 0, 0).scale.set(3, 3, 26); const head = add(g, BOX, mat("#222"), 0, 0, 15); head.scale.set(10, 4, 8); g.userData.head = head; }
+  else if (t === "log") { const l = add(g, new THREE.CylinderGeometry(7, 7, 40, 8), mat("#a9814f"), 0, 0, 0); l.rotation.x = Math.PI / 2; }
+  else { add(g, new THREE.CylinderGeometry(3, 3, 30, 6), mat("#2f8a3a"), 0, 0, 0).rotation.x = Math.PI / 2; add(g, BOX, mat("#777"), 0, 0, 16).scale.set(6, 6, 8); }
+  return g;
+}
+
+let camX = YW / 2, camZ = YH / 2, camD = 1100, shake = 0;
+const OLD = new THREE.Color("#9b958b"), RED = new THREE.Color("#9e2a1f");
+function render(dt, now, phase) {
+  const tt = now / 1000;
+  if (!P.length) { renderer.render(scene, camera); return; }
+  if (Coop.mode === "client") {
+    const k = Math.min(1, 14 * dt);
+    for (const o of P.concat(items, wasps, planks)) if (o.tx != null && !o.placed) { o.x += (o.tx - o.x) * k; o.z += (o.tz - o.z) * k; if (o.ty != null) o.y += (o.ty - o.y) * k; }
+  }
+  P.forEach((p, i) => {
+    const m = P3[i], u = m.userData;
+    m.position.set(p.x, 0, p.z);
+    m.rotation.y = Math.atan2(p.fx, p.fz);
+    const moving = Coop.mode === "client" ? 1 : Math.min(1, Math.hypot(p.vx || 0, p.vz || 0) / SPEED);
+    u.rig.position.y = Math.abs(Math.sin(tt * 12 + i)) * 3 * moving;
+    u.rig.rotation.z = p.stun > 0 ? Math.sin(tt * 25) * 0.25 : 0;
+    u.arms.forEach((a, k) => {
+      if (p.act === 1) a.rotation.set(-1.4 + Math.sin(tt * 14) * 0.5, 0, 0);
+      else if (p.hold) a.rotation.set(-1.2, 0, (k ? -1 : 1) * 0.2);
+      else a.rotation.set(Math.sin(tt * 10 + k * 3) * 0.6 * moving, 0, 0);
+    });
+  });
+  // esineet
+  const seen = new Set();
+  for (const it of items) {
+    seen.add(it.id);
+    let m = item3.get(it.id);
+    if (!m) { m = itemModel(it.t); world.add(m); item3.set(it.id, m); }
+    m.visible = !it.placed;
+    const held = it.holder != null;
+    m.position.set(it.x, held ? 30 : 6, it.z);
+    if (held) { const p = P[it.holder]; m.rotation.y = Math.atan2(p.fx, p.fz); } else m.rotation.y = it.id;
+    if (m.userData.head) m.userData.head.material = mat((it.paint || 0) > 0.02 ? "#9e2a1f" : "#222");
+  }
+  for (const [id, m] of item3) if (!seen.has(id)) { world.remove(m); item3.delete(id); }
+  planks.forEach((q, i) => { const m = plank3[i]; const lifted = q.holders.filter((h) => h != null).length === 2; m.position.set(q.x, q.placed ? 8 : lifted ? 28 : 5, q.z); m.rotation.y = -q.a; m.scale.set(q.len, 5, 18); });
+  segs.forEach((s, i) => seg3[i].material.color.copy(OLD).lerp(RED, s.p));
+  wasps.forEach((w, i) => { const m = wasp3[i]; m.position.set(w.x, w.y + Math.sin(tt * 20 + i) * 2, w.z); m.rotation.y = tt * 6 + i; m.visible = w.y < 400; });
+  if (nest3) { nest3.visible = G.nest.hp > 0 || G.nestFall < 1; if (G.nest.hp <= 0) { G.nestFall = Math.min(1, (G.nestFall || 0) + dt); nest3.position.y = 72 - G.nestFall * 66; nest3.rotation.z = G.nestFall * 2; } nest3.scale.setScalar(0.5 + 0.5 * clamp(G.nest.hp / L.nest + 0.4, 0, 1)); }
+  if (saunaLight) saunaLight.material = mat("#ffb347", { emissive: "#ff8a00", emissiveIntensity: G.saunaLit ? 1.5 + Math.sin(tt * 8) * 0.3 : 0 });
+  // katto häivytetään, kun joku on mökin vieressä
+  if (roofMat) {
+    const close = P.some((p) => Math.abs(p.x - COT.x) < COT.w / 2 + 120 && Math.abs(p.z - COT.z) < COT.d / 2 + 140);
+    roofMat.opacity = lerp(roofMat.opacity, close ? 0.18 : 1, Math.min(1, 6 * dt));
+    roofMat.depthWrite = roofMat.opacity > 0.9;
+  }
+  // savua saunan piipusta
+  if (G.saunaLit && Math.random() < dt * 8) fx.push({ x: SAUNA.x + 50, y: SAUNA.h + 62, z: SAUNA.z - 20, vx: 10, vy: 40, vz: -5, c: "rgba(220,220,220,.7)", t: 0, life: 2.5, s: 10 });
+  for (const f of fx) { f.t += dt; f.x += f.vx * dt; f.y += f.vy * dt; f.z += f.vz * dt; if (!f.smoke) f.vy -= (f.g || 0) * dt; }
+  fx = fx.filter((f) => f.t < f.life);
+  for (const t of texts) t.t += dt;
+  texts = texts.filter((t) => t.t < t.life);
+  // kamera
+  const [A, B] = P;
+  const mx = (A.x + B.x) / 2, mz = (A.z + B.z) / 2;
+  const span = Math.max(Math.abs(A.x - B.x), Math.abs(A.z - B.z) * 1.6);
+  const want = clamp(650 + span * 0.9, 650, 1500);
+  const k = Math.min(1, 3 * dt);
+  camX += (mx - camX) * k; camZ += (mz - camZ) * k; camD += (want - camD) * k;
+  shake = Math.max(0, shake - dt * 30);
+  camera.position.set(camX + (Math.random() - 0.5) * shake, camD * 0.85, camZ + camD * 0.55);
+  camera.lookAt(camX, 0, camZ - 20);
+  renderer.render(scene, camera);
+  drawOverlay(phase);
+  if (phase === "play" || phase === "pause") updateHud();
+}
+const pv = new THREE.Vector3();
+function project(x, y, z) { pv.set(x, y, z).project(camera); return [(pv.x + 1) / 2 * vw, (1 - pv.y) / 2 * vh]; }
+function drawOverlay(phase) {
+  og.setTransform(odpr, 0, 0, odpr, 0, 0);
+  og.clearRect(0, 0, vw, vh);
+  if (phase === "menu" || !P.length) return;
+  og.textAlign = "center";
+  for (const f of fx) { const [x, y] = project(f.x, f.y, f.z); og.globalAlpha = 1 - f.t / f.life; og.fillStyle = f.c; og.beginPath(); og.arc(x, y, (f.s || 4) * (1 + f.t), 0, 7); og.fill(); }
+  og.globalAlpha = 1;
+  // työpisteiden nimet
+  const label = (x, z, s, c = "#fffaf0") => { const [sx, sy] = project(x, 60, z); og.font = "800 13px Segoe UI, sans-serif"; og.lineWidth = 3; og.strokeStyle = "rgba(0,0,0,.55)"; og.strokeText(s, sx, sy); og.fillStyle = c; og.fillText(s, sx, sy); };
+  label(BUCKET.x, BUCKET.z, "Paint can");
+  label(WOOD.x, WOOD.z, "Woodpile");
+  label(PUMP.x, PUMP.z, "Water hose");
+  label(LUMBER.x, LUMBER.z - 40, "Planks");
+  label(SDOOR.x, SDOOR.z, G.saunaLit ? "Sauna heating " + Math.round(G.temp) + " °C" : G.logsIn >= L.logs ? "Light it! (use button)" : "Logs here " + G.logsIn + "/" + L.logs, G.logsIn >= L.logs && !G.saunaLit ? "#ffd36a" : "#fffaf0");
+  if (G.nest.hp > 0) label(G.nest.x, G.nest.z + 30, "Wasp nest", "#ffd36a");
+  for (const p of P) {
+    const [x, y] = project(p.x, 64, p.z);
+    og.font = "900 13px Segoe UI, sans-serif"; og.lineWidth = 3; og.strokeStyle = "rgba(0,0,0,.6)";
+    const nm = NAMES[p.i] + (Coop.mode !== "local" && Coop.me === p.i ? " (you)" : "");
+    og.strokeText(nm, x, y); og.fillStyle = COLS[p.i]; og.fillText(nm, x, y);
+    const it = heldItem(p);
+    if (it && it.t === "brush") { og.fillStyle = "rgba(0,0,0,.5)"; og.fillRect(x - 21, y + 5, 42, 6); og.fillStyle = "#c0392b"; og.fillRect(x - 20, y + 6, 40 * (it.paint || 0), 4); }
+    if (p.stun > 0) { og.font = "900 16px Segoe UI, sans-serif"; og.fillStyle = "#ffd36a"; og.fillText("OW OW OW!", x, y - 16); }
+  }
+  for (const q of planks) {
+    if (q.placed) continue;
+    const n = q.holders.filter((h) => h != null).length;
+    if (n === 1) { const [x, y] = project(q.x, 50, q.z); og.font = "800 14px Segoe UI, sans-serif"; og.fillStyle = "#efe0b0"; og.fillText("Needs 2 carriers!", x, y); }
+  }
+  for (const t of texts) {
+    const k = t.t / t.life, [x, y] = project(t.x, 70 + k * 50, t.z);
+    og.globalAlpha = 1 - k * k; og.font = `900 ${t.s}px Segoe UI, sans-serif`;
+    og.fillStyle = "rgba(0,0,0,.45)"; og.fillText(t.m, x + 2, y + 2); og.fillStyle = t.c; og.fillText(t.m, x, y);
+  }
+  og.globalAlpha = 1;
+}
+let hudKey = "";
+function updateHud() {
+  const s = Math.max(0, Math.ceil(G.time)), mm = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  const t = tasks();
+  const ctl = (i) => Coop.mode !== "local" ? (Coop.me === i ? "You · WASD/arrows · F/Enter carry (hold) · Space/Shift use" : "Friend online · ping " + Coop.net.ping + " ms") : i ? "Arrows · Enter carry (hold) · Right Shift use" : "WASD · F carry (hold) · Space use";
+  const hold = (p) => { const it = heldItem(p); if (it) return { brush: "Holding: brush", log: "Holding: log", hose: "Holding: water hose" }[it.t]; if (p.hold) return "Carrying a plank"; return ""; };
+  const key = [mm, Math.round(t.paint * 100), t.plank, t.sauna, t.wasp, G.logsIn, Math.round(G.temp), ctl(0), ctl(1), hold(P[0]), hold(P[1])].join("|");
+  if (key === hudKey) return;
+  hudKey = key;
+  $("time").textContent = mm; $("time").classList.toggle("low", s <= 30);
+  const row = (id, name, val, done) => { const e = $(id); e.innerHTML = `<span>${name}</span><span>${done ? "" : val}</span>`; e.classList.toggle("done", !!done); };
+  row("tPaint", "Paint the walls", Math.round(t.paint * 100) + " %", t.paint >= 0.999);
+  row("tPlank", "Carry the deck planks", t.plank + " / " + L.planks, t.plank >= L.planks);
+  row("tSauna", "Heat the sauna", G.logsIn + " / " + L.logs + " logs", t.sauna);
+  row("tWasp", "Get rid of the wasp nest", "", t.wasp);
+  $("k1").textContent = ctl(0); $("k2").textContent = ctl(1);
+  $("h1").textContent = hold(P[0]); $("h2").textContent = hold(P[1]);
+  $("lvName").textContent = "Cabin " + G.lv;
+}
+function showHud(on) { for (const id of ["hud", "tasks", "pp1", "pp2"]) $(id).hidden = !on; }
+function text(x, z, m, c = "#fff", s = 20, life = 1.3) { texts.push({ x, z, m, c, s, life, t: 0 }); }
+function splash(x, z, c, n = 10) { for (let i = 0; i < n; i++) fx.push({ x, y: 30, z, vx: (Math.random() - 0.5) * 160, vy: 60 + Math.random() * 120, vz: (Math.random() - 0.5) * 160, c, t: 0, life: 0.6, s: 3, g: 400 }); }
+const T_ = Coop.tone;
+function onEvent(name, a) {
+  switch (name) {
+    case "grab": T_(520, 0.07, "triangle", 0.06, 700); break;
+    case "drop": T_(360, 0.07, "triangle", 0.05, 240); break;
+    case "brush": Coop.noise(0.05, 0.08, 2500); splash(a[0], a[1], "#9e2a1f", 2); break;
+    case "segDone": T_(880, 0.1, "square", 0.05); text(a[0], a[1], "PAINTED!", "#ff8a6a", 18); break;
+    case "logIn": T_(300, 0.1, "square", 0.07, 200); text(a[0], a[1], "Log " + a[2] + "/" + L.logs, "#ffd36a", 18); break;
+    case "saunaLit": [392, 523, 659].forEach((f, i) => T_(f, 0.2, "triangle", 0.08, null, i * 0.1)); Coop.toast("SAUNA IS HEATING<small>The stove is crackling</small>", 2000, true); break;
+    case "plankIn": T_(200, 0.08, "square", 0.1); T_(200, 0.08, "square", 0.1, null, 0.12); T_(200, 0.08, "square", 0.1, null, 0.24); text(a[0], a[1], "NAILED! " + a[2] + "/" + L.planks, "#7ee081", 20); shake = 5; break;
+    case "sting": T_(1200, 0.08, "sawtooth", 0.06, 1800); T_(500, 0.2, "sawtooth", 0.06, 300, 0.08); text(a[0], a[1], "STUNG!", "#ff6b5e", 24); shake = 6; break;
+    case "nestDown": [523, 659, 784, 1046].forEach((f, i) => T_(f, 0.15, "triangle", 0.08, null, i * 0.08)); text(a[0], a[1], "NEST DOWN!", "#7ee081", 26); Coop.toast("WASPS GONE<small>The yard is peaceful again</small>", 2000, true); break;
+    case "splash": splash(a[0], a[1], "#9fd3ff", 8); break;
+    case "say": text(a[0], a[1], a[2], a[3] || "#fff", 16, 1.2); break;
+    case "allDone": Coop.toast("ALL DONE!<small>The guests are pulling into the yard…</small>", 2400, true); break;
+  }
+}
+
+// ---------- Coop ----------
+function init(seed, lv, quiet) {
+  L = level(lv);
+  G = { seed, lv, t: 0, time: L.time, logsIn: 0, planksIn: 0, saunaLit: false, temp: 20, stings: 0, nid: 0, doneT: 0, nestFall: 0 };
+  const R = mulberry32(seed);
+  // ampiaispesä jossain mökin nurkassa
+  const corner = Math.floor(R() * 4);
+  G.nest = { x: COT.x + (corner % 2 ? 1 : -1) * (COT.w / 2 + 18), z: COT.z + (corner < 2 ? -1 : 1) * (COT.d / 2 + 18), hp: L.nest };
+  buildSegments();
+  P = [mkP(0), mkP(1)];
+  items = [];
+  for (let i = 0; i < 2; i++) items.push({ id: G.nid++, t: "brush", x: BUCKET.x - 40 + i * 80, z: BUCKET.z + 30, holder: null, paint: 0 });
+  items.push({ id: G.nid++, t: "hose", x: PUMP.x - 40, z: PUMP.z, holder: null });
+  planks = Array.from({ length: L.planks }, (_, i) => ({ id: i, x: LUMBER.x, z: LUMBER.z - 40 + i * 26, a: 0, len: 170, holders: [null, null], placed: false }));
+  wasps = Array.from({ length: L.wasps }, (_, i) => ({ x: G.nest.x, y: 60, z: G.nest.z, vx: 0, vz: 0, t: R() * 5, ph: R() * 6.28, cd: 2, scared: 0 }));
+  fx = []; texts = [];
+  buildWorld();
+  camX = (P[0].x + P[1].x) / 2; camZ = P[0].z - 100; camD = 900;
+  hudKey = "";
+  if (quiet) return;
+  showHud(true);
+  Coop.toast("CABIN " + lv + "<small>Midsummer guests arrive in " + Math.round(L.time / 60) + " minutes</small>", 2600, true);
+}
+function preview() {
+  init(777, 1, true);
+  showHud(false);
+  segs.forEach((s, i) => (s.p = i < 4 ? 1 : i === 4 ? 0.5 : 0));
+  P[0].x = 500; P[0].z = 560; P[1].x = 700; P[1].z = 700;
+  camX = 700; camZ = 520; camD = 1100;
+}
+if (location.hash === "#test") window.__g = { get P() { return P; }, get G() { return G; }, get items() { return items; }, get planks() { return planks; }, get segs() { return segs; }, get L() { return L; }, step, tasks, SDOOR, BUCKET, WOOD, PUMP, TERRACE, snapCam: (x, z, d) => { camX = x; camZ = z; camD = d; } };
+Coop.start({
+  id: "mokkiremontti",
+  title: "Cabin Rush",
+  kicker: "Co-op · 2 players · Midsummer rush",
+  description: "The boss left you to fix up the summer cabin. The Midsummer guests are already on their way, and nothing is done.",
+  rules: [
+    "<b>Carry</b>: hold the grab key. <b>Use</b>: hold the use key while holding a tool.",
+    "Paint the walls Falu red. Dip the brush in the paint can, and every wall section must be painted.",
+    "Long planks can only be lifted together. Carry them to the yellow area on the deck.",
+    "Carry logs to the sauna door and light the stove. Spray the wasp nest down with the water hose, but watch out for stings.",
+  ],
+  netVersion: "mokkiremontti-1",
+  names: ["Pate", "Masa"],
+  colors: COLS,
+  labels: { move: "WASD or arrows", a: "F/Enter = carry", b: "Space = use" },
+  help: [
+    "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move<br><kbd>F</kbd> carry (hold) · <kbd>Space</kbd> use (hold)",
+    "<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> move<br><kbd>Enter</kbd> carry (hold) · <kbd>Right Shift</kbd> use (hold)",
+  ],
+  keys: [
+    { left: ["KeyA"], right: ["KeyD"], up: ["KeyW"], down: ["KeyS"], a: ["KeyF"], b: ["Space"] },
+    { left: ["ArrowLeft"], right: ["ArrowRight"], up: ["ArrowUp"], down: ["ArrowDown"], a: ["Enter", "NumpadEnter"], b: ["ShiftRight"] },
+  ],
+  levelName: (lv) => "cabin " + lv,
+  theme: { accent: "#7ee081", accentInk: "#0b2a12", card: "#1a241c", bg: "rgba(14,22,16,.72)" },
+  game: { init, step, snapshot, apply, render, onEvent, preview, onMenu: () => preview(), save: () => true },
+});
+})();
+</script>
+</body>
+</html>

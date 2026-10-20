@@ -21,7 +21,7 @@ function startUpdated() {
     return true;
   } catch (err) {
     // Rikkinäinen päivitys: merkitään huonoksi ja käynnistetään uudelleen exen omalla versiolla
-    console.error(`Päivitys ${best.version} ei käynnistynyt:`, err);
+    console.error(`Update ${best.version} failed to start:`, err);
     try {
       fs.writeFileSync(path.join(updatesDir, best.version + ".bad"), String(err && err.stack));
     } catch {}

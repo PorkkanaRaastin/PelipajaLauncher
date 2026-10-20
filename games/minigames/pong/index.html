@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fi">
+<html lang="en">
 <head><meta charset="utf-8"><title>Pong</title></head>
 <body>
 <script src="../_mini.js"></script>
@@ -18,11 +18,11 @@ function serve(dir) {
 Mini.run({
   id: "pong",
   title: "Pong",
-  description: "Klassikko kahdelle. Ensimmäinen seitsemään pisteeseen voittaa.",
+  description: "The classic for two. First to seven points wins.",
   players: 2,
   controls: [
-    ["Pelaaja 1", ["W", "S"], "liiku ylös / alas", C.p1],
-    ["Pelaaja 2", ["↑", "↓"], "liiku ylös / alas", C.p2],
+    ["Player 1", ["W", "S"], "move up / down", C.p1],
+    ["Player 2", ["↑", "↓"], "move up / down", C.p2],
   ],
   reset() {
     p1 = { y: (TOP + H) / 2, score: 0 };
@@ -82,7 +82,7 @@ Mini.run({
       trail = [];
       if (scorer.score >= WIN) {
         const p1won = scorer === p1;
-        over({ title: p1won ? "Pelaaja 1 voitti!" : "Pelaaja 2 voitti!", color: p1won ? C.p1 : C.p2, lines: [`${p1.score} – ${p2.score}`] });
+        over({ title: p1won ? "Player 1 wins!" : "Player 2 wins!", color: p1won ? C.p1 : C.p2, lines: [`${p1.score} – ${p2.score}`] });
         return;
       }
       serve(scorer === p1 ? 1 : -1);
@@ -94,14 +94,14 @@ Mini.run({
     text(String(p1.score), W / 2 - 60, 25, 30, C.p1, "right", 800);
     text(String(p2.score), W / 2 + 60, 25, 30, C.p2, "left", 800);
     text("–", W / 2, 25, 24, C.muted, "center", 800);
-    text("PELAAJA 1", 40, 25, 13, C.p1, "left", 800);
-    text("PELAAJA 2", W - 40, 25, 13, C.p2, "right", 800);
+    text("PLAYER 1", 40, 25, 13, C.p1, "left", 800);
+    text("PLAYER 2", W - 40, 25, 13, C.p2, "right", 800);
     trail.forEach((t, i) => { ctx.globalAlpha = 0.25 * (1 - i / 12); circle(t.x, t.y, ball.r * (1 - i / 16), C.text); });
     ctx.globalAlpha = 1;
     rect(40 - PW / 2, p1.y - PH / 2, PW, PH, C.p1, 6);
     rect(W - 40 - PW / 2, p2.y - PH / 2, PW, PH, C.p2, 6);
     circle(ball.x, ball.y, ball.r, C.text);
-    if (serveT > 0 && Mini.state === "play") text("Valmiina…", W / 2, (TOP + H) / 2 - 50, 18, C.muted, "center", 700);
+    if (serveT > 0 && Mini.state === "play") text("Get ready…", W / 2, (TOP + H) / 2 - 50, 18, C.muted, "center", 700);
   },
 });
 </script>

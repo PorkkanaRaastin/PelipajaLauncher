@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="fi">
-<head><meta charset="utf-8"><title>Tankit</title></head>
+<html lang="en">
+<head><meta charset="utf-8"><title>Tanks</title></head>
 <body>
 <script src="../_mini.js"></script>
 <script>
@@ -39,12 +39,12 @@ function boom(x, y, color, n = 24) {
 
 Mini.run({
   id: "tankit",
-  title: "Tankit",
-  description: "Ammukset kimpoavat seinistä kerran. Viisi osumaa voittaa.",
+  title: "Tanks",
+  description: "Shells bounce off walls once. Five hits wins.",
   players: 2,
   controls: [
-    ["Pelaaja 1", ["W", "A", "S", "D"], "aja,  Välilyönti = ammu", C.p1],
-    ["Pelaaja 2", ["↑", "←", "↓", "→"], "aja,  Enter = ammu", C.p2],
+    ["Player 1", ["W", "A", "S", "D"], "drive,  Space = fire", C.p1],
+    ["Player 2", ["↑", "←", "↓", "→"], "drive,  Enter = fire", C.p2],
   ],
   reset() {
     tanks = null;
@@ -109,9 +109,9 @@ Mini.run({
             if (!msg) {
               winner.score++;
               if (winner.score >= WIN) {
-                over({ title: `Pelaaja ${2 - i} voitti!`, color: winner.color, lines: [`${tanks[0].score} – ${tanks[1].score}`] });
+                over({ title: `Player ${2 - i} wins!`, color: winner.color, lines: [`${tanks[0].score} – ${tanks[1].score}`] });
               } else {
-                msg = { text: `Osuma! Piste pelaajalle ${2 - i}`, color: winner.color };
+                msg = { text: `Hit! Point to player ${2 - i}`, color: winner.color };
                 roundT = 1.6;
               }
             }
@@ -143,9 +143,9 @@ Mini.run({
     for (const s of shots) circle(s.x, s.y, 5, tanks[s.owner].color), circle(s.x, s.y, 2.5, C.text);
     for (const p of particles) { ctx.globalAlpha = Math.min(1, p.life * 2); rect(p.x - 3, p.y - 3, 6, 6, p.color); }
     ctx.globalAlpha = 1;
-    text(`PELAAJA 1   ${tanks[0].score}`, 24, 24, 16, C.p1, "left", 800);
-    text(`${tanks[1].score}   PELAAJA 2`, W - 24, 24, 16, C.p2, "right", 800);
-    text(`Ensimmäinen ${WIN} osumaan`, W / 2, 24, 13, C.muted, "center", 700);
+    text(`PLAYER 1   ${tanks[0].score}`, 24, 24, 16, C.p1, "left", 800);
+    text(`${tanks[1].score}   PLAYER 2`, W - 24, 24, 16, C.p2, "right", 800);
+    text(`First to ${WIN} hits`, W / 2, 24, 13, C.muted, "center", 700);
     if (msg) Mini.banner(msg.text, msg.color);
   },
 });

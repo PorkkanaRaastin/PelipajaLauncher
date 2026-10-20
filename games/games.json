@@ -2,27 +2,27 @@
   "games": [
     {
       "id": "rautasatama",
-      "name": "Rautasatama",
+      "name": "Iron Harbor",
       "type": "html",
       "path": "rautasatama/index.html",
       "cover": "rautasatama/cover.svg",
       "version": "0.5",
       "endButton": "top-left",
       "tags": [
-        "Avoin maailma",
-        "Autot",
+        "Open world",
+        "Cars",
         "3D"
       ],
-      "description": "GTA-tyylinen satamakaupunki saarineen ja siltoineen. Aloita safe housesta, osta autoja, pakoile poliisia ja säästä rahat kassakaappiin.",
+      "description": "A GTA-style harbor city with islands and bridges. Start at your safe house, buy cars, outrun the police and stash your cash in the safe.",
       "updates": [
-        "Safe house sisätiloineen ja kassakaappi säästöille",
-        "Puhelin, jolla saa oman auton paikalle",
-        "Hahmon kustomointi ja ostettavat autot"
+        "Safe house with interior and a safe for your savings",
+        "Phone that brings your own car to you",
+        "Character customization and cars to buy"
       ]
     },
     {
       "id": "kahlekaverit",
-      "name": "Kahlekaverit",
+      "name": "Chained Movers",
       "type": "html",
       "path": "kahlekaverit/index.html",
       "cover": "kahlekaverit/cover.jpg",
@@ -30,90 +30,95 @@
       "endButton": "top-left",
       "tags": [
         "Co-op",
-        "Nettipeli",
+        "Online",
         "3D"
       ],
-      "description": "Pate ja Masa on kahlittu toisiinsa ketjulla. Kantakaa särkyvät tavarat kartanosta pakuun ennen aamua, kaksin isot esineet, ja älkää herättäkö Ilkkaa, robotti-imuria.",
+      "description": "Pate and Masa are chained together. Carry the fragile stuff from the mansion to the van before morning, lift the big things together, and don't wake up Ilkka the robot vacuum.",
       "updates": [
-        "Uutta: huonekaluja voi siirtää kahdestaan, kun ne ovat tiellä",
-        "Korjattu: huonekalut eivät enää tuki ovia",
-        "Uutta: nettipeli liittymiskoodilla, kumpikin omalla koneellaan",
-        "3D-näkymä ja 20 erilaista esinettä",
-        "Isot esineet vaativat kaksi kantajaa"
+        "New: move furniture out of the way together",
+        "Fixed: furniture no longer blocks doorways",
+        "Online play with a join code, each on your own computer",
+        "3D view and 20 different items",
+        "Big items need two carriers"
+      ]
+    },
+    {
+      "id": "tunturiin",
+      "name": "Peak Pals",
+      "type": "html",
+      "path": "tunturiin/index.html",
+      "cover": "tunturiin/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "Co-op",
+        "Online",
+        "Climbing"
+      ],
+      "description": "Pate and Masa climb the fells of Lapland with a pack of sausages. Grab the rock, hold hands and reach the summit for a cookout before the sun sets.",
+      "updates": [
+        "New game: two players on one computer or online with a join code",
+        "Three fells to climb",
+        "Hold hands, toss your buddy and get rescued by a reindeer"
+      ]
+    },
+    {
+      "id": "mopolahetti",
+      "name": "Pizza Moped",
+      "type": "html",
+      "path": "mopolahetti/index.html",
+      "cover": "mopolahetti/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "Co-op",
+        "Online",
+        "Driving"
+      ],
+      "description": "One moped, two riders: one steers and honks, the other works the throttle and keeps the wobbly pizza stack upright. Watch out for speed bumps, cars and hungry seagulls.",
+      "updates": [
+        "New game: two players on one computer or online with a join code",
+        "Shared controls and a balancing pizza stack",
+        "Seagulls, speed bumps, roadworks and tips"
+      ]
+    },
+    {
+      "id": "mokkiremontti",
+      "name": "Cabin Rush",
+      "type": "html",
+      "path": "mokkiremontti/index.html",
+      "cover": "mokkiremontti/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "Co-op",
+        "Online",
+        "Party"
+      ],
+      "description": "Midsummer guests are on their way and the summer cabin is a mess. Paint the walls, carry the planks together, heat the sauna and get rid of the wasp nest before the guests pull into the yard.",
+      "updates": [
+        "New game: two players on one computer or online with a join code",
+        "Four jobs, a ticking clock and angry wasps"
       ]
     },
     {
       "id": "kuutiomaa",
-      "name": "Kuutiomaa",
+      "name": "Cubeland",
       "type": "html",
       "path": "kuutiomaa/index.html",
       "cover": "kuutiomaa/cover.jpg",
       "version": "0.3",
       "endButton": "top-right",
       "tags": [
-        "Hiekkalaatikko",
-        "Craftaus",
+        "Sandbox",
+        "Crafting",
         "3D"
       ],
-      "description": "Kuutiomaailma biomeineen, kylineen ja eläimineen. Hakkaa puita, craftaa työkaluja ja rakenna. Jokaisella käyttäjänimellä on oma tallennettu maailma.",
+      "description": "A block world with biomes, villages and animals. Chop trees, craft tools and build. Every account has its own saved world.",
       "updates": [
-        "Biomit, kylät ja eläimet",
-        "Inventaario ja craftaus",
-        "Maailma tallentuu käyttäjänimelle"
-      ]
-    },
-    {
-      "id": "getting-under-it",
-      "name": "Getting Under It",
-      "type": "html",
-      "path": "getting-under-it/index.html",
-      "cover": "getting-under-it/cover.jpg",
-      "version": "1.0",
-      "endButton": "bottom-left",
-      "tags": [
-        "Taito",
-        "2D"
-      ],
-      "description": "Istut kylpyammeessa, johon on sidottu ilmapalloja. Kaiva itsesi 700 metriä alas pelkällä hakulla, kun ilmapallot vetävät koko ajan ylöspäin.",
-      "updates": [
-        "Uutta: Save & End Game tallentaa syvyyden, ja alkuvalikosta pääsee jatkamaan"
-      ]
-    },
-    {
-      "id": "syva-vesi",
-      "name": "Syvä Vesi",
-      "type": "html",
-      "path": "syva-vesi/index.html",
-      "cover": "syva-vesi/cover.jpg",
-      "version": "1.0",
-      "endButton": "bottom-left",
-      "tags": [
-        "Hiiviskely",
-        "Veneet",
-        "2D"
-      ],
-      "description": "Yöllinen veneretki Golfvirralle. Pudota lasti syvään veteen ja palaa satamaan ennen aamua, ilman että partioveneet tai majakan valo huomaavat sinut.",
-      "updates": [
-        "Uutta: peli muistaa, monesko yö on menossa"
-      ]
-    },
-    {
-      "id": "haunted-room",
-      "name": "Haunted Room",
-      "type": "html",
-      "path": "haunted-room/index.html",
-      "cover": "haunted-room/cover.jpg",
-      "version": "1.0",
-      "endButton": "top-left",
-      "tags": [
-        "Kauhu",
-        "Tutkiminen",
-        "3D"
-      ],
-      "description": "Paranormaalitutkijana selvität taskulampun ja mittareiden avulla, kummitteleeko huoneessa. Kaikki liike ei tarkoita riivausta.",
-      "updates": [
-        "Useita huonetyyppejä: keittiö, olohuone, sauna, varasto, autotalli",
-        "Uutta: tapausnumero ja ennätys tallentuvat"
+        "Biomes, villages and animals",
+        "Inventory and crafting",
+        "Your world is saved to your account"
       ]
     },
     {
@@ -125,56 +130,38 @@
       "version": "Demo",
       "endButton": "top-left",
       "tags": [
-        "Simulaattori",
-        "Autot",
+        "Simulator",
+        "Cars",
         "3D"
       ],
-      "description": "Automekaanikkosimulaattori. Ota töitä vastaan tietokoneelta, nosta auto liftille ja vaihda öljyt, jarrupalat ja renkaat.",
+      "description": "A car mechanic simulator. Take jobs from the computer, lift cars onto the hoist and change oil, brake pads and tires.",
       "updates": [
-        "Öljynvaihto, jarrupalat ja renkaiden vaihto",
-        "Uutta: rahat, varasto ja tehdyt työt tallentuvat"
-      ]
-    },
-    {
-      "id": "metsasurvival",
-      "name": "Metsäsurvival",
-      "type": "html",
-      "path": "metsasurvival/index.html",
-      "cover": "metsasurvival/cover.jpg",
-      "version": "Demo",
-      "endButton": "top-right",
-      "tags": [
-        "Survival",
-        "Craftaus",
-        "Low poly"
-      ],
-      "description": "Kerää keppejä ja kiviä, rakenna työkalupöytä ja tee kirves. Reseptikirja kertoo, mitä voit valmistaa.",
-      "updates": [
-        "Uutta: reppu, sijainti ja työkalupöydät tallentuvat"
+        "Oil changes, brake pads and tire swaps",
+        "New: money, stock and finished jobs are saved"
       ]
     },
     {
       "id": "autopeli",
-      "name": "Autopeli",
+      "name": "Turbo Laps",
       "type": "html",
       "path": "autopeli/index.html",
       "cover": "autopeli/cover.jpg",
       "version": "1.0",
       "endButton": "top-right",
       "tags": [
-        "Kilpa-ajo",
-        "Autot",
+        "Racing",
+        "Cars",
         "3D"
       ],
-      "description": "Ylhäältä kuvattu kilpa-ajopeli. Aja kisa, paranna kierrosennätystä aika-ajossa tai voita mestaruus urassa.",
+      "description": "A top-down racing game. Win races, beat your lap record in time trial or take the championship in career mode.",
       "updates": [
-        "Kisa, aika-ajo ja ura",
-        "Uutta: uran tilanne tallentuu"
+        "Race, time trial and career",
+        "New: career progress is saved"
       ]
     },
     {
       "id": "mini-matopeli",
-      "name": "Matopeli",
+      "name": "Snake",
       "type": "html",
       "category": "minipeli",
       "players": 1,
@@ -183,14 +170,14 @@
       "version": "1.0",
       "endButton": "top-left",
       "tags": [
-        "1 pelaaja"
+        "1 player"
       ],
-      "description": "Syö omenoita ja kasva pitkäksi. Älä törmää seinään tai omaan häntääsi.",
-      "controls": "WASD / nuolet"
+      "description": "Eat apples and grow longer. Don't hit the walls or your own tail.",
+      "controls": "WASD / arrows"
     },
     {
       "id": "mini-tiiliskivi",
-      "name": "Tiiliskivi",
+      "name": "Brick Breaker",
       "type": "html",
       "category": "minipeli",
       "players": 1,
@@ -199,14 +186,14 @@
       "version": "1.0",
       "endButton": "top-left",
       "tags": [
-        "1 pelaaja"
+        "1 player"
       ],
-      "description": "Kimmota pallo mailalla ja riko kaikki tiilet. Jokainen taso on edellistä nopeampi.",
-      "controls": "A D / ← → / hiiri"
+      "description": "Bounce the ball with your paddle and smash every brick. Each level is faster than the last.",
+      "controls": "A D / ← → / mouse"
     },
     {
       "id": "mini-lepattaja",
-      "name": "Lepattaja",
+      "name": "Flapper",
       "type": "html",
       "category": "minipeli",
       "players": 1,
@@ -215,14 +202,14 @@
       "version": "1.0",
       "endButton": "top-left",
       "tags": [
-        "1 pelaaja"
+        "1 player"
       ],
-      "description": "Pidä lintu ilmassa ja lennä putkien välistä. Kuinka pitkälle pääset?",
-      "controls": "Välilyönti"
+      "description": "Keep the bird in the air and fly between the pipes. How far can you go?",
+      "controls": "Space"
     },
     {
       "id": "mini-vaistely",
-      "name": "Väistely",
+      "name": "Dodge Drop",
       "type": "html",
       "category": "minipeli",
       "players": 1,
@@ -231,10 +218,10 @@
       "version": "1.0",
       "endButton": "top-left",
       "tags": [
-        "1 pelaaja"
+        "1 player"
       ],
-      "description": "Laatikoita sataa taivaalta yhä tiheämmin. Väistä, syöksähdä ja kerää kolikot.",
-      "controls": "A D / ← →, Välilyönti"
+      "description": "Crates rain from the sky faster and faster. Dodge, dash and grab the coins.",
+      "controls": "A D / ← →, Space"
     },
     {
       "id": "mini-2048",
@@ -247,10 +234,10 @@
       "version": "1.0",
       "endButton": "top-left",
       "tags": [
-        "1 pelaaja"
+        "1 player"
       ],
-      "description": "Liu'uta laattoja ja yhdistä samat numerot. Saatko 2048-laatan?",
-      "controls": "WASD / nuolet"
+      "description": "Slide the tiles and merge matching numbers. Can you reach the 2048 tile?",
+      "controls": "WASD / arrows"
     },
     {
       "id": "mini-pong",
@@ -263,14 +250,14 @@
       "version": "1.0",
       "endButton": "bottom-left",
       "tags": [
-        "2 pelaajaa"
+        "2 players"
       ],
-      "description": "Klassikko kahdelle samalla näppäimistöllä. Ensimmäinen seitsemään voittaa.",
+      "description": "The classic for two on one keyboard. First to seven wins.",
       "controls": "W S  vs  ↑ ↓"
     },
     {
       "id": "mini-valokaksintaistelu",
-      "name": "Valokaksintaistelu",
+      "name": "Light Cycles",
       "type": "html",
       "category": "minipeli",
       "players": 2,
@@ -279,14 +266,14 @@
       "version": "1.0",
       "endButton": "bottom-left",
       "tags": [
-        "2 pelaajaa"
+        "2 players"
       ],
-      "description": "Valopyörät jättävät seinän perään. Ahdista kaveri nurkkaan ennen kuin hän ahdistaa sinut.",
-      "controls": "WASD  vs  nuolet"
+      "description": "Light cycles leave a wall behind them. Trap your friend before they trap you.",
+      "controls": "WASD  vs  arrows"
     },
     {
       "id": "mini-tankit",
-      "name": "Tankit",
+      "name": "Tanks",
       "type": "html",
       "category": "minipeli",
       "players": 2,
@@ -295,14 +282,14 @@
       "version": "1.0",
       "endButton": "bottom-left",
       "tags": [
-        "2 pelaajaa"
+        "2 players"
       ],
-      "description": "Ammukset kimpoavat seinistä kerran. Viisi osumaa voittaa.",
-      "controls": "WASD + Välilyönti  vs  nuolet + Enter"
+      "description": "Shells bounce off walls once. Five hits wins.",
+      "controls": "WASD + Space  vs  arrows + Enter"
     },
     {
       "id": "mini-ilmakiekko",
-      "name": "Ilmakiekko",
+      "name": "Air Hockey",
       "type": "html",
       "category": "minipeli",
       "players": 2,
@@ -311,10 +298,10 @@
       "version": "1.0",
       "endButton": "bottom-left",
       "tags": [
-        "2 pelaajaa"
+        "2 players"
       ],
-      "description": "Lyö kiekko kaverin maaliin. Kumpikin pysyy omalla puolellaan.",
-      "controls": "WASD  vs  nuolet"
+      "description": "Hit the puck into your friend's goal. Each player stays on their own half.",
+      "controls": "WASD  vs  arrows"
     },
     {
       "id": "mini-sumo",
@@ -327,10 +314,10 @@
       "version": "1.0",
       "endButton": "bottom-left",
       "tags": [
-        "2 pelaajaa"
+        "2 players"
       ],
-      "description": "Tönäise kaveri ulos kehästä. Kehä pienenee erän aikana.",
-      "controls": "WASD + Välilyönti  vs  nuolet + Enter"
+      "description": "Shove your friend out of the ring. The ring shrinks during each round.",
+      "controls": "WASD + Space  vs  arrows + Enter"
     }
   ]
 }

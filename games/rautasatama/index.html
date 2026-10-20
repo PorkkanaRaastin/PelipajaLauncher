@@ -1,5 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Rautasatama</title>
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Iron Harbor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
@@ -161,80 +161,80 @@ body.touch #prompt{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 <div id="area"></div>
 <div id="bottomLeft">
   <div id="vehicle" class="panel" hidden><span class="spd" id="spd">0</span><span>km/h</span><span id="vname">Sedan</span><div id="hp"><i id="hpBar"></i></div></div>
-  <div id="pHealth" class="panel" hidden><span>Kunto</span><div id="php"><i id="phpBar"></i></div></div>
+  <div id="pHealth" class="panel" hidden><span>Health</span><div id="php"><i id="phpBar"></i></div></div>
   <canvas id="mm" width="340" height="340"></canvas>
 </div>
-<div id="help" class="panel"><kbd>WASD</kbd> liiku · <kbd>E</kbd> toiminto · <kbd>Space</kbd> käsijarru · <kbd>Shift</kbd> juokse<br><kbd>V</kbd> kuvakulma · <kbd>G</kbd> grafiikka · <kbd>T</kbd> puhelin · <kbd>M</kbd> kartta · <kbd>H</kbd> torvi · <kbd>P</kbd> tauko</div>
+<div id="help" class="panel"><kbd>WASD</kbd> move · <kbd>E</kbd> action · <kbd>Space</kbd> handbrake · <kbd>Shift</kbd> run<br><kbd>V</kbd> camera · <kbd>G</kbd> graphics · <kbd>T</kbd> phone · <kbd>M</kbd> map · <kbd>H</kbd> horn · <kbd>P</kbd> pause</div>
 
 <div id="phone" hidden>
-  <div class="ph-top"><span id="phClock">12:00</span><span id="phUser">RS-Puhelin</span></div>
+  <div class="ph-top"><span id="phClock">12:00</span><span id="phUser">IH Phone</span></div>
   <div id="phBody"></div>
-  <div class="ph-home"><button id="phHome" aria-label="Kotinäyttö"></button></div>
+  <div class="ph-home"><button id="phHome" aria-label="Home screen"></button></div>
 </div>
 
 <div id="touch">
   <div id="stickZone"></div>
   <div id="stick"><div id="knob"></div></div>
   <div class="tbtn" id="bUse">E</div>
-  <div class="tbtn" id="bBrake">JARRU</div>
-  <div class="tbtn" id="bHorn">TÖÖT</div>
-  <div class="tbtn" id="bPhone">PUH</div>
-  <div class="tbtn" id="bMap">KARTTA</div>
+  <div class="tbtn" id="bBrake">BRAKE</div>
+  <div class="tbtn" id="bHorn">HONK</div>
+  <div class="tbtn" id="bPhone">PHONE</div>
+  <div class="tbtn" id="bMap">MAP</div>
   <div class="tbtn" id="bView">ISO</div>
 </div>
 
 <div class="overlay" id="title">
   <div class="card panel">
-    <div class="logo">RAUTA&shy;SATAMA</div>
-    <div class="tag">Neljä saarta. Yksi koti. Omat säännöt.</div>
+    <div class="logo">IRON&shy; HARBOR</div>
+    <div class="tag">Four islands. One home. Your rules.</div>
     <div class="keys">
-      <kbd>WASD / nuolet</kbd><span>Kävele tai aja</span>
-      <kbd>E</kbd><span>Autoon, ovesta sisään, kassakaappi, kauppa</span>
-      <kbd>Space</kbd><span>Käsijarru</span>
-      <kbd>T</kbd><span>Puhelin, josta tilaat oman autosi</span>
-      <kbd>M</kbd><span>Koko kartta</span>
-      <kbd>V</kbd><span>Vaihda kuvakulma: isometrinen / 3D takaa / ylhäältä</span>
-      <kbd>G</kbd><span>Grafiikka: Suorituskyky / Laatu</span>
+      <kbd>WASD / arrows</kbd><span>Walk or drive</span>
+      <kbd>E</kbd><span>Get in a car, enter doors, safe, shop</span>
+      <kbd>Space</kbd><span>Handbrake</span>
+      <kbd>T</kbd><span>Phone for ordering your own car</span>
+      <kbd>M</kbd><span>Full map</span>
+      <kbd>V</kbd><span>Change camera: isometric / 3D chase / top-down</span>
+      <kbd>G</kbd><span>Graphics: Performance / Quality</span>
     </div>
     <form id="loginForm" class="login" autocomplete="off">
-      <label for="uname">Käyttäjänimi</label>
-      <div class="login-row"><input id="uname" maxlength="16" placeholder="Kirjoita nimesi" spellcheck="false"><button class="go small" type="submit">Pelaa</button></div>
-      <div class="login-err" id="loginErr" hidden>Kirjoita ensin käyttäjänimi.</div>
+      <label for="uname">Username</label>
+      <div class="login-row"><input id="uname" maxlength="16" placeholder="Type your name" spellcheck="false"><button class="go small" type="submit">Play</button></div>
+      <div class="login-err" id="loginErr" hidden>Type a username first.</div>
     </form>
     <div id="profiles" class="profiles" hidden></div>
-    <div class="gfx"><span>Grafiikka</span><div class="seg" role="group" aria-label="Grafiikka"><button type="button" data-gfx="performance">Suorituskyky</button><button type="button" data-gfx="quality">Laatu</button></div></div>
-    <p class="note">Jokaisella käyttäjänimellä on oma tallennuksensa. Peli alkaa kotoa. Laita rahat kassakaappiin, niin et menetä niitä pidätyksessä.</p>
+    <div class="gfx"><span>Graphics</span><div class="seg" role="group" aria-label="Graphics"><button type="button" data-gfx="performance">Performance</button><button type="button" data-gfx="quality">Quality</button></div></div>
+    <p class="note">Every username has its own save. The game starts at home. Put your money in the safe so you don't lose it if you get busted.</p>
   </div>
 </div>
-<div class="overlay" id="pause" hidden><div class="card panel"><div class="logo" style="font-size:44px">TAUKO</div><div class="sub" id="pauseUser"></div><div class="gfx"><span>Grafiikka</span><div class="seg" role="group" aria-label="Grafiikka"><button type="button" data-gfx="performance">Suorituskyky</button><button type="button" data-gfx="quality">Laatu</button></div></div><button class="go" id="resumeBtn">Jatka</button><button class="ghost" id="switchBtn">Tallenna ja vaihda pelaajaa</button></div></div>
-<div class="overlay" id="busted" hidden style="background:rgba(10,20,45,.6)"><div style="text-align:center"><div id="bustedTxt">PIDÄTETTY</div><div class="tag" id="bustedSub"></div></div></div>
+<div class="overlay" id="pause" hidden><div class="card panel"><div class="logo" style="font-size:44px">PAUSED</div><div class="sub" id="pauseUser"></div><div class="gfx"><span>Graphics</span><div class="seg" role="group" aria-label="Graphics"><button type="button" data-gfx="performance">Performance</button><button type="button" data-gfx="quality">Quality</button></div></div><button class="go" id="resumeBtn">Resume</button><button class="ghost" id="switchBtn">Save and switch player</button></div></div>
+<div class="overlay" id="busted" hidden style="background:rgba(10,20,45,.6)"><div style="text-align:center"><div id="bustedTxt">BUSTED</div><div class="tag" id="bustedSub"></div></div></div>
 
 <div class="overlay" id="pSafe" hidden><div class="card panel">
-  <h2>Kassakaappi</h2>
-  <div class="balances"><div><span>Taskussa</span><b id="sfPocket">0 €</b></div><div><span>Säästössä</span><b id="sfSave">0 €</b></div></div>
+  <h2>Safe</h2>
+  <div class="balances"><div><span>Pocket</span><b id="sfPocket">0 €</b></div><div><span>Savings</span><b id="sfSave">0 €</b></div></div>
   <div class="btnrow">
-    <button class="btn" data-safe="dep-all">Talleta kaikki</button><button class="btn" data-safe="dep-100">Talleta 100 €</button>
-    <button class="btn" data-safe="wd-100">Nosta 100 €</button><button class="btn" data-safe="wd-all">Nosta kaikki</button>
+    <button class="btn" data-safe="dep-all">Deposit all</button><button class="btn" data-safe="dep-100">Deposit 100 €</button>
+    <button class="btn" data-safe="wd-100">Withdraw 100 €</button><button class="btn" data-safe="wd-all">Withdraw all</button>
   </div>
-  <p class="note">Säästöt pysyvät turvassa, vaikka jäisit kiinni. Taskurahoista menetät pidätyksessä puolet. Autokauppa veloittaa ensin taskusta ja loput säästöistä.</p>
-  <button class="go small" data-close>Sulje</button>
+  <p class="note">Savings stay safe even if you get caught. If you're busted you lose half of your pocket money. The car dealer charges your pocket first and the rest from savings.</p>
+  <button class="go small" data-close>Close</button>
 </div></div>
 
 <div class="overlay" id="pWard" hidden><div class="card panel wide">
-  <h2>Vaatekaappi</h2>
+  <h2>Wardrobe</h2>
   <div class="wardgrid"><canvas id="preview" width="220" height="300"></canvas><div class="opts" id="wardOpts"></div></div>
-  <button class="go small" data-close>Valmis</button>
+  <button class="go small" data-close>Done</button>
 </div></div>
 
 <div class="overlay" id="pDealer" hidden><div class="card panel wide">
-  <h2>Autokauppa</h2>
+  <h2>Car dealer</h2>
   <div class="sub" id="dlMoney"></div>
-  <div class="colrow"><span>Valitse väri ennen ostoa</span><div class="sw" id="dlCols"></div></div>
+  <div class="colrow"><span>Pick a colour before buying</span><div class="sw" id="dlCols"></div></div>
   <div class="cars" id="dlList"></div>
-  <button class="go small" data-close>Sulje</button>
+  <button class="go small" data-close>Close</button>
 </div></div>
 
-<div class="overlay" id="pMap" hidden><canvas id="bigmap"></canvas><div class="maphint">Paina M tai Esc sulkeaksesi</div></div>
+<div class="overlay" id="pMap" hidden><canvas id="bigmap"></canvas><div class="maphint">Press M or Esc to close</div></div>
 
 <script src="../_shared/three.min.js"></script>
 <script>
@@ -249,7 +249,7 @@ const PI2=Math.PI*2;
 function mulberry(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const R=mulberry(20261019);
 const $=id=>document.getElementById(id);
-const eur=n=>Math.round(n).toLocaleString('fi-FI')+' €';
+const eur=n=>Math.round(n).toLocaleString('en-GB')+' €';
 
 // ================= world
 const T=48,BW=14,BH=12,NW=BW*8+2,NH=BH*8+2;
@@ -259,10 +259,10 @@ const LAND=["AAAAAA.BBBBBBB","AAAAAA.BBBBBBB","AAAAAA.BBBBBBB","AAAAAA.BBBBBBB",
 const isle=(bx,by)=>(bx<0||by<0||bx>=BW||by>=BH)?'.':LAND[by][bx];
 const isLand=(bx,by)=>isle(bx,by)!=='.';
 const DIST={
-  A:{name:'Keskusta',roofs:['#98a2ad','#6f7f99','#b9a891','#7d8a8c','#a9b4bf','#8f8577','#5f6f86'],ht:[20,42],park:.1,splits:[0,1,2,3]},
-  B:{name:'Telakkasaari',roofs:['#7b8087','#8c6d4f','#6d7a6a','#9a8f80','#5f6670'],ht:[10,18],park:.05,splits:[0,0,1,2]},
-  C:{name:'Puistolahti',roofs:['#a04a3c','#7a4b3a','#b5653f','#5f6b78','#8a3f3f','#6b7d5a'],ht:[7,13],park:.28,splits:[3,3,1,2]},
-  D:{name:'Rantala',roofs:['#e0d4b8','#c9b48a','#9fb6c2','#d7a77b','#b8c9b0'],ht:[8,16],park:.18,splits:[0,1,2,3]},
+  A:{name:'Downtown',roofs:['#98a2ad','#6f7f99','#b9a891','#7d8a8c','#a9b4bf','#8f8577','#5f6f86'],ht:[20,42],park:.1,splits:[0,1,2,3]},
+  B:{name:'Dock Island',roofs:['#7b8087','#8c6d4f','#6d7a6a','#9a8f80','#5f6670'],ht:[10,18],park:.05,splits:[0,0,1,2]},
+  C:{name:'Park Bay',roofs:['#a04a3c','#7a4b3a','#b5653f','#5f6b78','#8a3f3f','#6b7d5a'],ht:[7,13],park:.28,splits:[3,3,1,2]},
+  D:{name:'Beachside',roofs:['#e0d4b8','#c9b48a','#9fb6c2','#d7a77b','#b8c9b0'],ht:[8,16],park:.18,splits:[0,1,2,3]},
 };
 const HOME=[4,2],POLICE=[2,4],DEALER=[9,1],GARAGES=[[0,5],[11,3],[4,9],[12,8]];
 const blockType={};
@@ -296,9 +296,9 @@ for(let by=0;by<BH;by++)for(let bx=0;bx<BW;bx++){
   if(type==='park'){for(let i=0;i<10;i++)trees.push({x:x0+12+R()*(S-24),y:y0+12+R()*(S-24),r:13+R()*9});continue}
   if(type==='beach'){for(let i=0;i<7;i++)umbrellas.push({x:x0+16+R()*(S-32),y:y0+16+R()*(S-32),c:pick(['#e74c3c','#f1c40f','#2e86de','#27ae60','#ecf0f1'])});continue}
   let rects=[];
-  if(type==='police')rects=[[x0,y0,S,S,'#34476a','POLIISI']];
-  else if(type==='garage'){rects=[[x0,y0,S,S,'#4f5d6e','KORJAAMO']];garages.push({x:(bx*8+5)*T,y:((by+1)*8+.5)*T,cd:0})}
-  else if(type==='dealer')rects=[[x0,y0,S,S,'#2f5b4a','AUTOKAUPPA']];
+  if(type==='police')rects=[[x0,y0,S,S,'#34476a','POLICE']];
+  else if(type==='garage'){rects=[[x0,y0,S,S,'#4f5d6e','GARAGE']];garages.push({x:(bx*8+5)*T,y:((by+1)*8+.5)*T,cd:0})}
+  else if(type==='dealer')rects=[[x0,y0,S,S,'#2f5b4a','CAR DEALER']];
   else if(type==='home')rects=[[x0,y0,h,S,'#6b5b8a','HOME'],[x0+h,y0,h,S]];
   else{const sp=pick(st.splits);
     if(sp===0)rects=[[x0,y0,S,S]];else if(sp===1)rects=[[x0,y0,h,S],[x0+h,y0,h,S]];
@@ -367,23 +367,23 @@ const CAR_COLS=['#d94f3d','#2f6fb3','#e8c547','#3c9a6b','#ececec','#2a2f3a','#8e
 const BUY_COLS=['#d94f3d','#2f6fb3','#e8c547','#3c9a6b','#ececec','#1d1f24','#8e5bb5','#f08a24','#1fae95','#c8b48a'];
 const CIV=[
   {name:'Sedan',w:44,h:21,acc:380,max:470,hp:100,style:'sedan'},
-  {name:'Pikkuauto',w:39,h:19,acc:360,max:430,hp:90,style:'compact'},
-  {name:'Pakettiauto',w:52,h:24,acc:290,max:390,hp:140,style:'van'},
-  {name:'Urheiluauto',w:46,h:21,acc:480,max:580,hp:100,style:'sport'},
+  {name:'Compact',w:39,h:19,acc:360,max:430,hp:90,style:'compact'},
+  {name:'Van',w:52,h:24,acc:290,max:390,hp:140,style:'van'},
+  {name:'Sports car',w:46,h:21,acc:480,max:580,hp:100,style:'sport'},
 ];
-const POLTYPE={name:'Poliisiauto',w:46,h:21,acc:460,max:520,hp:140,style:'police'};
-const TANKTYPE={name:'FBI-panssari',w:62,h:34,acc:320,max:350,hp:700,style:'tank'};
+const POLTYPE={name:'Police car',w:46,h:21,acc:460,max:520,hp:140,style:'police'};
+const TANKTYPE={name:'FBI armour',w:62,h:34,acc:320,max:350,hp:700,style:'tank'};
 // one hideout per island (on a quiet road segment)
 const HIDEOUTS=[{x:13*T,y:25*T,L:'A'},{x:93*T,y:9*T,L:'B'},{x:21*T,y:81*T,L:'C'},{x:93*T,y:81*T,L:'D'}];
 const HIDE_COL='#c77dff',HIDE_TIME=3;
 let helis=[],shots=[],tracers=[],booms=[],hideT=0;
 const CATALOG=[
-  {id:'rama',name:'Rämä',price:0,w:42,h:20,acc:300,max:400,hp:90,style:'rama',desc:'Ilmainen aloitusauto. Kulkee, kun pyytää kauniisti.'},
-  {id:'city',name:'Kaupunkiauto',price:2500,w:38,h:19,acc:380,max:455,hp:100,style:'compact',desc:'Ketterä ja mahtuu joka rakoon.'},
-  {id:'sedan',name:'Sedan GT',price:6000,w:46,h:21,acc:440,max:525,hp:125,style:'sedan',desc:'Tasapainoinen arkiraketti.'},
-  {id:'suv',name:'Maasturi',price:9500,w:50,h:24,acc:390,max:490,hp:190,style:'suv',desc:'Kestää kolareita ja poliisin rynnäköt.'},
-  {id:'sport',name:'Sport R',price:18000,w:46,h:21,acc:550,max:615,hp:110,style:'sport',desc:'Kiihtyy kuin ajatus.'},
-  {id:'super',name:'Superauto X',price:40000,w:48,h:22,acc:670,max:725,hp:120,style:'super',desc:'Kaupungin nopein. Poliisit jäävät seisomaan.'},
+  {id:'rama',name:'Rust Bucket',price:0,w:42,h:20,acc:300,max:400,hp:90,style:'rama',desc:'Free starter car. Runs if you ask nicely.'},
+  {id:'city',name:'City Car',price:2500,w:38,h:19,acc:380,max:455,hp:100,style:'compact',desc:'Nimble and fits into any gap.'},
+  {id:'sedan',name:'Sedan GT',price:6000,w:46,h:21,acc:440,max:525,hp:125,style:'sedan',desc:'A well-balanced everyday rocket.'},
+  {id:'suv',name:'SUV',price:9500,w:50,h:24,acc:390,max:490,hp:190,style:'suv',desc:'Shrugs off crashes and police rams.'},
+  {id:'sport',name:'Sport R',price:18000,w:46,h:21,acc:550,max:615,hp:110,style:'sport',desc:'Accelerates like a thought.'},
+  {id:'super',name:'Supercar X',price:40000,w:48,h:22,acc:670,max:725,hp:120,style:'super',desc:'The fastest in town. The police are left standing.'},
 ];
 const catById=id=>CATALOG.find(c=>c.id===id);
 function makeCar(x,y,angle,spec,color){
@@ -395,7 +395,7 @@ const SKINS=['#f3d2b3','#e2b48c','#c48a5f','#8d5a3b','#5e3a26'];
 const HAIRCOLS=['#1f1a17','#4a2f1f','#8a5a2b','#d6b45a','#b8b8b8','#c0392b','#2e86de','#27ae60'];
 const SHIRTS=['#ffb23f','#e74c3c','#2e86de','#27ae60','#8e44ad','#1d1f24','#ecf0f1','#16a085','#d35480','#7f8c8d'];
 const PANTS=['#2c3e50','#1d1f24','#5d6d7e','#7a5c3e','#34495e','#c9b48a','#8e2b2b'];
-const HAIRSTY=['Lyhyt','Pitkä','Kalju','Lippis'];
+const HAIRSTY=['Short','Long','Bald','Cap'];
 const PED_COLS=['#c0392b','#2e86de','#27ae60','#8e44ad','#e67e22','#34495e','#d35400','#16a085','#7f8c8d','#f1c40f','#ecf0f1'];
 let outfit={skin:1,hair:0,hairCol:0,shirt:0,pants:0};
 const lookOf=o=>({skin:SKINS[o.skin],hair:o.hair,hairCol:HAIRCOLS[o.hairCol],shirt:SHIRTS[o.shirt],pants:PANTS[o.pants]});
@@ -489,7 +489,7 @@ function horn(){
 const moneyEl=$('money'),starsEl=$('stars'),missionEl=$('mission'),toastEl=$('toast'),vehEl=$('vehicle'),spdEl=$('spd'),vnameEl=$('vname'),hpBar=$('hpBar'),promptEl=$('prompt'),areaEl=$('area');
 let toastT=0,lastMoney=-1,lastStars=-1,areaT=0;
 function toast(msg,sub){toastEl.innerHTML=msg+(sub?`<small>${sub}</small>`:'');toastEl.classList.add('show');toastT=2.8}
-function setStars(n,why){n=clamp(n,0,5);if(n>stars){stars=n;escT=0;if(why)toast(why,'Etsintätaso nousi')}}
+function setStars(n,why){n=clamp(n,0,5);if(n>stars){stars=n;escT=0;if(why)toast(why,'Wanted level up')}}
 function addStar(why){if(starCd>0)return;starCd=2.5;setStars(stars+1,why)}
 const fmtTime=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function setPrompt(txt){const h=txt?`<kbd>E</kbd>${txt}`:'';if(promptEl._h!==h){promptEl._h=h;promptEl.innerHTML=h;promptEl.hidden=!h}}
@@ -530,7 +530,7 @@ function stepCar(c,thr,steer,hand,dt,park){
   }else c._sk=null;
   if(c.health<=0&&!c.wrecked){c.wrecked=true;c.health=0;
     for(let i=0;i<24;i++)parts.push({x:c.x,y:c.y,vx:rand(-160,160),vy:rand(-160,160),life:rand(.4,.9),max:.9,s:rand(6,14),k:'fire'});
-    if(c===player.car){toast('Auto hajosi!',c.owned?'Tilaa se uudelleen puhelimella (T)':'Etsi uusi kyyti');exitCar()}}
+    if(c===player.car){toast('Car wrecked!',c.owned?'Order it again with the phone (T)':'Find a new ride');exitCar()}}
 }
 function carCircles(c){const co=Math.cos(c.angle),si=Math.sin(c.angle),o=c.w*.27;return[[c.x+co*o,c.y+si*o],[c.x-co*o,c.y-si*o]]}
 function collideCars(){
@@ -549,7 +549,7 @@ function collideCars(){
 }
 function onCarHit(X,Y,imp){
   if(imp>100){X.health-=(imp-100)*.05*(100/X.maxHp);if(X===player.car)shake=Math.min(12,shake+imp/70)}
-  if(X.driver==='player'&&imp>60){if(Y.driver==='npc'&&Y.ai)Y.ai.state='stall';if(Y.driver==='cop'&&stars===0)setStars(1,'Törmäsit poliisiin!')}
+  if(X.driver==='player'&&imp>60){if(Y.driver==='npc'&&Y.ai)Y.ai.state='stall';if(Y.driver==='cop'&&stars===0)setStars(1,'You hit a cop!')}
   if(X.driver==='npc'&&Y.driver==='npc'&&imp>140&&X.ai)X.ai.state='stall';
 }
 
@@ -623,15 +623,15 @@ function exitCar(){
 function nearestCar(){let best=null,bd=68*68;for(const c of cars){if(c.wrecked)continue;const dd=d2(c.x,c.y,player.x,player.y);if(dd<bd){bd=dd;best=c}}return best}
 function enterCar(best){
   const co=Math.cos(best.angle),si=Math.sin(best.angle);
-  if(best.driver==='npc'){const q=makePed(best.x+si*30,best.y-co*30);q.state='flee';q.t=5;peds.push(q);addStar('Kaappasit auton!')}
-  else if(best.driver==='cop'){const q=makePed(best.x+si*30,best.y-co*30,'#22314f');q.state='flee';q.t=5;peds.push(q);setStars(stars+2,'Varastit poliisiauton!')}
+  if(best.driver==='npc'){const q=makePed(best.x+si*30,best.y-co*30);q.state='flee';q.t=5;peds.push(q);addStar('You jacked a car!')}
+  else if(best.driver==='cop'){const q=makePed(best.x+si*30,best.y-co*30,'#22314f');q.state='flee';q.t=5;peds.push(q);setStars(stars+2,'You stole a police car!')}
   best.driver='player';best.ai=null;player.car=best;vnameEl.textContent=best.spec.name;
 }
 function outsideAction(){
-  if(player.car)return{label:'Nouse ulos',fn:exitCar};
-  if(d2(player.x,player.y,HOME_DOOR.x,HOME_DOOR.y)<46*46)return{label:'Mene kotiin',fn:enterHome};
-  if(d2(player.x,player.y,DEALER_DOOR.x,DEALER_DOOR.y)<50*50)return{label:'Autokauppa',fn:()=>openPanel('pDealer')};
-  const c=nearestCar();if(c)return{label:c.owned?'Nouse autoosi':c.driver==='npc'||c.driver==='cop'?'Kaappaa auto':'Nouse autoon',fn:()=>enterCar(c)};
+  if(player.car)return{label:'Get out',fn:exitCar};
+  if(d2(player.x,player.y,HOME_DOOR.x,HOME_DOOR.y)<46*46)return{label:'Go home',fn:enterHome};
+  if(d2(player.x,player.y,DEALER_DOOR.x,DEALER_DOOR.y)<50*50)return{label:'Car dealer',fn:()=>openPanel('pDealer')};
+  const c=nearestCar();if(c)return{label:c.owned?'Get in your car':c.driver==='npc'||c.driver==='cop'?'Jack the car':'Get in',fn:()=>enterCar(c)};
   return null;
 }
 function updatePlayer(dt){
@@ -670,15 +670,15 @@ function updatePlayer(dt){
 const ROOM={w:640,h:440};
 const FURN=[[40,20,110,150,'bed'],[158,20,40,38,'night'],[226,18,124,48,'ward'],[390,18,172,48,'counter'],[566,18,56,62,'fridge'],
   [452,150,96,66,'table'],[580,240,40,60,'safe'],[18,196,30,96,'tv'],[96,222,50,48,'coffee'],[184,196,52,108,'sofa'],[22,380,38,38,'plant'],[580,380,38,38,'plant']];
-const ZONES=[{x:288,y:92,k:'ward',l:'Vaatekaappi'},{x:556,y:270,k:'safe',l:'Kassakaappi'},{x:178,y:100,k:'bed',l:'Tallenna peli'},{x:320,y:408,k:'door',l:'Mene ulos'}];
+const ZONES=[{x:288,y:92,k:'ward',l:'Wardrobe'},{x:556,y:270,k:'safe',l:'Safe'},{x:178,y:100,k:'bed',l:'Save game'},{x:320,y:408,k:'door',l:'Go outside'}];
 function iBlocked(x,y){if(x<25||x>615||y<25||y>415)return true;for(const f of FURN)if(x>f[0]-9&&x<f[0]+f[2]+9&&y>f[1]-9&&y<f[1]+f[3]+9)return true;return false}
 function enterHome(){
-  if(stars>0){toast('Poliisit ovat perässä!','Karista heidät ennen kuin menet kotiin');return}
+  if(stars>0){toast('The cops are after you!','Lose them before you go home');return}
   inside=true;ip.x=320;ip.y=392;ip.a=-Math.PI/2;$('phone').hidden=true;save();
 }
 function exitHome(){
   inside=false;player.x=HOME_DOOR.x;player.y=HOME_DOOR.y+10;player.a=Math.PI/2;player.car=null;cam.x=player.x;cam.y=player.y;save();
-  showArea('Keskusta');curArea='A';
+  showArea('Downtown');curArea='A';
 }
 function updateInside(dt){
   const inp=readInput();let mx=inp.mx,my=inp.my;const l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l}
@@ -690,7 +690,7 @@ function updateInside(dt){
   if(pressH){pressH=false;horn()}
   if(pressE){pressE=false;if(z){
     if(z.k==='door')exitHome();else if(z.k==='safe')openPanel('pSafe');else if(z.k==='ward')openPanel('pWard');
-    else if(z.k==='bed'){save();toast('Peli tallennettu','Jatkat tästä, kun palaat')}}}
+    else if(z.k==='bed'){save();toast('Game saved','You\'ll continue from here when you come back')}}}
 }
 
 // ================= peds
@@ -716,7 +716,7 @@ function pedCarHits(){
       if(cc.some(q=>d2(q[0],q[1],p.x,p.y)<rr2)){
         p.state='down';p.t=3;p.a=Math.atan2(c.vy,c.vx);const nx=p.x+c.vx*.07,ny=p.y+c.vy*.07;if(!solidAt(nx,ny)){p.x=nx;p.y=ny}
         for(let i=0;i<6;i++)parts.push({x:p.x,y:p.y,vx:rand(-60,60),vy:rand(-60,60),life:.5,max:.5,s:5,k:'dust'});
-        if(c.driver==='player')addStar('Ajoit jalankulkijan päälle!');
+        if(c.driver==='player')addStar('You ran over a pedestrian!');
         for(const q of peds)if(q!==p&&q.state==='walk'&&d2(q.x,q.y,p.x,p.y)<220*220){q.state='flee';q.t=4}}}
     if(!player.car&&sp>80&&cc.some(q=>d2(q[0],q[1],player.x,player.y)<(c.h*.55+8)**2)){const nx=player.x+c.vx*.06,ny=player.y+c.vy*.06;if(!solidAt(nx,ny)){player.x=nx;player.y=ny}shake=6}
   }
@@ -727,13 +727,13 @@ function updateWanted(dt){
   if(stars===0){bustT=0;hideT=0;starsEl.classList.remove('blink');return}
   const p=pp();let seen=false,near=false;
   const hd=nearestHideout(p.x,p.y);
-  if(hd.d<62){hideT+=dt;if(hideT>=HIDE_TIME){clearWanted();toast('Piilossa!','Virkavalta menetti jälkesi');return}}else hideT=0;
+  if(hd.d<62){hideT+=dt;if(hideT>=HIDE_TIME){clearWanted();toast('Hidden!','The law lost your trail');return}}else hideT=0;
   for(const h of helis)if(!h.leave&&d2(h.x,h.y,p.x,p.y)<560*560)seen=true;
   for(const c of cars){if(c.driver!=='cop')continue;const dd=d2(c.x,c.y,p.x,p.y);
     if(dd<760*760&&los(c.x,c.y,p.x,p.y))seen=true;if(dd<(player.car?62:50)**2&&Math.abs(c.fwd)<170)near=true}
   if(seen)escT=0;else escT+=dt;
   starsEl.classList.toggle('blink',escT>1);
-  if(escT>5+stars*1.5){stars--;escT=0;if(stars<5)helis.forEach(h=>h.leave=true);if(stars===0)toast('Karistit poliisit!','Etsintä loppui')}
+  if(escT>5+stars*1.5){stars--;escT=0;if(stars<5)helis.forEach(h=>h.leave=true);if(stars===0)toast('You lost the cops!','The search is over')}
   const slow=player.car?Math.abs(player.car.fwd)<45:true;
   if(near&&slow)bustT+=dt;else bustT=Math.max(0,bustT-dt*2);
   if(bustT>1.6)busted();
@@ -741,9 +741,9 @@ function updateWanted(dt){
 function nearestHideout(x,y){let best=HIDEOUTS[0],bd=1e18;for(const h of HIDEOUTS){const dd=d2(h.x,h.y,x,y);if(dd<bd){bd=dd;best=h}}return{h:best,d:Math.sqrt(bd)}}
 function clearWanted(){stars=0;escT=0;bustT=0;hideT=0;helis.forEach(h=>h.leave=true)}
 function busted(reason){
-  $('bustedTxt').textContent=reason==='down'?'TAINNUTETTU':'PIDÄTETTY';
+  $('bustedTxt').textContent=reason==='down'?'KNOCKED OUT':'BUSTED';
   const loss=Math.floor(money/2);money-=loss;gameState='busted';bustTimer=3;$('phone').hidden=true;
-  $('bustedSub').textContent=(loss>0?`Menetit taskusta ${eur(loss)}.`:'Taskut olivat tyhjät.')+(savings>0?` Säästöt ${eur(savings)} ovat turvassa.`:'');
+  $('bustedSub').textContent=(loss>0?`You lost ${eur(loss)} from your pocket.`:'Your pockets were empty.')+(savings>0?` Your savings of ${eur(savings)} are safe.`:'');
   $('busted').hidden=false;save();
 }
 function respawnAtStation(){
@@ -756,26 +756,26 @@ function updateMission(dt){
   if(mission.state==='none'){mission.t-=dt;if(mission.t<=0){const s=randomLaneSpot(p.x,p.y,500,1500);if(s){mission.pickup=s;mission.state='offer'}}}
   else if(mission.state==='offer'){
     if(d2(p.x,p.y,mission.pickup.x,mission.pickup.y)<48*48){const s=randomLaneSpot(p.x,p.y,1800,4200);
-      if(s){const d=Math.sqrt(d2(s.x,s.y,p.x,p.y));mission.drop=s;mission.tLeft=d/190+20;mission.reward=Math.round((150+d*.16)/10)*10;mission.state='go';toast('Paketti noudettu!','Vie se vihreään merkkiin ajoissa')}}
+      if(s){const d=Math.sqrt(d2(s.x,s.y,p.x,p.y));mission.drop=s;mission.tLeft=d/190+20;mission.reward=Math.round((150+d*.16)/10)*10;mission.state='go';toast('Package picked up!','Take it to the green marker in time')}}
   }else if(mission.state==='go'){mission.tLeft-=dt;
-    if(d2(p.x,p.y,mission.drop.x,mission.drop.y)<52*52){const bonus=Math.round(mission.tLeft)*5;money+=mission.reward+bonus;toast(`Toimitettu! +${eur(mission.reward+bonus)}`,bonus>0?`Sisältää nopeusbonuksen ${eur(bonus)}`:'');mission.state='none';mission.t=3}
-    else if(mission.tLeft<=0){toast('Myöhästyit!','Asiakas peruutti keikan');mission.state='none';mission.t=4}}
+    if(d2(p.x,p.y,mission.drop.x,mission.drop.y)<52*52){const bonus=Math.round(mission.tLeft)*5;money+=mission.reward+bonus;toast(`Delivered! +${eur(mission.reward+bonus)}`,bonus>0?`Includes a speed bonus of ${eur(bonus)}`:'');mission.state='none';mission.t=3}
+    else if(mission.tLeft<=0){toast('Too late!','The customer cancelled the job');mission.state='none';mission.t=4}}
   let html='';
-  if(mission.state==='offer')html='Uusi keikka: <b>nouda paketti</b> keltaisesta merkistä';
-  else if(mission.state==='go')html=`Toimita paketti · ${fmtTime(mission.tLeft)} · palkkio <b>${eur(mission.reward)}</b>`;
+  if(mission.state==='offer')html='New job: <b>pick up a package</b> at the yellow marker';
+  else if(mission.state==='go')html=`Deliver the package · ${fmtTime(mission.tLeft)} · reward <b>${eur(mission.reward)}</b>`;
   if(stars>0){const p2=pp(),hd=nearestHideout(p2.x,p2.y),m=Math.round(hd.d/12/10)*10;
-    const w=hideT>0?`<b style="color:${HIDE_COL}">Piiloudutaan… ${Math.ceil(HIDE_TIME-hideT)} s</b>`:`<b style="color:#ff4d5e">Virkavalta perässä!</b> Aja piilopaikkaan <b style="color:${HIDE_COL}">◯ ${m} m</b>`;
+    const w=hideT>0?`<b style="color:${HIDE_COL}">Piiloudutaan… ${Math.ceil(HIDE_TIME-hideT)} s</b>`:`<b style="color:#ff4d5e">The law is after you!</b> Drive to a hideout <b style="color:${HIDE_COL}">◯ ${m} m</b>`;
     html=w+(html?'<br>'+html:'')}
   if(missionEl._h!==html){missionEl._h=html;missionEl.innerHTML=html;missionEl.hidden=!html}
 }
 function updatePickups(dt){
   const p=pp();
-  for(const s of stashes)if(!s.got&&d2(s.x,s.y,p.x,p.y)<32*32){s.got=true;money+=400;toast('Rahakätkö! +400 €',`${stashes.filter(q=>q.got).length} / ${stashes.length} löydetty`)}
+  for(const s of stashes)if(!s.got&&d2(s.x,s.y,p.x,p.y)<32*32){s.got=true;money+=400;toast('Cash stash! +400 €',`${stashes.filter(q=>q.got).length} / ${stashes.length} found`)}
   for(const g of garages){g.cd-=dt;
     if(player.car&&g.cd<=0&&d2(g.x,g.y,player.car.x,player.car.y)<56*56&&Math.abs(player.car.fwd)<80){g.cd=4;
       if(money>=200){money-=200;const c=player.car;c.health=c.maxHp;let nc;do{nc=pick(BUY_COLS)}while(nc===c.color);c.color=nc;if(c.owned&&owned[c.ownedIdx])owned[c.ownedIdx].color=nc;
-        const had=stars>0;stars=0;escT=0;toast('Korjattu ja maalattu −200 €',had?'Poliisi ei tunnista autoa enää':'Kuin uusi')}
-      else toast('Korjaus maksaa 200 € käteisellä','Tee keikkoja tai nosta säästöjä kotoa')}}
+        const had=stars>0;stars=0;escT=0;toast('Repaired and repainted −200 €',had?'The police won\'t recognise the car anymore':'Good as new')}
+      else toast('A repair costs 200 € in cash','Do jobs or withdraw savings at home')}}
 }
 function updateArea(dt){
   const p=pp(),L=isle(Math.floor(p.x/T/8),Math.floor(p.y/T/8));
@@ -808,7 +808,7 @@ function manageSpawns(dt,initial){
   const want=[0,1,2,3,4,5][stars],wantT=stars>=5?3:stars>=4?2:0;spawnCd-=dt;
   if(spawnCd<=0){if(tanks<wantT){spawnCop(true);spawnCd=1.6}else if(cops<want){spawnCop();spawnCd=1.3}}
   const wantH=stars>=5?2:0,liveH=helis.filter(h=>!h.leave).length;
-  if(liveH<wantH){const a=Math.random()*PI2;helis.push({x:p.x+Math.cos(a)*1100,y:p.y+Math.sin(a)*1100,vx:0,vy:0,angle:a+Math.PI,orbit:a,alt:135,fireT:2.5,burst:0,bt:0,leave:false});toast('FBI-helikopteri!','Ne näkevät sinut ylhäältä. Mene piiloon.')}
+  if(liveH<wantH){const a=Math.random()*PI2;helis.push({x:p.x+Math.cos(a)*1100,y:p.y+Math.sin(a)*1100,vx:0,vy:0,angle:a+Math.PI,orbit:a,alt:135,fireT:2.5,burst:0,bt:0,leave:false});toast('FBI helicopter!','They can see you from above. Hide.')}
   helis=helis.filter(h=>!(h.leave&&d2(h.x,h.y,p.x,p.y)>1800*1800));
   peds=peds.filter(q=>d2(q.x,q.y,p.x,p.y)<1800*1800);
   if(peds.length<(quality==='performance'?30:50)){const s=randomWalkSpot(p.x,p.y,initial?80:950,1500);if(s)peds.push(makePed(s.x,s.y))}
@@ -986,7 +986,7 @@ function renderWorld(){
   marker(DEALER_DOOR.x,DEALER_DOOR.y,'#7fdc78','$');
   if(stars>0)for(const hd of HIDEOUTS){const f=.5+.5*Math.sin(time*7);ctx.globalAlpha=.15+.2*f;ctx.fillStyle=HIDE_COL;circ(ctx,hd.x,hd.y,62);ctx.globalAlpha=.55+.45*f;ctx.strokeStyle=HIDE_COL;ctx.lineWidth=5;ctx.beginPath();ctx.arc(hd.x,hd.y,62,0,PI2);ctx.stroke();ctx.globalAlpha=1;
     if(hideT>0&&nearestHideout(pp().x,pp().y).h===hd){ctx.strokeStyle='#fff';ctx.lineWidth=6;ctx.beginPath();ctx.arc(hd.x,hd.y,48,-Math.PI/2,-Math.PI/2+PI2*hideT/HIDE_TIME);ctx.stroke()}
-    ctx.fillStyle='#fff';ctx.font='13px Bungee, Impact';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('PIILO',hd.x,hd.y)}
+    ctx.fillStyle='#fff';ctx.font='13px Bungee, Impact';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('HIDE',hd.x,hd.y)}
   if(mission.state==='offer')marker(mission.pickup.x,mission.pickup.y,'#ffb23f','P');
   if(mission.state==='go')marker(mission.drop.x,mission.drop.y,'#7fdc78','€');
   for(const s of stashes){if(s.got||s.x<vx0||s.x>vx1||s.y<vy0||s.y>vy1)continue;const b=Math.sin(time*4+s.x)*3;
@@ -1009,7 +1009,7 @@ function renderWorld(){
     ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;ctx.strokeRect(b.x+1,b.y+1,b.w-2,b.h-2);
     ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=3;ctx.strokeRect(b.x+6,b.y+6,b.w-12,b.h-12);
     for(const a of b.ac){ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(a[0]+3,a[1]+3,a[2],a[3]);ctx.fillStyle='#c9ccd1';ctx.fillRect(a[0],a[1],a[2],a[3]);ctx.fillStyle='#8d9299';circ(ctx,a[0]+a[2]/2,a[1]+a[3]/2,Math.min(a[2],a[3])*.3)}
-    if(b.label==='HOME'){houseIcon(ctx,b.x+b.w/2,b.y+b.h/2-14,26,'rgba(255,255,255,.9)');ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='15px Bungee, Impact, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('KOTI',b.x+b.w/2,b.y+b.h/2+34)}
+    if(b.label==='HOME'){houseIcon(ctx,b.x+b.w/2,b.y+b.h/2-14,26,'rgba(255,255,255,.9)');ctx.fillStyle='rgba(255,255,255,.9)';ctx.font='15px Bungee, Impact, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('HOME',b.x+b.w/2,b.y+b.h/2+34)}
     else if(b.label){ctx.fillStyle='rgba(255,255,255,.9)';ctx.font=(b.label.length>8?'17px':'22px')+' Bungee, Impact, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(b.label,b.x+b.w/2,b.y+b.h/2)}
   }
   for(const t of trees){if(t.x<vx0-30||t.x>vx1+30||t.y<vy0-30||t.y>vy1+30)continue;
@@ -1084,7 +1084,7 @@ function renderInterior(){
   // player
   const lk=lookOf(outfit);ctx.save();ctx.translate(ip.x,ip.y);ctx.scale(1.25,1.25);ctx.translate(-ip.x,-ip.y);drawPerson(ip.x,ip.y,ip.a,lk,ip.walk,false,false);ctx.restore();
   // title
-  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#f3efe6';ctx.font='20px Bungee, Impact, sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('KOTI · RAUTASATAMA',W/2,Math.max(10,oy-34));
+  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#f3efe6';ctx.font='20px Bungee, Impact, sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('HOME · IRON HARBOR',W/2,Math.max(10,oy-34));
 }
 
 // ================= 3D views (three.js): isometric voxel city + chase camera
@@ -1110,9 +1110,9 @@ function genBuilding(b,vbox,vprism,RR,pk){
     if(b.label==='HOME'){const H=50;vbox(cx,Y,cz,b.w,H,b.h,'#b5523b');vprism(cx,Y+H,cz,b.h+6,28,b.w+6,'#7a2f24',Math.PI/2);
       for(const y of [Y+10,Y+28])for(const z of [z0+20,z1-20,cz]){vbox(x0-.6,y,z,1.2,13,11,VOX.frame);vbox(x0-.9,y+2,z,1.6,9,7,VOX.window);vbox(x1+.6,y,z,1.2,13,11,VOX.frame);vbox(x1+.9,y+2,z,1.6,9,7,VOX.window)}
       vbox(cx,Y,z1+.7,14,22,1.6,VOX.door);vbox(cx,Y+22,z1+.7,18,3,1.8,VOX.frame);vbox(cx,Y+H+10,z0+24,6,22,6,'#6b4a3a');return}
-    if(b.label==='POLIISI'){const H=66;vbox(cx,Y,cz,b.w,H,b.h,'#e9e7e0');vbox(cx,Y+40,cz,b.w+1.4,7,b.h+1.4,'#2c4f9e');win(Y+14,Y+54,20,26,10,11,VOX.window);parapet(H,'#c9c7c0');acs(H);vbox(cx,Y,z1+.7,22,20,1.6,'#2c4f9e');return}
-    if(b.label==='KORJAAMO'){const H=46;vbox(cx,Y,cz,b.w,H,b.h,'#5b6470');for(const dx of [-48,0,48])vbox(cx+dx,Y,z1+.7,38,30,1.6,'#33373e');vbox(cx,Y+34,z1+.8,b.w,4,1.8,'#f2c230');parapet(H,'#4a515b');acs(H);return}
-    if(b.label==='AUTOKAUPPA'){const H=42;vbox(cx,Y,cz,b.w,H,b.h,'#9fd3dc');win(Y+2,Y+2,26,40,22,34,'#e9f6f8');vbox(cx,Y+H,cz,b.w+10,4,b.h+10,'#f3f1ea');vbox(cx,Y+H+4,z1-10,b.w*.6,12,4,'#2f8f3a');return}
+    if(b.label==='POLICE'){const H=66;vbox(cx,Y,cz,b.w,H,b.h,'#e9e7e0');vbox(cx,Y+40,cz,b.w+1.4,7,b.h+1.4,'#2c4f9e');win(Y+14,Y+54,20,26,10,11,VOX.window);parapet(H,'#c9c7c0');acs(H);vbox(cx,Y,z1+.7,22,20,1.6,'#2c4f9e');return}
+    if(b.label==='GARAGE'){const H=46;vbox(cx,Y,cz,b.w,H,b.h,'#5b6470');for(const dx of [-48,0,48])vbox(cx+dx,Y,z1+.7,38,30,1.6,'#33373e');vbox(cx,Y+34,z1+.8,b.w,4,1.8,'#f2c230');parapet(H,'#4a515b');acs(H);return}
+    if(b.label==='CAR DEALER'){const H=42;vbox(cx,Y,cz,b.w,H,b.h,'#9fd3dc');win(Y+2,Y+2,26,40,22,34,'#e9f6f8');vbox(cx,Y+H,cz,b.w+10,4,b.h+10,'#f3f1ea');vbox(cx,Y+H+4,z1-10,b.w*.6,12,4,'#2f8f3a');return}
   }
   if(L==='A'){
     const H=Math.round(b.ht*3.4/18)*18+14,col=pk(FACADES.A);
@@ -1210,7 +1210,7 @@ function init3D(){
   // signs above special buildings
   const signTex=txt=>{const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');
     g.fillStyle='rgba(15,20,29,.85)';rrp(g,4,14,504,100,20);g.fill();g.fillStyle='#ffb23f';g.font='64px Bungee, Impact, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,256,66);return new TH.CanvasTexture(c)};
-  for(const b of buildings)if(b.label){const sp=new TH.Sprite(new TH.SpriteMaterial({map:signTex(b.label==='HOME'?'KOTI':b.label),fog:false}));sp.scale.set(120,30,1);sp.position.set(b.x+b.w/2,(b.label==='HOME'?90:b.label==='POLIISI'?90:70)+20,b.y+b.h/2);scene.add(sp)}
+  for(const b of buildings)if(b.label){const sp=new TH.Sprite(new TH.SpriteMaterial({map:signTex(b.label==='HOME'?'HOME':b.label),fog:false}));sp.scale.set(120,30,1);sp.position.set(b.x+b.w/2,(b.label==='HOME'?90:b.label==='POLICE'?90:70)+20,b.y+b.h/2);scene.add(sp)}
   // markers
   const beamG=new TH.CylinderGeometry(20,20,1,24,1,true);
   const beam=col=>{const m=new TH.Mesh(beamG,new TH.MeshBasicMaterial({color:col,transparent:true,opacity:.35,side:TH.DoubleSide,depthWrite:false}));scene.add(m);return m};
@@ -1387,7 +1387,7 @@ function drawFx2d(cam){
   if(!(bustT>0&&gameState==='play'))return;
   const p=pp(),v=three.ndc.set(p.x,14,p.y).project(cam),sx=(v.x+1)/2*W,sy=(1-v.y)/2*H;
   fxc.setTransform(DPR,0,0,DPR,0,0);fxc.strokeStyle='#3f8cff';fxc.lineWidth=6;fxc.beginPath();fxc.arc(sx,sy,46,-Math.PI/2,-Math.PI/2+PI2*(bustT/1.6));fxc.stroke();
-  fxc.font='14px Bungee, Impact';fxc.textAlign='center';fxc.fillStyle='#fff';fxc.lineWidth=4;fxc.strokeStyle='#0f141d';fxc.strokeText('PIDÄTETÄÄN',sx,sy-58);fxc.fillText('PIDÄTETÄÄN',sx,sy-58);fxDirty=true;
+  fxc.font='14px Bungee, Impact';fxc.textAlign='center';fxc.fillStyle='#fff';fxc.lineWidth=4;fxc.strokeStyle='#0f141d';fxc.strokeText('ARRESTING',sx,sy-58);fxc.fillText('ARRESTING',sx,sy-58);fxDirty=true;
 }
 // ---- graphics mode, stored per device: 'performance' (no shadows, 1x resolution, shorter view) or 'quality'
 const GFX_KEY='rautasatama-gfx';
@@ -1402,18 +1402,18 @@ function applyQuality(){
     t3.scene.traverse(o=>{if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.needsUpdate=true)})}
 }
 function setQuality(q,silent){if(q!=='quality'&&q!=='performance')return;quality=q;store(GFX_KEY,q);applyQuality();
-  if(!silent)toast(q==='quality'?'Grafiikka: Laatu':'Grafiikka: Suorituskyky',q==='quality'?'Varjot ja tarkempi kuva. G vaihtaa.':'Ei varjoja, kevyt piirto, sujuvin peli. G vaihtaa.')}
+  if(!silent)toast(q==='quality'?'Graphics: Quality':'Graphics: Performance',q==='quality'?'Shadows and a sharper image. G switches.':'No shadows, light rendering, smoothest play. G switches.')}
 function toggleQuality(){setQuality(quality==='quality'?'performance':'quality')}
 function syncGfxButtons(){document.querySelectorAll('[data-gfx]').forEach(b=>{const on=b.dataset.gfx===quality;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
 function watchFps(dt){
   if(!three||dt<=0)return;fpsEma+=(1/dt-fpsEma)*.05;
-  if(quality==='quality'&&fpsEma<35&&!hinted){slowT+=dt;if(slowT>4){hinted=true;toast('Peli pyörii hitaasti','Kokeile Suorituskyky-tilaa: paina G')}}else slowT=0;
+  if(quality==='quality'&&fpsEma<35&&!hinted){slowT+=dt;if(slowT>4){hinted=true;toast('The game is running slowly','Try Performance mode: press G')}}else slowT=0;
 }
-const VIEW_NAMES={iso:['Isometrinen näkymä','W/A/S/D liikkuu ruudun suuntiin. V vaihtaa kuvakulmaa.'],chase:['3D takaa','A/D kääntyy, W/S kävelee. V vaihtaa kuvakulmaa.'],top:['Ylhäältä kuvattu näkymä','V vaihtaa kuvakulmaa.']};
+const VIEW_NAMES={iso:['Isometric view','W/A/S/D move in screen directions. V changes the camera.'],chase:['3D chase','A/D turn, W/S walk. V changes the camera.'],top:['Top-down view','V changes the camera.']};
 const VIEW_BTN={iso:'ISO',chase:'3D',top:'2D'};
 function toggleView(){
   const order=['iso','chase','top'];let next=order[(order.indexOf(viewMode)+1)%3];
-  if(next!=='top'&&!init3D()){next='top';if(viewMode==='top'){toast('3D-näkymä ei käynnistynyt','Se tarvitsee nettiyhteyden ja WebGL-tuen');return}}
+  if(next!=='top'&&!init3D()){next='top';if(viewMode==='top'){toast('The 3D view didn\'t start','It needs an internet connection and WebGL support');return}}
   viewMode=next;if(three){three.yaw=player.car?player.car.angle:player.a;three.camPos=null;three.isoT=null}
   toast(...VIEW_NAMES[viewMode]);$('bView').textContent=VIEW_BTN[viewMode];save();
 }
@@ -1458,14 +1458,14 @@ function renderBigMap(){
   // legend
   bctx.fillStyle='rgba(15,20,29,.85)';rrp(bctx,10,h-135,170,125,8);bctx.fill();
   bctx.font='600 15px "Barlow Condensed", Arial';bctx.textAlign='left';bctx.textBaseline='middle';
-  const items=[['home','Koti (safe house)'],['$','Autokauppa'],['K','Korjaamo 200 €'],['car','Oma auto'],['hide','Piilopaikka']];
+  const items=[['home','Home (safe house)'],['$','Car dealer'],['K','Garage 200 €'],['car','Your car'],['hide','Hideout']];
   items.forEach(([k,t],i)=>{const y=h-119+i*23,x=26;
     if(k==='hide'){bctx.strokeStyle=HIDE_COL;bctx.lineWidth=2.5;bctx.beginPath();bctx.arc(x,y,8,0,PI2);bctx.stroke()}
     else if(k==='home')houseIcon(bctx,x,y,9,'#f3efe6');else if(k==='car'){bctx.fillStyle='#3f8cff';rrp(bctx,x-8,y-5,16,10,3);bctx.fill()}
     else{bctx.fillStyle=k==='$'?'#2f8f3a':'#3f8cff';bctx.fillRect(x-9,y-9,18,18);bctx.fillStyle='#fff';bctx.font='12px Bungee, Impact';bctx.textAlign='center';bctx.fillText(k,x,y+1);bctx.font='600 15px "Barlow Condensed", Arial';bctx.textAlign='left'}
     bctx.fillStyle='#f3efe6';bctx.fillText(t,x+18,y)});
 }
-function openMap(){if(inside){toast('Kartta','Olet kotona Keskustassa')}gameState='map';$('pMap').hidden=false;renderBigMap()}
+function openMap(){if(inside){toast('Map','Your home is Downtown')}gameState='map';$('pMap').hidden=false;renderBigMap()}
 function closeMap(){$('pMap').hidden=true;gameState='play';last=performance.now()}
 $('pMap').addEventListener('click',closeMap);
 
@@ -1487,7 +1487,7 @@ function renderWard(){
   const row=(label,key,list,isText)=>{const d=document.createElement('div');d.className='opt';d.innerHTML=`<label>${label}</label>`;const sw=document.createElement('div');sw.className='sw';
     list.forEach((v,i)=>{const b=document.createElement('button');if(isText){b.className='txt';b.textContent=v}else{b.style.background=v;b.setAttribute('aria-label',label+' '+(i+1))}
       if(outfit[key]===i)b.classList.add('on');b.addEventListener('click',()=>{outfit[key]=i;renderWard()});sw.appendChild(b)});d.appendChild(sw);box.appendChild(d)};
-  row('Ihonväri','skin',SKINS);row('Hiustyyli','hair',HAIRSTY,true);row(outfit.hair===3?'Lippiksen väri':'Hiusten väri','hairCol',HAIRCOLS);row('Paita','shirt',SHIRTS);row('Housut','pants',PANTS);
+  row('Skin colour','skin',SKINS);row('Hairstyle','hair',HAIRSTY,true);row(outfit.hair===3?'Cap colour':'Hair colour','hairCol',HAIRCOLS);row('Shirt','shirt',SHIRTS);row('Trousers','pants',PANTS);
   drawPreview();
 }
 function drawPreview(){
@@ -1512,15 +1512,15 @@ function drawPreview(){
 // dealer
 let dlColor=0;
 function renderDealer(){
-  $('dlMoney').textContent=`Taskussa ${eur(money)} · Säästössä ${eur(savings)}`;
-  const cs=$('dlCols');cs.innerHTML='';BUY_COLS.forEach((c,i)=>{const b=document.createElement('button');b.style.background=c;b.setAttribute('aria-label','Väri '+(i+1));if(i===dlColor)b.classList.add('on');b.addEventListener('click',()=>{dlColor=i;renderDealer()});cs.appendChild(b)});
+  $('dlMoney').textContent=`Pocket ${eur(money)} · Savings ${eur(savings)}`;
+  const cs=$('dlCols');cs.innerHTML='';BUY_COLS.forEach((c,i)=>{const b=document.createElement('button');b.style.background=c;b.setAttribute('aria-label','Colour '+(i+1));if(i===dlColor)b.classList.add('on');b.addEventListener('click',()=>{dlColor=i;renderDealer()});cs.appendChild(b)});
   const list=$('dlList');list.innerHTML='';
   CATALOG.forEach(spec=>{
     const has=owned.some(o=>o.id===spec.id),card=document.createElement('div');card.className='carcard';
     const bar=(l,v)=>`<div class="stat"><span>${l}</span><div class="bar"><i style="width:${Math.round(v*100)}%"></i></div></div>`;
     card.innerHTML=`<h3>${spec.name}</h3><canvas width="440" height="128"></canvas><div class="note">${spec.desc}</div>
-      ${bar('Huippunopeus',spec.max/725)}${bar('Kiihtyvyys',spec.acc/670)}${bar('Kestävyys',spec.hp/190)}
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="price">${spec.price?eur(spec.price):'Ilmainen'} · ${Math.round(spec.max*.36)} km/h</span>${has?'<span class="owned">Omistettu</span>':`<button class="btn buy">Osta</button>`}</div>`;
+      ${bar('Top speed',spec.max/725)}${bar('Acceleration',spec.acc/670)}${bar('Durability',spec.hp/190)}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="price">${spec.price?eur(spec.price):'Free'} · ${Math.round(spec.max*.36)} km/h</span>${has?'<span class="owned">Owned</span>':`<button class="btn buy">Buy</button>`}</div>`;
     const g=card.querySelector('canvas').getContext('2d');g.setTransform(2,0,0,2,0,0);g.translate(110,32);g.scale(2.1,2.1);
     drawCarShape(g,{w:spec.w,h:spec.h,spec,color:BUY_COLS[dlColor],wrecked:false,braking:false,driver:null},0);
     const b=card.querySelector('.buy');if(b){if(money+savings<spec.price)b.disabled=true;b.addEventListener('click',()=>buyCar(spec))}
@@ -1532,37 +1532,37 @@ function buyCar(spec){
   let p=spec.price;const fromPocket=Math.min(money,p);money-=fromPocket;p-=fromPocket;savings-=p;
   owned.push({id:spec.id,color:BUY_COLS[dlColor]});save();
   spawnPersonal(owned.length-1,DEALER_CAR.x,DEALER_CAR.y,0);
-  closePanel();toast(`${spec.name} on sinun!`,'Se odottaa kaupan edessä. Puhelimella (T) tilaat sen myöhemmin.');
+  closePanel();toast(`${spec.name} is yours!`,'It\'s waiting outside the shop. Order it later with the phone (T).');
 }
 // phone
 let phScreen='home';
-function togglePhone(){const ph=$('phone');if(ph.hidden){if(inside){toast('Puhelin','Mene ensin ulos tilataksesi auton')}phScreen='home';ph.hidden=false;renderPhone()}else ph.hidden=true}
+function togglePhone(){const ph=$('phone');if(ph.hidden){if(inside){toast('Phone','Go outside first to order your car')}phScreen='home';ph.hidden=false;renderPhone()}else ph.hidden=true}
 $('phHome').addEventListener('click',()=>{if(phScreen==='home')$('phone').hidden=true;else{phScreen='home';renderPhone()}});
 function renderPhone(){
   const b=$('phBody');const now=new Date();$('phUser').textContent=username||'';$('phClock').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   if(phScreen==='home'){
     b.innerHTML=`<div class="apps">
-      <button class="app" data-app="cars"><i style="background:#3f8cff">A</i>Autoni</button>
-      <button class="app" data-app="map"><i style="background:#27ae60">K</i>Kartta</button>
-      <button class="app" data-app="bank"><i style="background:#e0a030">€</i>Pankki</button>
-    </div><p class="note" style="margin-top:auto">Tilaa oma auto luoksesi Autoni-sovelluksella.</p>`;
+      <button class="app" data-app="cars"><i style="background:#3f8cff">C</i>My Cars</button>
+      <button class="app" data-app="map"><i style="background:#27ae60">M</i>Map</button>
+      <button class="app" data-app="bank"><i style="background:#e0a030">€</i>Bank</button>
+    </div><p class="note" style="margin-top:auto">Call your own car to you with the My Cars app.</p>`;
   }else if(phScreen==='cars'){
-    b.innerHTML=`<div class="ph-title">Autoni</div>`+owned.map((o,i)=>{const s=catById(o.id);return`<div class="phrow"><span class="dot" style="background:${o.color}"></span><span style="flex:1">${s.name}<br><small style="color:var(--muted)">${Math.round(s.max*.36)} km/h</small></span><button data-spawn="${i}">Tilaa</button></div>`}).join('')+`<p class="note">Lisää autoja Telakkasaaren autokaupasta.</p>`;
+    b.innerHTML=`<div class="ph-title">My Cars</div>`+owned.map((o,i)=>{const s=catById(o.id);return`<div class="phrow"><span class="dot" style="background:${o.color}"></span><span style="flex:1">${s.name}<br><small style="color:var(--muted)">${Math.round(s.max*.36)} km/h</small></span><button data-spawn="${i}">Order</button></div>`}).join('')+`<p class="note">Buy more cars at the Dock Island car dealer.</p>`;
   }else if(phScreen==='bank'){
-    b.innerHTML=`<div class="ph-title">Pankki</div><div class="phrow"><span>Taskussa</span><span style="color:var(--amber)">${eur(money)}</span></div><div class="phrow"><span>Säästössä</span><span style="color:var(--cash)">${eur(savings)}</span></div><p class="note">Talletukset ja nostot tehdään kodin kassakaapilla.</p>`;
+    b.innerHTML=`<div class="ph-title">Bank</div><div class="phrow"><span>Pocket</span><span style="color:var(--amber)">${eur(money)}</span></div><div class="phrow"><span>Savings</span><span style="color:var(--cash)">${eur(savings)}</span></div><p class="note">Deposits and withdrawals are made at the safe at home.</p>`;
   }
   b.querySelectorAll('[data-app]').forEach(x=>x.addEventListener('click',()=>{const a=x.dataset.app;if(a==='map'){$('phone').hidden=true;if(gameState==='play')openMap()}else{phScreen=a;renderPhone()}}));
   b.querySelectorAll('[data-spawn]').forEach(x=>x.addEventListener('click',()=>orderCar(+x.dataset.spawn)));
 }
 function orderCar(i){
-  if(inside){toast('Mene ensin ulos','Autoa ei voi tilata olohuoneeseen');return}
-  if(player.car&&player.car===personalCar){toast('Istut jo omassa autossasi');return}
-  if(phoneCd>0){toast('Odota hetki',`Seuraava tilaus ${Math.ceil(phoneCd)} s päästä`);return}
-  if(stars>0){toast('Ei onnistu nyt','Kuljettaja ei tule poliisijahdin keskelle')}
+  if(inside){toast('Go outside first','You can\'t order a car into the living room');return}
+  if(player.car&&player.car===personalCar){toast('You\'re already in your own car');return}
+  if(phoneCd>0){toast('Wait a moment',`Next order in ${Math.ceil(phoneCd)} s`);return}
+  if(stars>0){toast('Can\'t do that now','The driver won\'t come into a police chase')}
   else{
     const p=pp();let s=null;for(let i=0;i<6&&!s;i++){s=randomLaneSpot(p.x,p.y,90,380+i*120);if(s&&cars.some(c=>d2(c.x,c.y,s.x,s.y)<70*70))s=null}
-    if(!s){toast('Ei sopivaa paikkaa','Siirry lähemmäs tietä');return}
-    spawnPersonal(i,s.x,s.y,DIRANG[s.dir]);phoneCd=8;$('phone').hidden=true;toast(`${catById(owned[i].id).name} tuotu lähelle`,'Sininen katkoviiva näyttää auton');
+    if(!s){toast('No suitable spot','Move closer to a road');return}
+    spawnPersonal(i,s.x,s.y,DIRANG[s.dir]);phoneCd=8;$('phone').hidden=true;toast(`${catById(owned[i].id).name} brought nearby`,'The blue dashed line shows the car');
   }
 }
 
@@ -1624,9 +1624,9 @@ function resetState(sv){
 }
 function renderProfiles(){
   const users=listUsers(),box=$('profiles');box.hidden=!users.length;if(!users.length)return;
-  box.innerHTML='<div class="lbl">Tallennetut pelaajat</div>';
+  box.innerHTML='<div class="lbl">Saved players</div>';
   for(const u of users){const sv=loadSave(u),b=document.createElement('button');b.type='button';
-    b.innerHTML=`<span></span><small>${sv?eur((sv.money||0)+(sv.savings||0)):'Uusi'}</small>`;b.firstChild.textContent=u;
+    b.innerHTML=`<span></span><small>${sv?eur((sv.money||0)+(sv.savings||0)):'New'}</small>`;b.firstChild.textContent=u;
     b.addEventListener('click',()=>login(u));box.appendChild(b)}
 }
 function login(name){
@@ -1635,9 +1635,9 @@ function login(name){
   $('loginErr').hidden=true;username=name;
   let sv=loadSave(name);const isNew=!sv;if(!sv)sv=takeOldSave();
   addUser(name);resetState(sv);save();
-  $('title').hidden=true;$('pauseUser').textContent='Pelaaja: '+name;gameState='play';last=performance.now();
+  $('title').hidden=true;$('pauseUser').textContent='Player: '+name;gameState='play';last=performance.now();
   try{actx=actx||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
-  toast(isNew&&!sv?`Tervetuloa, ${name}!`:`Tervetuloa takaisin, ${name}!`,'Kävele ovelle ja paina E päästäksesi ulos');
+  toast(isNew&&!sv?`Welcome, ${name}!`:`Welcome back, ${name}!`,'Walk to the door and press E to go outside');
 }
 document.querySelectorAll('[data-gfx]').forEach(b=>b.addEventListener('click',()=>setQuality(b.dataset.gfx,gameState==='title')));
 syncGfxButtons();

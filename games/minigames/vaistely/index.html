@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="fi">
-<head><meta charset="utf-8"><title>Väistely</title></head>
+<html lang="en">
+<head><meta charset="utf-8"><title>Dodge Drop</title></head>
 <body>
 <script src="../_mini.js"></script>
 <script>
@@ -11,10 +11,10 @@ let pl, blocks, coins, time, score, spawnT, coinT, particles, dashCd, combo;
 
 Mini.run({
   id: "vaistely",
-  title: "Väistely",
-  description: "Laatikoita sataa taivaalta. Väistä ne ja kerää kolikot.",
+  title: "Dodge Drop",
+  description: "Crates are falling from the sky. Dodge them and grab the coins.",
   players: 1,
-  controls: [[null, ["A", "D"], "tai ← →: liiku"], [null, ["Välilyönti"], "syöksähdys (pieni latausaika)"]],
+  controls: [[null, ["A", "D"], "or ← →: move"], [null, ["Space"], "dash (short cooldown)"]],
   formatScore: (s) => s,
   reset() {
     pl = { x: W / 2, w: 40, h: 40, vx: 0, dash: 0, face: 1 };
@@ -58,7 +58,7 @@ Mini.run({
         shake(10, 0.3);
         const final = Math.floor(time * 10) + score;
         const isBest = submitScore(final);
-        over({ title: "Osuma!", color: C.danger, lines: [`Aika ${time.toFixed(1)} s  ·  kolikot ${score / 50}`, `Pisteet: ${final}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+        over({ title: "Hit!", color: C.danger, lines: [`Time ${time.toFixed(1)} s  ·  coins ${score / 50}`, `Score: ${final}`, isBest ? "New best!" : `Best: ${best()}`] });
         return;
       }
       if (b.y > FLOOR - b.s / 2 && !b.landed) {
@@ -102,8 +102,8 @@ Mini.run({
     circle(pl.x + pl.face * 7, py + 14, 4, C.bg);
     rect(px, FLOOR - 6, pl.w * (1 - dashCd / 0.9), 3, C.text);
     text(`${(time).toFixed(1)} s`, W / 2, 30, 26, C.text, "center", 800);
-    text(`Kolikot ${score / 50}`, W - 24, 30, 17, C.p2, "right", 800);
-    text(`Ennätys ${best()}`, 24 + 150, 30, 15, C.muted, "left", 600);
+    text(`Coins ${score / 50}`, W - 24, 30, 17, C.p2, "right", 800);
+    text(`Best ${best()}`, 24 + 150, 30, 15, C.muted, "left", 600);
   },
 });
 </script>

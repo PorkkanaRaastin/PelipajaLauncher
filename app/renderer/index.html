@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fi">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Content-Security-Policy"
@@ -24,7 +24,7 @@
     <div class="boot-card">
       <div class="boot-mark"><svg><use href="#logo-pad"/></svg></div>
       <h1>Pelipaja</h1>
-      <p id="bootText">Tarkistetaan päivityksiä…</p>
+      <p id="bootText">Checking for updates…</p>
       <div class="boot-bar"><i id="bootBar"></i></div>
       <span class="boot-ver" id="bootVer"></span>
     </div>
@@ -37,73 +37,73 @@
       <div class="auth-hero">
         <div class="hero-mark"><svg><use href="#logo-pad"/></svg></div>
         <h2>Pelipaja</h2>
-        <p>Täällä pelit syntyvät.<br>Kaikki pelisi, tallennuksesi ja peliaikasi yhdessä paikassa.</p>
+        <p>Where games are made.<br>All your games, saves and playtime in one place.</p>
       </div>
     </div>
     <div class="auth-panel">
       <div class="brand auth-brand">
         <div class="brand-mark"><svg><use href="#logo-pad"/></svg></div>
-        <div class="brand-text"><strong>Pelipaja</strong><span>Rasmuksen pelit</span></div>
+        <div class="brand-text"><strong>Pelipaja</strong><span>Rasmus's games</span></div>
       </div>
 
       <!-- Kirjaudu sisään -->
       <form class="auth-step" id="stepLogin" novalidate>
-        <h1>Kirjaudu sisään</h1>
-        <p class="auth-lead">Peliaikasi, käynnistykset ja pelien tallennukset kulkevat tilisi mukana.</p>
-        <label class="field"><span>Sähköposti tai käyttäjänimi</span>
+        <h1>Sign in</h1>
+        <p class="auth-lead">Your playtime, launches and game saves travel with your account.</p>
+        <label class="field"><span>Email or username</span>
           <input id="loginId" autocomplete="username" spellcheck="false" /></label>
-        <label class="field"><span>Salasana</span>
-          <div class="pw"><input id="loginPw" type="password" autocomplete="current-password" /><button type="button" class="pw-toggle" data-for="loginPw">Näytä</button></div></label>
-        <label class="check"><input type="checkbox" id="loginRemember" checked /> Muista minut tällä koneella</label>
+        <label class="field"><span>Password</span>
+          <div class="pw"><input id="loginPw" type="password" autocomplete="current-password" /><button type="button" class="pw-toggle" data-for="loginPw">Show</button></div></label>
+        <label class="check"><input type="checkbox" id="loginRemember" checked /> Remember me on this computer</label>
         <p class="auth-err" id="loginErr" role="alert"></p>
-        <button class="auth-btn" id="loginBtn" type="submit">Kirjaudu</button>
-        <p class="auth-switch">Ei vielä tiliä? <button type="button" class="link" data-go="stepSignup">Luo tili</button></p>
+        <button class="auth-btn" id="loginBtn" type="submit">Sign in</button>
+        <p class="auth-switch">No account yet? <button type="button" class="link" data-go="stepSignup">Create one</button></p>
       </form>
 
       <!-- Luo tili 1/3: käyttäjänimi ja sähköposti -->
       <form class="auth-step" id="stepSignup" novalidate hidden>
-        <div class="steps"><i class="on"></i><i></i><i></i><span>Vaihe 1/3</span></div>
-        <h1>Luo tili</h1>
-        <p class="auth-lead">Valitse käyttäjänimi ja anna sähköposti. Lähetämme siihen 6-numeroisen vahvistuskoodin.</p>
-        <label class="field"><span>Käyttäjänimi</span>
-          <input id="suName" autocomplete="username" maxlength="20" spellcheck="false" placeholder="esim. Rasmus_R" /></label>
-        <label class="field"><span>Sähköposti</span>
-          <input id="suEmail" type="email" autocomplete="email" spellcheck="false" placeholder="nimi@esimerkki.fi" /></label>
+        <div class="steps"><i class="on"></i><i></i><i></i><span>Step 1/3</span></div>
+        <h1>Create an account</h1>
+        <p class="auth-lead">Pick a username and enter your email. We'll send you a 6-digit verification code.</p>
+        <label class="field"><span>Username</span>
+          <input id="suName" autocomplete="username" maxlength="20" spellcheck="false" placeholder="e.g. Rasmus_R" /></label>
+        <label class="field"><span>Email</span>
+          <input id="suEmail" type="email" autocomplete="email" spellcheck="false" placeholder="name@example.com" /></label>
         <p class="auth-err" id="suErr" role="alert"></p>
-        <button class="auth-btn" id="suBtn" type="submit">Lähetä vahvistuskoodi</button>
-        <p class="auth-switch">Onko sinulla jo tili? <button type="button" class="link" data-go="stepLogin">Kirjaudu</button></p>
+        <button class="auth-btn" id="suBtn" type="submit">Send verification code</button>
+        <p class="auth-switch">Already have an account? <button type="button" class="link" data-go="stepLogin">Sign in</button></p>
       </form>
 
       <!-- Luo tili 2/3: vahvistuskoodi -->
       <form class="auth-step" id="stepVerify" novalidate hidden>
-        <div class="steps"><i class="on"></i><i class="on"></i><i></i><span>Vaihe 2/3</span></div>
-        <h1>Tarkista sähköpostisi</h1>
-        <p class="auth-lead">Lähetimme 6-numeroisen vahvistuskoodin osoitteeseen <b id="verifyEmail"></b>. Koodi on voimassa 15 minuuttia.</p>
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i><span>Step 2/3</span></div>
+        <h1>Check your email</h1>
+        <p class="auth-lead">We sent a 6-digit verification code to <b id="verifyEmail"></b>. The code is valid for 15 minutes.</p>
         <div class="code-boxes" id="codeBoxes">
-          <input inputmode="numeric" maxlength="1" aria-label="Numero 1" /><input inputmode="numeric" maxlength="1" aria-label="Numero 2" /><input inputmode="numeric" maxlength="1" aria-label="Numero 3" /><span class="code-gap"></span><input inputmode="numeric" maxlength="1" aria-label="Numero 4" /><input inputmode="numeric" maxlength="1" aria-label="Numero 5" /><input inputmode="numeric" maxlength="1" aria-label="Numero 6" />
+          <input inputmode="numeric" maxlength="1" aria-label="Digit 1" /><input inputmode="numeric" maxlength="1" aria-label="Digit 2" /><input inputmode="numeric" maxlength="1" aria-label="Digit 3" /><span class="code-gap"></span><input inputmode="numeric" maxlength="1" aria-label="Digit 4" /><input inputmode="numeric" maxlength="1" aria-label="Digit 5" /><input inputmode="numeric" maxlength="1" aria-label="Digit 6" />
         </div>
         <p class="auth-err" id="verifyErr" role="alert"></p>
-        <button class="auth-btn" id="verifyBtn" type="submit">Vahvista</button>
-        <p class="auth-switch">Eikö koodia tullut? Katso myös roskaposti. <button type="button" class="link" id="resendBtn">Lähetä uusi koodi</button></p>
-        <p class="auth-switch"><button type="button" class="link" data-go="stepSignup">← Vaihda sähköposti</button></p>
+        <button class="auth-btn" id="verifyBtn" type="submit">Verify</button>
+        <p class="auth-switch">No code? Check your spam folder too. <button type="button" class="link" id="resendBtn">Send a new code</button></p>
+        <p class="auth-switch"><button type="button" class="link" data-go="stepSignup">← Change email</button></p>
       </form>
 
       <!-- Luo tili 3/3: salasana -->
       <form class="auth-step" id="stepPassword" novalidate hidden>
-        <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><span>Vaihe 3/3</span></div>
-        <h1>Luo salasana</h1>
-        <p class="auth-lead" id="pwLead">Sähköposti vahvistettu. Viimeisenä salasana.</p>
-        <label class="field"><span>Salasana</span>
-          <div class="pw"><input id="suPw" type="password" autocomplete="new-password" /><button type="button" class="pw-toggle" data-for="suPw">Näytä</button></div></label>
-        <label class="field"><span>Salasana uudelleen</span>
+        <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><span>Step 3/3</span></div>
+        <h1>Create a password</h1>
+        <p class="auth-lead" id="pwLead">Email verified. Last step: a password.</p>
+        <label class="field"><span>Password</span>
+          <div class="pw"><input id="suPw" type="password" autocomplete="new-password" /><button type="button" class="pw-toggle" data-for="suPw">Show</button></div></label>
+        <label class="field"><span>Repeat password</span>
           <input id="suPw2" type="password" autocomplete="new-password" /></label>
         <ul class="rules" id="pwRules">
-          <li data-rule="len">Vähintään 8 merkkiä</li>
-          <li data-rule="mix">Kirjaimia ja numeroita tai erikoismerkkejä</li>
-          <li data-rule="match">Salasanat täsmäävät</li>
+          <li data-rule="len">At least 8 characters</li>
+          <li data-rule="mix">Letters plus numbers or special characters</li>
+          <li data-rule="match">Passwords match</li>
         </ul>
         <p class="auth-err" id="pwErr" role="alert"></p>
-        <button class="auth-btn" id="pwBtn" type="submit">Luo tili</button>
+        <button class="auth-btn" id="pwBtn" type="submit">Create account</button>
       </form>
     </div>
   </section>
@@ -113,21 +113,21 @@
       <div class="brand-mark"><svg><use href="#logo-pad"/></svg></div>
       <div class="brand-text">
         <strong>Pelipaja</strong>
-        <span>Rasmuksen pelit</span>
+        <span>Rasmus's games</span>
       </div>
     </div>
 
     <nav class="nav">
-      <button class="nav-btn active" data-view="home">Etusivu</button>
-      <button class="nav-btn" data-view="library">Kirjasto</button>
-      <button class="nav-btn" data-view="minigames">Minipelit</button>
-      <button class="nav-btn" data-view="settings">Asetukset</button>
+      <button class="nav-btn active" data-view="home">Home</button>
+      <button class="nav-btn" data-view="library">Library</button>
+      <button class="nav-btn" data-view="minigames">Minigames</button>
+      <button class="nav-btn" data-view="settings">Settings</button>
     </nav>
 
-    <div class="side-label">Pelit</div>
+    <div class="side-label">Games</div>
     <ul id="sideGames" class="side-games"></ul>
 
-    <button id="openFolder" class="side-folder dev-only" hidden>+ Lisää peli</button>
+    <button id="openFolder" class="side-folder dev-only" hidden>+ Add game</button>
 
     <div class="update-card" id="updateCard" hidden>
       <b id="updateTitle"></b>
@@ -138,7 +138,7 @@
     <div class="user-chip">
       <div class="avatar" id="userAvatar">?</div>
       <div class="user-text"><b id="userName">–</b><span id="userEmail"></span></div>
-      <button class="logout" id="logoutBtn" title="Kirjaudu ulos">Ulos</button>
+      <button class="logout" id="logoutBtn" title="Sign out">Sign out</button>
     </div>
   </aside>
 
@@ -150,24 +150,24 @@
         <div class="hero-shade"></div>
         <div class="hero-content">
           <div class="hero-tags" id="heroTags"></div>
-          <h1 id="heroTitle">Ladataan…</h1>
+          <h1 id="heroTitle">Loading…</h1>
           <p id="heroDesc"></p>
         </div>
       </div>
 
       <div class="playbar">
         <button id="playBtn" class="play-btn" disabled>
-          <span class="play-label">PELAA</span>
+          <span class="play-label">PLAY</span>
           <span class="play-sub" id="playSub"></span>
         </button>
-        <div class="stat"><span>Peliaika</span><b id="statTime">–</b></div>
-        <div class="stat"><span>Viimeksi pelattu</span><b id="statLast">–</b></div>
-        <div class="stat"><span>Käynnistyksiä</span><b id="statLaunches">–</b></div>
-        <div class="stat"><span>Versio</span><b id="statVersion">–</b></div>
+        <div class="stat"><span>Playtime</span><b id="statTime">–</b></div>
+        <div class="stat"><span>Last played</span><b id="statLast">–</b></div>
+        <div class="stat"><span>Launches</span><b id="statLaunches">–</b></div>
+        <div class="stat"><span>Version</span><b id="statVersion">–</b></div>
       </div>
 
       <div class="notes" id="notesWrap">
-        <h2>Päivitykset</h2>
+        <h2>Updates</h2>
         <ul id="notes"></ul>
       </div>
     </section>
@@ -175,56 +175,71 @@
     <!-- KIRJASTO: kaikki pelit ruudukkona -->
     <section id="view-library" class="view">
       <header class="view-head">
-        <h1>Kirjasto</h1>
-        <input id="search" type="search" placeholder="Hae peliä…" />
+        <h1>Library</h1>
+        <input id="search" type="search" placeholder="Search games…" />
       </header>
       <div id="grid" class="grid"></div>
     </section>
 
     <!-- MINIPELIT: pienet pelit yksin tai kaverin kanssa samalla näppäimistöllä -->
     <section id="view-minigames" class="view">
-      <header class="view-head"><h1>Minipelit</h1></header>
-      <p class="mini-lead">Pikaiset pelit tauoille. Kaksinpeleissä toinen pelaa WASD-näppäimillä ja toinen nuolilla.</p>
-      <h2 class="mini-head">Yksin</h2>
+      <header class="view-head"><h1>Minigames</h1></header>
+      <p class="mini-lead">Quick games for a break. In two-player games one player uses WASD and the other uses the arrow keys.</p>
+      <h2 class="mini-head">Solo</h2>
       <div id="miniSolo" class="mini-grid"></div>
-      <h2 class="mini-head">Kaksin samalla koneella</h2>
+      <h2 class="mini-head">Two players, one keyboard</h2>
       <div id="miniDuo" class="mini-grid"></div>
     </section>
 
     <!-- ASETUKSET -->
     <section id="view-settings" class="view">
-      <header class="view-head"><h1>Asetukset</h1></header>
+      <header class="view-head"><h1>Settings</h1></header>
       <div class="setting account">
         <div>
           <b id="accName">–</b>
           <span id="accInfo"></span>
         </div>
-        <button id="logoutBtn2" class="ghost-btn">Kirjaudu ulos</button>
+        <button id="logoutBtn2" class="ghost-btn">Sign out</button>
       </div>
       <div class="setting">
         <div>
           <b>Pelipaja <span id="appVersion">–</span></b>
-          <span id="updateInfo">Päivitykset tulevat automaattisesti GitHubista.</span>
+          <span id="updateInfo">Updates arrive automatically from GitHub.</span>
         </div>
-        <button id="updateCheckBtn" class="ghost-btn">Tarkista päivitykset</button>
+        <button id="updateCheckBtn" class="ghost-btn">Check for updates</button>
       </div>
       <label class="setting">
         <input type="checkbox" id="optMinimize" />
         <div>
-          <b>Pienennä Pelipaja, kun peli käynnistyy</b>
-          <span>Pelipaja palaa esiin, kun suljet pelin.</span>
+          <b>Minimize Pelipaja when a game starts</b>
+          <span>Pelipaja comes back when you close the game.</span>
         </div>
       </label>
       <div class="setting info dev-only" hidden>
         <div>
-          <b>Uuden pelin lisääminen</b>
-          <span>Laita pelin kansio <code>games</code>-kansioon ja lisää siitä rivi
-            <code>games/games.json</code>-tiedostoon. Lista päivittyy itsestään.</span>
+          <b>Adding a new game</b>
+          <span>Put the game folder inside <code>games</code> and add an entry to
+            <code>games/games.json</code>. The list updates by itself.</span>
         </div>
-        <button id="openFolder2" class="ghost-btn">Avaa games-kansio</button>
+        <button id="openFolder2" class="ghost-btn">Open games folder</button>
       </div>
     </section>
   </main>
+
+  <!-- MITÄ UUTTA: näytetään ensimmäisellä käynnistyksellä päivityksen jälkeen -->
+  <div class="wn-overlay" id="whatsNew" hidden>
+    <div class="wn-card" role="dialog" aria-labelledby="wnVersion">
+      <div class="wn-kicker">What's new</div>
+      <h2 id="wnVersion">Pelipaja</h2>
+      <div class="wn-date" id="wnDate"></div>
+      <ul class="wn-notes" id="wnNotes"></ul>
+      <div id="wnGamesWrap" hidden>
+        <h3>New games</h3>
+        <div class="wn-games" id="wnGames"></div>
+      </div>
+      <button class="auth-btn" id="wnClose">Let's go!</button>
+    </div>
+  </div>
 
   <div id="toast" class="toast" hidden></div>
 

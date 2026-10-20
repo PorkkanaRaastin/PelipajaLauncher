@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fi">
+<html lang="en">
 <head><meta charset="utf-8"><title>Sumo</title></head>
 <body>
 <script src="../_mini.js"></script>
@@ -22,11 +22,11 @@ function newRound() {
 Mini.run({
   id: "sumo",
   title: "Sumo",
-  description: "Tönäise kaveri ulos kehästä. Syöksyllä lähtee kunnon vauhti.",
+  description: "Shove your friend out of the ring. A dash gives you a real burst of speed.",
   players: 2,
   controls: [
-    ["Pelaaja 1", ["W", "A", "S", "D"], "liiku,  Välilyönti = syöksy", C.p1],
-    ["Pelaaja 2", ["↑", "←", "↓", "→"], "liiku,  Enter = syöksy", C.p2],
+    ["Player 1", ["W", "A", "S", "D"], "move,  Space = dash", C.p1],
+    ["Player 2", ["↑", "←", "↓", "→"], "move,  Enter = dash", C.p2],
   ],
   reset() {
     wins = [0, 0];
@@ -95,15 +95,15 @@ Mini.run({
       ps.forEach((p, i) => (p.out = outs[i]));
       beep(200, 0.4, "sawtooth", 0.05, -120);
       shake(8, 0.25);
-      if (outs[0] && outs[1]) msg = { text: "Molemmat ulos – tasapeli!", color: C.text };
+      if (outs[0] && outs[1]) msg = { text: "Both out – draw!", color: C.text };
       else {
         const w = outs[0] ? 1 : 0;
         wins[w]++;
         if (wins[w] >= WIN) {
-          over({ title: `Pelaaja ${w + 1} voitti!`, color: w ? C.p2 : C.p1, lines: [`Erät ${wins[0]} – ${wins[1]}`] });
+          over({ title: `Player ${w + 1} wins!`, color: w ? C.p2 : C.p1, lines: [`Rounds ${wins[0]} – ${wins[1]}`] });
           return;
         }
-        msg = { text: `Pelaaja ${w + 1} voitti erän`, color: w ? C.p2 : C.p1 };
+        msg = { text: `Player ${w + 1} wins the round`, color: w ? C.p2 : C.p1 };
       }
       roundT = 1.6;
     }
@@ -132,13 +132,13 @@ Mini.run({
       ctx.restore();
       if (!p.out) rect(p.x - 20, p.y + PR + 8, 40 * (1 - p.dashCd / 1.4), 4, p.color, 2);
     }
-    text("PELAAJA 1", 24, 24, 14, C.p1, "left", 800);
-    text("PELAAJA 2", W - 24, 24, 14, C.p2, "right", 800);
+    text("PLAYER 1", 24, 24, 14, C.p1, "left", 800);
+    text("PLAYER 2", W - 24, 24, 14, C.p2, "right", 800);
     for (let i = 0; i < WIN; i++) {
       rect(W / 2 - 150 + i * 24, 16, 16, 16, i < wins[0] ? C.p1 : C.panel2, 8);
       rect(W / 2 + 150 - 16 - i * 24, 16, 16, 16, i < wins[1] ? C.p2 : C.panel2, 8);
     }
-    if (Mini.state === "play" && countdown > 0) text("Valmiina…", CX, CY - ringR - 4, 22, C.text, "center", 800);
+    if (Mini.state === "play" && countdown > 0) text("Get ready…", CX, CY - ringR - 4, 22, C.text, "center", 800);
     if (msg) Mini.banner(msg.text, msg.color, TOP + 50);
   },
 });
