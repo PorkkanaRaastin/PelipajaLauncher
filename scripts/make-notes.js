@@ -5,7 +5,9 @@
 // - muutokset: kaikki commit-viestit edellisen julkaisun (v*-tagin) jälkeen
 //   (GitHubin oletusviestit, kuten "Add files via upload", jätetään pois)
 // - uudet pelit: games.json-pelit, joita edellisessä julkaisussa ei ollut
-// Tulos: <sovelluskansio>/whats-new.json (menee allekirjoitettuun pakettiin) ja julkaisun kuvaus.
+// - päivityshistoria: jokaisen v*-tagin muutokset (commit-viestit) ja uudet pelit
+// Tulos: <sovelluskansio>/whats-new.json ja update-history.json (menevät allekirjoitettuun pakettiin)
+// sekä julkaisun kuvaus.
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
@@ -41,14 +43,18 @@ const IGNORE = [
   /^initial commit$/i,
   /^(co-authored-by|signed-off-by|claude-session):/i,
 ];
-const notes = [];
-for (const msg of raw.split("\x1e")) {
-  for (let line of msg.split("\n")) {
-    line = line.replace(/^\s*[-*•]\s*/, "").trim();
-    if (!line || line.length < 3 || IGNORE.some((re) => re.test(line))) continue;
-    if (!notes.includes(line)) notes.push(line.slice(0, 200));
+function parseNotes(text) {
+  const out = [];
+  for (const msg of text.split("\x1e")) {
+    for (let line of msg.split("\n")) {
+      line = line.replace(/^\s*[-*•]\s*/, "").trim();
+      if (!line || line.length < 3 || IGNORE.some((re) => re.test(line))) continue;
+      if (!out.includes(line)) out.push(line.slice(0, 200));
+    }
   }
+  return out;
 }
+const notes = parseNotes(raw);
 
 const ids = (json) => {
   try {
@@ -64,6 +70,32 @@ const newGames = now.filter((id) => !before.includes(id));
 const out = { version, date: new Date().toISOString().slice(0, 10), notes: notes.slice(0, 15), newGames };
 fs.writeFileSync(path.join(appDir, "whats-new.json"), JSON.stringify(out, null, 2));
 
+// päivityshistoria kaikista julkaisuista (uusin ensin)
+const gamesAt = (ref) => {
+  try {
+    return (JSON.parse(ref ? sh(`git show ${ref}:games/games.json`) : fs.readFileSync(path.join(appDir, "games", "games.json"), "utf8")).games || []).map((g) => ({ id: g.id, name: g.name }));
+  } catch {
+    return [];
+  }
+};
+const nowName = new Map(gamesAt(null).map((g) => [g.id, g.name]));
+const tags = sh("git tag --list \"v*\" --sort=v:refname").split("\n").filter((t) => /^v\d+\.\d+\.\d+$/.test(t));
+const history = [];
+let prevTag = "";
+for (const tag of tags) {
+  const v = tag.slice(1);
+  if (v === version) continue;
+  const log = sh(`git log ${prevTag ? prevTag + ".." + tag : tag + " -n 20"} --no-merges --format=%B%x1e`);
+  const before = prevTag ? gamesAt(prevTag).map((g) => g.id) : null;
+  const added = before ? gamesAt(tag).filter((g) => !before.includes(g.id)).map((g) => nowName.get(g.id) || g.name) : [];
+  history.push({ version: v, date: sh(`git log -1 --format=%cs ${tag}`), notes: parseNotes(log).slice(0, 20), newGames: added });
+  prevTag = tag;
+}
+const curNames = gamesAt(null).filter((g) => newGames.includes(g.id)).map((g) => g.name);
+history.push({ version, date: out.date, notes: notes.slice(0, 20), newGames: curNames });
+history.reverse();
+fs.writeFileSync(path.join(appDir, "update-history.json"), JSON.stringify({ releases: history.slice(0, 200) }, null, 1));
+
 if (mdOut) {
   const names = JSON.parse(fs.readFileSync(path.join(appDir, "games", "games.json"), "utf8")).games.filter((g) => newGames.includes(g.id)).map((g) => g.name);
   const md = [
@@ -75,4 +107,5 @@ if (mdOut) {
   ].join("\n");
   fs.writeFileSync(mdOut, md);
 }
+console.log(`Päivityshistoria: ${history.length} versiota`);
 console.log(`Mitä uutta ${version}: ${notes.length} muutosta, uudet pelit: ${newGames.join(", ") || "-"} (edellinen julkaisu ${prev || "-"})`);

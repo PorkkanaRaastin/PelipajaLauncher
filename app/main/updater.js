@@ -3,7 +3,9 @@
 // Käynnistyksen jälkeen haetaan GitHub Releasesista tieto uusimmasta versiosta (latest.json).
 // Jos se on uudempi, ladataan päivityspaketti, tarkistetaan allekirjoitus (update-verify.js)
 // ja asennetaan kansioon %APPDATA%/pelipaja/updates. Uusi versio käynnistyy seuraavalla
-// kerralla, tai heti kun käyttäjä painaa "Käynnistä uudelleen".
+// kerralla, tai heti kun käyttäjä painaa "Restart now".
+// Käytön aikana tarkistetaan 10 sekunnin välein hiljaa taustalla; käyttöliittymä ehdottaa
+// päivitystä, kun uusi versio on ladattu. history() palauttaa päivityshistorian.
 const { app, session } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -14,7 +16,7 @@ const { APP_VERSION } = require("./paths");
 const REPO = "PorkkanaRaastin/PelipajaLauncher";
 const RELEASES = `https://github.com/${REPO}/releases`;
 const LATEST_URL = process.env.PELIPAJA_UPDATE_URL && !app.isPackaged ? process.env.PELIPAJA_UPDATE_URL : `${RELEASES}/latest/download/latest.json`;
-const CHECK_EVERY_MS = 60 * 60 * 1000;
+const CHECK_EVERY_MS = 10 * 1000;
 
 const updatesDir = () => path.join(app.getPath("userData"), "updates");
 let status = { state: "idle", version: null, error: null };
@@ -29,12 +31,12 @@ function set(next) {
 }
 
 // Oma istunto päivityksille (ei evästeitä tai välimuistia muiden sivujen kanssa)
-async function fetchBuffer(url, max, onProgress, timeoutMs = 60000) {
+async function fetchBuffer(url, max, onProgress, timeoutMs = 60000, headers) {
   if (app.isPackaged && !url.startsWith("https://")) throw new Error("only https allowed");
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await session.fromPartition("pelipaja-updater").fetch(url, { cache: "no-store", redirect: "follow", signal: ctrl.signal });
+    const res = await session.fromPartition("pelipaja-updater").fetch(url, { cache: "no-store", redirect: "follow", signal: ctrl.signal, headers: headers || {} });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const total = Number(res.headers.get("content-length") || 0);
     if (total > max) throw new Error("file too large");
@@ -61,37 +63,55 @@ async function fetchBuffer(url, max, onProgress, timeoutMs = 60000) {
 // Kehitysversio (npm start) ei päivity itsestään, paitsi testissä PELIPAJA_UPDATE_URL-osoitteella
 const enabled = () => app.isPackaged || !!process.env.PELIPAJA_UPDATE_URL;
 
+// Ladatun päivityksen "What's new" -rivit (tulevat päivityspaketin mukana)
+function notesFor(version) {
+  try {
+    const w = JSON.parse(fs.readFileSync(path.join(updatesDir(), version, "whats-new.json"), "utf8"));
+    const clean = (a, n) => (Array.isArray(a) ? a.filter((x) => typeof x === "string").slice(0, n).map((x) => x.slice(0, 200)) : []);
+    return { notes: clean(w.notes, 10), newGames: clean(w.newGames, 20) };
+  } catch {
+    return { notes: [], newGames: [] };
+  }
+}
+
 // Samanaikaiset kutsut odottavat samaa tarkistusta
 let inflight = null;
-function check() {
-  if (!enabled() || status.state === "ready" || status.state === "restarting") return Promise.resolve(status);
-  if (!inflight) inflight = doCheck().finally(() => (inflight = null));
+let quietUntil = 0; // GitHubin rajoitus: taustatarkistus pitää taukoa
+function check(quiet) {
+  if (!enabled() || status.state === "restarting") return Promise.resolve(status);
+  if (quiet && (Date.now() < quietUntil || status.state === "downloading" || status.state === "installing")) return Promise.resolve(status);
+  if (!inflight) inflight = doCheck(!!quiet).finally(() => (inflight = null));
   return inflight;
 }
 
-async function doCheck() {
+async function doCheck(quiet) {
+  // hiljaisessa tarkistuksessa käyttöliittymälle kerrotaan vain muutoksista
+  const q = (next) => {
+    if (quiet && next.state === status.state && next.version === status.version) return;
+    set(next);
+  };
   try {
-    set({ state: "checking", progress: 0, error: null });
+    if (!quiet || status.state === "error") set({ state: "checking", progress: 0, error: null });
     const latest = JSON.parse((await fetchBuffer(LATEST_URL, 64 * 1024, null, 8000)).toString("utf8"));
     if (!/^\d+\.\d+\.\d+$/.test(latest.version) || verify.compareVersions(latest.version, APP_VERSION) <= 0) {
-      set({ state: "uptodate", version: APP_VERSION, error: null });
+      q({ state: "uptodate", version: APP_VERSION, error: null });
       return status;
     }
     // Uusi exe tarvitaan (Electron-versio vaihtui): käyttäjän pitää ladata Pelipaja uudelleen
     if (latest.electron && verify.electronMajor(latest.electron) !== verify.electronMajor(process.versions.electron)) {
-      set({ state: "manual", version: latest.version, url: `${RELEASES}/latest`, error: null });
+      q({ state: "manual", version: latest.version, url: `${RELEASES}/latest`, error: null, notes: [], newGames: [] });
       return status;
     }
     if (!/^[A-Za-z0-9._-]+$/.test(latest.file || "") || !/^[a-f0-9]{64}$/.test(latest.sha256 || "")) throw new Error("invalid latest.json");
     // Jo ladattu aiemmin?
     const installed = verify.bestInstalled(updatesDir(), APP_VERSION, process.versions.electron);
     if (installed && verify.compareVersions(installed.version, latest.version) >= 0) {
-      set({ state: "ready", version: installed.version, error: null });
+      q({ state: "ready", version: installed.version, error: null, ...notesFor(installed.version) });
       return status;
     }
     // Versio, joka on aiemmin kaatunut käynnistyessä, ladataan vasta kun tulee uudempi
     if (fs.existsSync(path.join(updatesDir(), latest.version + ".bad"))) {
-      set({ state: "error", error: `version ${latest.version} failed to start on this computer` });
+      q({ state: "error", version: latest.version, error: `version ${latest.version} failed to start on this computer` });
       return status;
     }
     set({ state: "downloading", version: latest.version, progress: 0, error: null });
@@ -107,10 +127,17 @@ async function doCheck() {
     const m = verify.installBundle(buf, updatesDir());
     if (m.version !== latest.version) throw new Error("wrong version in bundle");
     verify.cleanup(updatesDir());
-    set({ state: "ready", version: m.version, error: null });
+    set({ state: "ready", version: m.version, error: null, ...notesFor(m.version) });
   } catch (err) {
-    console.error("Update check failed:", err.message);
-    set({ state: "error", error: String(err.message || err) });
+    const msg = String(err.message || err);
+    if (/HTTP (403|429)/.test(msg)) quietUntil = Date.now() + 5 * 60 * 1000;
+    if (quiet) {
+      // taustalla: ei näytetä virhettä joka 10. sekunti, yritetään uudelleen seuraavalla kierroksella
+      if (status.state === "checking" || status.state === "downloading" || status.state === "installing") set({ state: "error", error: msg });
+    } else {
+      console.error("Update check failed:", msg);
+      set({ state: "error", error: msg });
+    }
   }
   return status;
 }
@@ -144,10 +171,46 @@ async function startup() {
   return status;
 }
 
-// Käytön aikana tarkistetaan tunnin välein (ilmoitus sivupalkkiin)
+// Käytön aikana tarkistetaan 10 sekunnin välein (käyttöliittymä ehdottaa päivitystä)
 function start() {
   if (!enabled()) return;
-  setInterval(check, CHECK_EVERY_MS).unref();
+  setInterval(() => {
+    const before = status.state + status.version;
+    check(true).then(() => {
+      // uusi päivitys valmiina: välkytetään tehtäväpalkissa, jos Pelipaja on taustalla
+      const win = state.launcherWin;
+      if (status.state === "ready" && before !== status.state + status.version && win && !win.isDestroyed() && !win.isFocused()) win.flashFrame(true);
+    });
+  }, CHECK_EVERY_MS).unref();
 }
 
-module.exports = { start, check, startup, getStatus: () => status };
+// ---------- päivityshistoria ----------
+// Julkaisu kokoaa historian commit-viesteistä (scripts/make-notes.js) tiedostoon update-history.json,
+// joka tulee päivityspaketin mukana. Näin historia toimii ilman nettiä eikä GitHubin rajoituksia tarvitse miettiä.
+// Ladattu mutta vielä asentamaton versio lisätään listan alkuun.
+const { ROOT } = require("./paths");
+function readHistory(file) {
+  try {
+    const h = JSON.parse(fs.readFileSync(file, "utf8"));
+    const str = (x, n) => (typeof x === "string" ? x.slice(0, n) : "");
+    const list = (a, n) => (Array.isArray(a) ? a.filter((x) => typeof x === "string").slice(0, n).map((x) => x.slice(0, 240)) : []);
+    return (Array.isArray(h.releases) ? h.releases : [])
+      .filter((r) => r && /^\d+\.\d+\.\d+$/.test(r.version))
+      .slice(0, 200)
+      .map((r) => ({ version: r.version, date: str(r.date, 10), notes: list(r.notes, 20), newGames: list(r.newGames, 30) }));
+  } catch {
+    return null;
+  }
+}
+async function history() {
+  const releases = readHistory(path.join(ROOT, "update-history.json"));
+  if (!releases) return { ok: false, error: app.isPackaged ? "No update history in this version yet. It appears after the next update." : "Development build: the history is created when Pelipaja is published.", current: APP_VERSION };
+  // ladattu päivitys (odottaa uudelleenkäynnistystä): sen oma historia on uusin
+  if (status.state === "ready" && status.version) {
+    const next = readHistory(path.join(updatesDir(), status.version, "update-history.json"));
+    if (next && next.length) return { ok: true, releases: next, current: APP_VERSION };
+  }
+  return { ok: true, releases, current: APP_VERSION };
+}
+
+module.exports = { start, check, startup, history, getStatus: () => status };

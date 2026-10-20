@@ -124,6 +124,7 @@ handle("app-info", () => ({ version: APP_VERSION, dev: !app.isPackaged }));
 handle("update-status", () => updater.getStatus());
 handle("whats-new", () => whatsnew.compute());
 handle("update-check", () => updater.check());
+handle("update-history", (force) => updater.history(force === true));
 handle("update-startup", () => updater.startup());
 handle("update-restart", () => {
   if (games.hasRunning()) return { ok: false, error: "Close running games first." };

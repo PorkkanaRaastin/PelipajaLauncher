@@ -121,6 +121,7 @@
       <button class="nav-btn active" data-view="home">Home</button>
       <button class="nav-btn" data-view="library">Library</button>
       <button class="nav-btn" data-view="minigames">Minigames</button>
+      <button class="nav-btn" data-view="updates">Updates</button>
       <button class="nav-btn" data-view="settings">Settings</button>
     </nav>
 
@@ -191,6 +192,20 @@
       <div id="miniDuo" class="mini-grid"></div>
     </section>
 
+    <!-- PÄIVITYSHISTORIA: kaikki julkaisut GitHubista -->
+    <section id="view-updates" class="view">
+      <header class="view-head"><h1>Update history</h1><button id="histRefresh" class="ghost-btn">Refresh</button></header>
+      <div class="setting hist-now">
+        <div>
+          <b>You have Pelipaja <span id="histCur">–</span></b>
+          <span id="histInfo">Pelipaja checks for updates every 10 seconds.</span>
+        </div>
+        <button id="histUpdateBtn" class="auth-btn hist-btn" hidden>Update now</button>
+      </div>
+      <p class="hist-msg" id="histMsg"></p>
+      <div id="histList" class="hist-list"></div>
+    </section>
+
     <!-- ASETUKSET -->
     <section id="view-settings" class="view">
       <header class="view-head"><h1>Settings</h1></header>
@@ -238,6 +253,20 @@
         <div class="wn-games" id="wnGames"></div>
       </div>
       <button class="auth-btn" id="wnClose">Let's go!</button>
+    </div>
+  </div>
+
+  <!-- PÄIVITYS SAATAVILLA: ehdotetaan, kun taustatarkistus on ladannut uuden version -->
+  <div class="wn-overlay" id="updPrompt" hidden>
+    <div class="wn-card" role="dialog" aria-labelledby="updTitle">
+      <div class="wn-kicker">Update available</div>
+      <h2 id="updTitle">Pelipaja</h2>
+      <div class="wn-date" id="updSub"></div>
+      <ul class="wn-notes" id="updNotes"></ul>
+      <div class="upd-row">
+        <button class="auth-btn" id="updNow">Update now</button>
+        <button class="ghost-btn" id="updLater">Later</button>
+      </div>
     </div>
   </div>
 

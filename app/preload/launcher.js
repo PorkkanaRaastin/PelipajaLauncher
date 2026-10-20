@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld("launcher", {
     startup: invoke("update-startup"),
     restart: invoke("update-restart"),
     openPage: invoke("update-open-page"),
+    history: invoke("update-history"),
   },
   whatsNew: invoke("whats-new"),
   onUpdateStatus: listen("update-status"),

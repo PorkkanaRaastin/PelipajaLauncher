@@ -64,6 +64,7 @@ function toast(msg, kind) {
 
 // ---------- Näkymät ----------
 function showView(name) {
+  if (name === "updates") loadHistory(false);
   document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === "view-" + name));
   document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
 }
@@ -304,7 +305,7 @@ function showWhatsNew() {
   $("whatsNew").hidden = false;
   setTimeout(() => $("wnClose").focus(), 50);
 }
-$("wnClose").addEventListener("click", () => ($("whatsNew").hidden = true));
+$("wnClose").addEventListener("click", () => { $("whatsNew").hidden = true; setTimeout(retryPrompt, 300); });
 
 async function logout() {
   const res = await api.auth.logout();
@@ -462,8 +463,12 @@ const UPDATE_TEXT = {
   ready: (s) => [`Update ${s.version} is ready`, "The new version starts the next time Pelipaja restarts.", "Restart now"],
   manual: (s) => [`Pelipaja ${s.version} is out`, "This update needs a fresh Pelipaja download.", "Open download page"],
 };
+let updStatus = null;
 function renderUpdate(s) {
   if (!s) return;
+  updStatus = s;
+  renderHistStatus();
+  maybePrompt(s);
   const card = $("updateCard");
   const t = UPDATE_TEXT[s.state];
   card.hidden = !t;
@@ -494,6 +499,131 @@ $("updateCheckBtn").addEventListener("click", async () => {
   renderUpdate(await api.update.check());
 });
 api.onUpdateStatus(renderUpdate);
+
+// ---------- Päivitysehdotus (taustatarkistus 10 s välein) ----------
+let appStarted = false, promptedVersion = null, pendingPrompt = null;
+function maybePrompt(s) {
+  if (!appStarted || !s || !(s.state === "ready" || s.state === "manual") || s.version === promptedVersion) return;
+  // ei keskeytetä peliä eikä "What's new" -ikkunaa: ehdotus näytetään, kun peli on suljettu
+  if (runningIds.length || !$("whatsNew").hidden) { pendingPrompt = s; return; }
+  pendingPrompt = null;
+  promptedVersion = s.version;
+  const manual = s.state === "manual";
+  $("updTitle").textContent = (manual ? "Pelipaja " : "Pelipaja ") + s.version + (manual ? " is out" : " is ready");
+  $("updSub").textContent = manual
+    ? "This update needs a fresh download of Pelipaja."
+    : "Pelipaja restarts in a moment. Your account, playtime and saves stay as they are.";
+  const ul = $("updNotes");
+  ul.replaceChildren();
+  const notes = (s.notes && s.notes.length ? s.notes : manual ? [] : ["Small fixes and improvements"]).slice();
+  if (s.newGames && s.newGames.length) notes.push(s.newGames.length === 1 ? "1 new game" : s.newGames.length + " new games");
+  for (const n of notes) { const li = document.createElement("li"); li.textContent = n; ul.append(li); }
+  ul.hidden = !notes.length;
+  $("updNow").textContent = manual ? "Open download page" : "Update now";
+  $("updNow").dataset.action = s.state;
+  $("updPrompt").hidden = false;
+  setTimeout(() => $("updNow").focus(), 30);
+}
+function retryPrompt() { if (pendingPrompt) maybePrompt(pendingPrompt); }
+api.onRunningChanged(() => setTimeout(retryPrompt, 50));
+async function doUpdateNow(action) {
+  if (action === "manual") return api.update.openPage();
+  const res = await api.update.restart();
+  if (!res.ok) toast(res.error);
+}
+$("updNow").addEventListener("click", () => {
+  $("updPrompt").hidden = true;
+  doUpdateNow($("updNow").dataset.action);
+});
+$("updLater").addEventListener("click", () => {
+  $("updPrompt").hidden = true;
+  toast("You can update later from the sidebar or the Updates page.", "ok");
+});
+
+// ---------- Päivityshistoria ----------
+const verCmp = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i]; return 0; };
+function renderHistStatus() {
+  const s = updStatus;
+  if (!s) return;
+  const info = {
+    checking: "Checking for updates…",
+    uptodate: "You have the latest version. Pelipaja checks for updates every 10 seconds.",
+    downloading: `Downloading update ${s.version}…`,
+    installing: `Installing update ${s.version}…`,
+    ready: `Update ${s.version} is ready to install.`,
+    manual: `Version ${s.version} needs a fresh download.`,
+    error: "Couldn't reach GitHub right now. Trying again in a moment.",
+    dev: "Development build: no automatic updates.",
+    idle: devMode ? "Development build: no automatic updates." : "Pelipaja checks for updates every 10 seconds.",
+  }[s.state];
+  if (info) $("histInfo").textContent = info;
+  const btn = $("histUpdateBtn");
+  btn.hidden = !(s.state === "ready" || s.state === "manual");
+  btn.textContent = s.state === "manual" ? "Open download page" : "Update now";
+  btn.dataset.action = s.state;
+}
+$("histUpdateBtn").addEventListener("click", () => doUpdateNow($("histUpdateBtn").dataset.action));
+$("histRefresh").addEventListener("click", () => loadHistory(true));
+let histLoading = false;
+async function loadHistory(force) {
+  if (histLoading) return;
+  histLoading = true;
+  const list = $("histList");
+  if (!list.children.length || force) $("histMsg").textContent = "Loading the update history…";
+  let h;
+  try {
+    h = await api.update.history(force);
+  } catch {
+    h = { ok: false, error: "Couldn't load the update history." };
+  }
+  histLoading = false;
+  if (h.current) $("histCur").textContent = h.current;
+  if (!h.ok) { $("histMsg").textContent = h.error; return; }
+  $("histMsg").textContent = h.offline && h.at ? "Offline – showing the history saved on " + new Date(h.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + "." : "";
+  const names = new Map(games.map((g) => [g.id, g.name]));
+  list.replaceChildren();
+  if (!h.releases.length) { $("histMsg").textContent = "No releases yet."; return; }
+  for (const r of h.releases) {
+    const cmp = h.current ? verCmp(r.version, h.current) : -1;
+    const item = document.createElement("article");
+    item.className = "hist-item" + (cmp === 0 ? " current" : cmp > 0 ? " newer" : "");
+    const top = document.createElement("div");
+    top.className = "hist-top";
+    const h3 = document.createElement("h3");
+    h3.textContent = "Pelipaja " + r.version;
+    top.append(h3);
+    if (cmp === 0 || cmp > 0) {
+      const tag = document.createElement("span");
+      tag.className = "hist-tag " + (cmp === 0 ? "cur" : "new");
+      tag.textContent = cmp === 0 ? "Installed" : updStatus && updStatus.state === "ready" && updStatus.version === r.version ? "Ready to install" : "New";
+      top.append(tag);
+    }
+    const date = document.createElement("span");
+    date.className = "hist-date";
+    date.textContent = r.date ? new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "";
+    top.append(date);
+    item.append(top);
+    if (r.notes.length) {
+      const ul = document.createElement("ul");
+      for (const n of r.notes) { const li = document.createElement("li"); li.textContent = n; ul.append(li); }
+      item.append(ul);
+    } else {
+      const p = document.createElement("div");
+      p.className = "hist-empty";
+      p.textContent = "No release notes for this version.";
+      item.append(p);
+    }
+    if (r.newGames.length) {
+      const g = document.createElement("div");
+      g.className = "hist-games";
+      const b = document.createElement("b");
+      b.textContent = "New games: ";
+      g.append(b, document.createTextNode(r.newGames.map((x) => names.get(x) || x).join(", ")));
+      item.append(g);
+    }
+    list.append(item);
+  }
+}
 
 // ---------- Käynnistysnäkymä: uusin versio ladataan ennen launcheria ----------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -540,6 +670,7 @@ async function bootUpdate() {
     const info = await api.appInfo();
     devMode = !!info.dev;
     $("appVersion").textContent = info.version;
+    $("histCur").textContent = info.version;
     $("bootVer").textContent = "Version " + info.version;
   } catch {}
   if (!(await bootUpdate())) return;
@@ -547,6 +678,7 @@ async function bootUpdate() {
     whatsNew = await api.whatsNew();
     if (whatsNew) newIds = new Set(whatsNew.newGames || []);
   } catch {}
+  appStarted = true;
   api.update.status().then(renderUpdate, () => {});
   document.querySelectorAll(".dev-only").forEach((el) => (el.hidden = !devMode));
   const st = await api.auth.status();
