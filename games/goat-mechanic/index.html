@@ -1,0 +1,761 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="fi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Goat Mechanic – Demo</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#111;font-family:system-ui,sans-serif}
+canvas{display:block}
+#ui{position:fixed;inset:0;pointer-events:none;color:#fff}
+#cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;opacity:.8}
+#prompt{position:absolute;left:50%;top:56%;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:6px 14px;border-radius:6px;display:none;font-size:15px}
+#notes{position:fixed;right:12px;bottom:12px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;z-index:70;pointer-events:none}
+.note{background:#14171a;border:2px solid #0a0b0d;color:#d8d8d4;padding:4px 10px;font-size:13px;max-width:300px;opacity:1;transition:opacity .3s,transform .3s;animation:nin .15s ease-out}
+.note.out{opacity:0;transform:translateX(12px)}
+@keyframes nin{from{opacity:0;transform:translateX(12px)}}
+#hint{position:absolute;left:12px;bottom:12px;font-size:13px;opacity:.8;text-shadow:0 1px 2px #000}
+#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(0,0,0,.05) 30%,rgba(0,0,0,.65) 100%);color:#f2efe6;cursor:default;text-align:center;gap:34px;user-select:none}
+#start h1{margin:0;font:900 clamp(40px,8vw,96px)/1 Impact,'Arial Black',sans-serif;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 40px rgba(0,0,0,.6)}
+#start h1 i{display:block;font-style:normal;color:#ffc21a}
+#startbtn{background:#ffc21a;color:#14110a;border:0;padding:14px 46px;font:800 22px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 5px 0 #8a6500}
+#startbtn:hover{background:#ffd24d}#startbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #8a6500}
+#start{z-index:100}
+#obj{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:rgba(0,0,0,.72);border-left:4px solid #ffd60a;padding:8px 18px;border-radius:6px;max-width:80vw;display:none}
+#obj small{display:block;font-size:11px;letter-spacing:2px;color:#ffd60a}
+#obj span{font-size:16px}
+#dlg{position:fixed;left:50%;bottom:8%;transform:translateX(-50%);width:min(680px,90vw);background:rgba(8,12,20,.92);border:2px solid #ffd60a;border-radius:10px;padding:12px 18px;color:#fff;display:none;z-index:20;pointer-events:none}
+#dlg b{color:#ffd60a}#dlg p{margin:6px 0;font-size:17px;min-height:46px}#dlg small{opacity:.6}
+#pc{position:fixed;inset:0;z-index:50;display:none;background:#05080d;align-items:center;justify-content:center}
+#screenPC{width:min(960px,96vw);height:min(600px,92vh);display:flex;flex-direction:column;border:10px solid #222;border-radius:12px;background:#000;overflow:hidden;box-shadow:0 0 40px #000;color:#fff}
+#deskarea{flex:1;position:relative;background:linear-gradient(135deg,#0b3d6b,#1a7fb5 60%,#59c2e6);overflow:hidden}
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.icon{position:absolute;left:18px;top:18px;width:78px;text-align:center;font-size:13px;cursor:pointer;user-select:none}
+.icon .ico{position:relative;width:60px;height:60px;margin:0 auto 4px;background:#fff;color:#d93025;border-radius:12px;font-size:36px;line-height:60px;box-shadow:0 2px 6px #0006}
+#badge{position:absolute;right:-8px;top:-8px;min-width:22px;height:22px;border-radius:11px;background:#e11d1d;color:#fff;font-size:13px;line-height:22px;display:none;align-items:center;justify-content:center;border:2px solid #fff;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.2)}}
+.pop{animation:pop .5s}@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+#win{position:absolute;left:12%;top:5%;width:76%;height:88%;background:#fff;color:#202124;border-radius:8px;display:none;flex-direction:column;box-shadow:0 8px 30px #0008}
+#wbar{background:#f1f3f4;padding:8px 12px;display:flex;gap:10px;align-items:center;border-bottom:1px solid #ddd;font-weight:600}
+#wbar span{flex:1}#wbar button{border:0;background:#e3e6e8;padding:4px 10px;border-radius:5px;cursor:pointer}
+#wbody{padding:14px;overflow:auto;flex:1;font-size:15px}
+.row{display:flex;gap:14px;padding:10px;border-bottom:1px solid #eee;cursor:pointer;align-items:center}.row:hover{background:#f5f8ff}
+.row.unread{font-weight:700;background:#fffbe6}.row i{margin-left:auto;font-style:normal;opacity:.6}.row em{color:#188038;font-style:normal}
+.dot{width:10px;height:10px;border-radius:5px;background:transparent}.unread .dot{background:#e11d1d}
+.empty{padding:12px;opacity:.5}
+.mh{padding-bottom:8px;border-bottom:1px solid #eee;margin-bottom:10px;font-size:14px}
+.mb{white-space:pre-wrap;min-height:110px;line-height:1.5}
+.typing span{animation:bl 1s infinite}.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}@keyframes bl{50%{opacity:0}}
+.cap{margin:12px 0 6px;font-size:13px;opacity:.7}
+.chip{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 14px;border:1px solid #1a73e8;color:#1a73e8;background:#fff;border-radius:18px;cursor:pointer;font-size:14px}.chip:hover{background:#e8f0fe}.chip.bad{border-color:#d93025;color:#d93025;animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.sent{background:#e8f0fe;padding:10px 14px;border-radius:12px;margin:10px 0 6px 20%}.okmsg{color:#188038;font-weight:600}.warn{color:#d93025;margin-top:6px}
+#taskbar{background:#111b2b;display:flex;gap:16px;align-items:center;padding:6px 12px;font-size:14px}#taskbar #clock{margin-left:auto}
+#pcclose{border:0;background:#c0392b;color:#fff;padding:6px 12px;border-radius:5px;cursor:pointer}#pcclose.glow{animation:gl 1s infinite;background:#2ecc71}@keyframes gl{50%{box-shadow:0 0 14px #2ecc71}}
+#endcard{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);color:#fff;text-align:center}
+#endcard>div{background:#10192b;border:2px solid #ffd60a;border-radius:14px;padding:26px 36px;max-width:min(520px,90vw)}
+#endcard h2{margin:0 0 10px}#endcard button{margin-top:10px;border:0;background:#ffd60a;padding:10px 20px;border-radius:8px;font-weight:700;cursor:pointer}
+#todo{position:absolute;left:12px;top:84px;width:232px;background:#15181c;border:2px solid #0a0b0d;padding:8px 10px 6px;font-size:13px;line-height:1.35;transform:translateX(-130%);transition:transform .7s}
+#todo.show{transform:none}
+#todo h3{margin:0 0 5px;font-size:10px;letter-spacing:2px;color:#8f98a2;font-weight:600}
+.tk{display:flex;gap:8px;align-items:flex-start;padding:3px 0;color:#e9e6dc}
+.tk i{flex:none;width:11px;height:11px;border:2px solid #8b939c;margin-top:2px;position:relative}
+.tk.ok{color:#79848e;text-decoration:line-through}
+.tk.ok i{background:#6fbf73;border-color:#6fbf73}
+.tk.ok i::after{content:'';position:absolute;left:2px;top:-2px;width:3px;height:7px;border:solid #15181c;border-width:0 2px 2px 0;transform:rotate(40deg)}
+.tk.fresh{animation:tkin .5s}@keyframes tkin{from{opacity:0;transform:translateX(-14px)}}
+#inv{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:none;gap:3px;background:#14171a;border:2px solid #0a0b0d;padding:3px}
+.slot{width:52px;height:50px;box-sizing:border-box;background:#262a30;border:2px solid #0e1012;box-shadow:inset 0 0 0 2px #353b43;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px}
+.slot svg{width:28px;height:28px;margin-bottom:1px}.slot.empty svg{opacity:.14;filter:grayscale(1)}
+.slot b{font-size:8px;letter-spacing:0;color:#cfc9b8;font-weight:600}.slot.empty b{color:#56606a}
+.slot u{position:absolute;right:3px;top:1px;text-decoration:none;font-size:11px;color:#e0a800;font-weight:700}
+#money{position:absolute;right:12px;top:10px;background:#14171a;border:2px solid #0a0b0d;padding:5px 12px;font:700 16px ui-monospace,Menlo,Consolas,monospace;color:#e4d26b}
+#prog{position:absolute;left:50%;bottom:72px;transform:translateX(-50%);display:none;text-align:center;font-size:13px;color:#fff;width:260px;text-shadow:0 1px 2px #000}
+#prog .bar{height:8px;background:#14171a;border:2px solid #0a0b0d;margin-top:4px}
+#prog .bar i{display:block;height:100%;width:0;background:#e0a800}
+.row.shop b{flex:1}.row.shop button{border:0;background:#1a73e8;color:#fff;padding:6px 14px;border-radius:5px;cursor:pointer}.row.shop button:disabled{background:#aaa;cursor:default}.row.shop{cursor:default}.row.shop span{opacity:.7}
+</style></head><body>
+<div id="notes"></div>
+<div id="ui"><div id="obj"><small id="ocap">TUTORIAALI</small><span id="ot"></span></div><div id="todo"></div><div id="money">€ 100</div><div id="prog"><span id="pl"></span><div class="bar"><i id="pf"></i></div></div><div id="inv"></div><div id="cross"></div><div id="prompt"></div>
+<div id="hint">WASD liiku · hiiri katso · E käytä · Shift juokse · M musiikki · Esc vapauta hiiri</div></div>
+<div id="dlg"><b id="dname">Pekka Virtanen</b><p id="dtext"></p><small>[E] jatka</small></div>
+<div id="pc"><div id="screenPC">
+ <div id="deskarea">
+  <div id="loading">Käynnistetään…</div>
+  <div id="gicon" class="icon" style="display:none"><div class="ico"><svg width="30" height="22" viewBox="0 0 30 22"><rect x="1" y="1" width="28" height="20" rx="2" fill="#fff" stroke="#c0392b" stroke-width="2"/><path d="M2 3l13 10L28 3" fill="none" stroke="#c0392b" stroke-width="2"/></svg><span id="badge">1</span></div><span>Gmail</span></div>
+  <div id="sicon" class="icon" style="left:110px;display:none"><div class="ico" style="background:#2f7d4f;color:#fff;font-weight:700">€</div><span>Varaosat</span></div>
+  <div class="icon" style="top:128px;opacity:.5;cursor:default"><div class="ico" style="background:#dfe6ee;color:#555"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M3 7h16l-1.5 17h-13z" fill="none" stroke="#555" stroke-width="2"/><path d="M1 5h20M8 5V2h6v3" fill="none" stroke="#555" stroke-width="2"/></svg></div><span>Roskakori</span></div>
+  <div id="win"><div id="wbar"><span id="wt">Gmail – Saapuneet</span><button id="wback" style="display:none">← Takaisin</button><button id="wx">×</button></div><div id="wbody"></div></div>
+ </div>
+ <div id="taskbar"><span>Käynnistä</span><span id="clock">17:50</span><button id="pcclose">Sulje tietokone (Esc)</button></div>
+</div></div>
+<div id="endcard"><div><h2>Ensimmäinen asiakas hoidettu!</h2><p>Ansio: <b>129 €</b> · Tehtävät: 6/6</p><p>Ensimmäinen asiakas on hoidettu. Työpäivä jatkuu: sähköpostiin alkaa tulla uusia yhteydenottoja. Vastaa niihin, niin asiakkaat tulevat korjaamolle vastausjärjestyksessä.</p><button id="endok">Jatka työpäivää</button></div></div>
+<div id="start"><h1>The Goat<i>Mechanic</i></h1><button id="startbtn">Aloita peli</button><pre id="err" style="display:none;color:#ff8a8a;max-width:80vw;white-space:pre-wrap;font-size:13px"></pre></div>
+<script>
+window.G={started:false};
+window.__err=function(m){var e=document.getElementById('err');if(e){e.style.display='block';e.textContent+=m+'\n'}};
+window.addEventListener('error',function(ev){window.__err('Virhe: '+ev.message+(ev.lineno?' (rivi '+ev.lineno+')':''))});
+window.addEventListener('load',function(){if(!window.THREE)window.__err('three.js ei latautunut (verkko tai estetty). Kokeile ladata sivu uudelleen.')});
+document.addEventListener('DOMContentLoaded',function(){var st=document.getElementById('start');
+ function go(){window.G.started=true;st.style.display='none'}
+ st.addEventListener('click',go);st.addEventListener('touchend',function(e){e.preventDefault();go()});
+ document.addEventListener('keydown',function(e){if(e.code==='Enter'||e.code==='Space')go()})});
+</script>
+<script src="../_shared/three.min.js"></script>
+<script>
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9cc3e6);
+const cam=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,100);cam.rotation.order='YXZ';
+const R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,1.5));document.body.appendChild(R.domElement);
+const M=c=>new THREE.MeshLambertMaterial({color:c});
+function box(w,h,d,c,x,y,z,p=scene){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);p.add(m);return m}
+function cyl(r,h,c,x,y,z,p=scene,rx=0){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,16),M(c));m.position.set(x,y,z);m.rotation.x=rx;p.add(m);return m}
+function tex(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);return new THREE.CanvasTexture(c)}
+function plane(w,h,t,x,y,z,ry=0){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t}));m.position.set(x,y,z);m.rotation.y=ry;scene.add(m);return m}
+const cols=[];const col=(a,b,c,d)=>cols.push([a,b,c,d]);
+const inter=[];
+let PLATE=(()=>{const L='BCDFHJKLMNPRSTXYZ',r=()=>L[Math.floor(Math.random()*L.length)];return r()+r()+r()+'-'+(100+Math.floor(Math.random()*900))})();
+
+/* ---------- huoneet ---------- */
+box(10,.1,8,0x8b6b4a,0,-.05,10);            // toimiston lattia
+box(10,.1,16,0x62666c,0,-.05,-2);           // vajan lattia
+box(10,.1,24,0xd8d8d8,0,4,2);               // katto
+box(10,4,.2,0xe8dfd0,0,2,14.1);             // toimiston takaseinä
+box(.2,4,8,0xe8dfd0,-5.1,2,10);box(.2,4,8,0xe8dfd0,5.1,2,10);
+box(3,4,.2,0x9aa0a8,-3.5,2,-10.1);box(3,4,.2,0x9aa0a8,3.5,2,-10.1);box(4,1.2,.2,0x9aa0a8,0,3.4,-10.1);
+box(4,.1,.4,0x62666c,0,-.05,-10.1);
+box(40,.1,26,0x3f444b,0,-.1,-23);for(let i=0;i<8;i++)box(.2,.01,1.4,0xe6c200,0,-.04,-12-i*3);
+box(8,6,2,0x6b7380,-12,3,-34);box(10,9,2,0x59606b,6,4.5,-36);box(6,5,2,0x7a8290,16,2.5,-33);            // vajan takaseinä
+box(.2,4,16,0x9aa0a8,-5.1,2,-2);box(.2,4,16,0x9aa0a8,5.1,2,-2);
+box(3.8,4,.3,0xcfc8bb,-3.1,2,6);box(3.8,4,.3,0xcfc8bb,3.1,2,6);box(2.4,1.3,.3,0xcfc8bb,0,3.35,6); // väliseinä + ovi
+col(-5,-1.2,5.85,6.15);col(1.2,5,5.85,6.15);
+
+scene.add(new THREE.AmbientLight(0xffffff,.55));
+scene.add(new THREE.HemisphereLight(0xffffff,0x444444,.35));
+[[0,3.5,10,0xfff2d8],[0,3.6,-1.5,0xffffff],[0,3.6,-7,0xffffff]].forEach(l=>{const p=new THREE.PointLight(l[3],.9,18);p.position.set(l[0],l[1],l[2]);scene.add(p)});
+
+/* ---------- toimisto ---------- */
+box(3.4,.02,2.4,0x7a2e2e,0,.01,10.4);       // matto
+box(2.4,.08,1.2,0x5a3b22,0,.76,10);         // pöytä
+[[-1.1,-.5],[1.1,-.5],[-1.1,.5],[1.1,.5]].forEach(p=>box(.08,.74,.08,0x3b2614,p[0],.37,10+p[1]));
+col(-1.25,1.25,9.35,10.65);
+box(.3,.02,.2,0x222222,0,.81,10.2);box(.08,.25,.08,0x222222,0,.93,10.2);
+const mon=box(.8,.5,.05,0x111111,0,1.28,10.2);
+function goatMark(g,cx,cy,s,c){g.save();g.fillStyle=c;g.strokeStyle=c;g.lineCap='round';g.lineWidth=s*.14;
+ g.beginPath();g.moveTo(cx-s*.28,cy-s*.1);g.bezierCurveTo(cx-s*.7,cy-s*.2,cx-s*.75,cy-s*.85,cx-s*.35,cy-s*.95);g.stroke();
+ g.beginPath();g.moveTo(cx+s*.28,cy-s*.1);g.bezierCurveTo(cx+s*.7,cy-s*.2,cx+s*.75,cy-s*.85,cx+s*.35,cy-s*.95);g.stroke();
+ g.beginPath();g.moveTo(cx-s*.34,cy-s*.15);g.lineTo(cx+s*.34,cy-s*.15);g.lineTo(cx+s*.2,cy+s*.5);g.lineTo(cx,cy+s*.62);g.lineTo(cx-s*.2,cy+s*.5);g.closePath();g.fill();
+ g.beginPath();g.moveTo(cx-s*.08,cy+s*.6);g.lineTo(cx,cy+s*1.05);g.lineTo(cx+s*.08,cy+s*.6);g.fill();g.restore()}
+let scrLine='1 uusi viesti';
+const scrDraw=(g,w,h)=>{g.fillStyle='#0b2a4a';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 44px sans-serif';g.textAlign='center';goatMark(g,w/2,56,24,'#ffc21a');g.fillText('THE GOAT',w/2,125);g.fillText('MECHANIC',w/2,175);g.font='26px sans-serif';g.fillStyle='#8fd1ff';g.fillText(scrLine,w/2,240)};
+const scrTex=tex(512,300,scrDraw);
+const scr=plane(.72,.42,scrTex,0,1.28,10.23);
+function setScr(t){scrLine=t;scrDraw(scrTex.image.getContext('2d'),512,300);scrTex.needsUpdate=true}
+mon.userData.a=scr.userData.a='pc';inter.push(mon,scr);
+box(.5,.02,.18,0x222222,0,.81,10.6);box(.07,.03,.1,0x222222,.45,.81,10.6);
+box(.5,.08,.5,0x222222,0,.5,11.7);box(.5,.5,.06,0x222222,0,.78,11.95);cyl(.04,.45,0x555555,0,.25,11.7);col(-.3,.3,11.4,12.1);
+
+function poster(bg,car,title){return tex(420,300,(g)=>{const gr=g.createLinearGradient(0,0,0,300);gr.addColorStop(0,bg[0]);gr.addColorStop(1,bg[1]);g.fillStyle=gr;g.fillRect(0,0,420,300);
+g.fillStyle='rgba(0,0,0,.3)';g.fillRect(0,215,420,85);g.fillStyle=car;g.beginPath();g.moveTo(60,200);g.lineTo(80,160);g.lineTo(140,150);g.lineTo(180,110);g.lineTo(270,110);g.lineTo(310,150);g.lineTo(370,160);g.lineTo(380,200);g.closePath();g.fill();
+g.fillStyle='#bfe6ff';g.beginPath();g.moveTo(190,118);g.lineTo(235,118);g.lineTo(235,150);g.lineTo(165,150);g.fill();g.beginPath();g.moveTo(245,118);g.lineTo(268,118);g.lineTo(298,150);g.lineTo(245,150);g.fill();
+[120,320].forEach(x=>{g.fillStyle='#111';g.beginPath();g.arc(x,205,28,0,7);g.fill();g.fillStyle='#999';g.beginPath();g.arc(x,205,12,0,7);g.fill()});
+g.fillStyle='#fff';g.font='bold 34px sans-serif';g.textAlign='center';g.fillText(title,210,262)})}
+[[-4.97,12,Math.PI/2,['#1d3557','#457b9d'],'#e63946','TURBO GT'],[-4.97,8.4,Math.PI/2,['#3a0ca3','#7209b7'],'#ffd60a','SPEEDSTER'],
+ [4.97,12,-Math.PI/2,['#ff7b00','#ffb347'],'#1d3557','CLASSIC 67'],[4.97,8.4,-Math.PI/2,['#2b9348','#80b918'],'#f8f9fa','OFF-ROAD'],
+ ['b',2.5,Math.PI,['#222','#555'],'#00b4d8','DRIFT KING']].forEach(p=>{
+  const t=poster(p[3],p[4],p[5]);
+  if(p[0]==='b'){box(1.5,1.1,.04,0x222222,p[1],2,13.97);plane(1.4,1,t,p[1],2,13.94,p[2])}
+  else{const s=Math.sign(p[0]);box(.04,1.1,1.5,0x222222,p[0],2,p[1]);plane(1.4,1,t,p[0]-s*.03,2,p[1],p[2])}});
+
+/* ---------- vaja ---------- */
+const gdoor=new THREE.Group();gdoor.position.set(0,0,-9.95);scene.add(gdoor);
+box(4,2.8,.06,0x8a9099,0,1.4,0,gdoor);for(let i=0;i<7;i++)box(4,.03,.08,0x6f757d,0,.4*i+.3,.03,gdoor);
+plane(5,.7,tex(500,70,(g,w,h)=>{g.fillStyle='#111';g.fillRect(0,0,w,h);g.fillStyle='#ffd60a';g.font='bold 44px sans-serif';g.textAlign='center';g.fillText('THE GOAT MECHANIC',w/2,52)}),0,3.4,-9.88);
+[-2.4,2.4].forEach(x=>box(.1,.01,16,0xe6c200,x,.005,-2));
+
+// lifti: vain ajourat pyörien alle, auton pohja vapaa
+const liftG=new THREE.Group();liftG.position.set(0,.12,-3);scene.add(liftG);
+const P=(c,sh=60)=>new THREE.MeshPhongMaterial({color:c,shininess:sh,specular:0x777777});
+const metalL=P(0x4a4f57,40);
+[-1,1].forEach(s=>{
+  box(.5,.14,4.6,0x4a4f57,s*.85,0,0,liftG);
+  [[2.55,.35],[-2.55,-.35]].forEach(r=>{const m=box(.5,.04,.6,0x4a4f57,s*.85,-.04,r[0],liftG);m.rotation.x=r[1]});
+  box(.75,.12,.28,0x4a4f57,s*1.5,0,0,liftG);
+  box(.5,.02,.05,0xe0a800,s*.85,.075,2.25,liftG);box(.5,.02,.05,0xe0a800,s*.85,.075,-2.25,liftG);
+});
+[-1.9,1.9].forEach(x=>{box(.25,3.4,.4,0xe0a800,x,1.7,-3);box(.4,.1,.6,0x333333,x,.05,-3)});
+col(-2.05,-1.75,-3.3,-2.7);col(1.75,2.05,-3.3,-2.7);
+const liftCol=[-1.4,1.4,-5.4,-.6];cols.push(liftCol);
+[-1.7,-4.3].forEach(z=>{const l=new THREE.PointLight(0xfff0d0,.7,5);l.position.set(0,.9,z);scene.add(l)});
+
+// ---------- auto ----------
+const car=new THREE.Group();car.position.y=.07;liftG.add(car);
+const bx=(w,h,d,m,x,y,z,p=car)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);p.add(o);return o};
+const pl=(w,h,t,x,y,z,ry=0)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t,transparent:true}));m.position.set(x,y,z);m.rotation.y=ry;car.add(m)};
+const UP=new THREE.Vector3(0,1,0);
+function pipe(a,b,r,m,p=car){if(typeof m==='number')m=P(m,70);const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),10),m);o.position.copy(A.clone().add(B).multiplyScalar(.5));o.quaternion.setFromUnitVectors(UP,d.normalize());p.add(o);return o}
+function ext(sh,w,bt,bs){const g=new THREE.ExtrudeGeometry(sh,{depth:w-2*bt,bevelEnabled:bt>0,bevelThickness:bt,bevelSize:bs,bevelOffset:-bs,bevelSegments:3,curveSegments:14});g.rotateY(-Math.PI/2);g.computeBoundingBox();g.translate(-(g.boundingBox.min.x+g.boundingBox.max.x)/2,0,0);return g}
+function paint(g,c,dk){const n=g.attributes.normal,q=g.attributes.position,a=new Float32Array(q.count*3),C=new THREE.Color(c),D=new THREE.Color(dk);for(let i=0;i<q.count;i++){const k=n.getY(i)<-.35?D:C;a.set([k.r,k.g,k.b],i*3)}g.setAttribute('color',new THREE.BufferAttribute(a,3))}
+const paintS=P(0xa11d1d,90),black=P(0x0c0c0c,20),chromeM=P(0xd8dde2,140),steel=P(0x8d9399,70),stain=P(0xb9bfc6,130),darkM=P(0x22262b,30),cast=P(0x3b4148,30);
+
+// korin muoto sivuprofiilista (pyöränkaaret leikattu)
+const B=new THREE.Shape();
+B.moveTo(-2.08,.3);B.lineTo(-2.1,.62);B.quadraticCurveTo(-2.1,.9,-1.8,.92);B.lineTo(-1.35,.95);B.lineTo(1.1,.96);
+B.quadraticCurveTo(1.6,.94,1.95,.88);B.quadraticCurveTo(2.14,.84,2.14,.62);B.lineTo(2.1,.3);B.lineTo(1.73,.3);
+B.absarc(1.35,.3,.38,0,Math.PI,false);B.lineTo(-.97,.3);B.absarc(-1.35,.3,.38,0,Math.PI,false);B.lineTo(-2.08,.3);
+const bg=ext(B,1.8,.1,.07);paint(bg,0xa11d1d,0x17181a);
+car.add(new THREE.Mesh(bg,new THREE.MeshPhongMaterial({vertexColors:true,shininess:90,specular:0x777777})));
+// ohjaamo (lasi), katto ja pilarit
+const C=new THREE.Shape();C.moveTo(-1.3,.93);C.lineTo(-.78,1.4);C.lineTo(.35,1.4);C.lineTo(1.0,.93);
+car.add(new THREE.Mesh(ext(C,1.5,0,0),new THREE.MeshPhongMaterial({color:0x101a26,shininess:140,specular:0xaabbcc})));
+bx(1.58,.05,1.05,paintS,0,1.415,-.22);
+[-1,1].forEach(s=>{
+  bx(.07,.48,.09,paintS,s*.76,1.165,-.2);
+  bx(.06,.06,.8,paintS,s*.77,1.165,.675).rotation.x=.628;
+  bx(.06,.06,.7,paintS,s*.77,1.165,-1.04).rotation.x=-.737;
+  [.76,-.2,-.85].forEach(z=>bx(.012,.52,.015,black,s*.905,.65,z));
+  [.4,-.55].forEach(z=>bx(.02,.025,.12,chromeM,s*.91,.82,z));
+  bx(.03,.06,1.7,black,s*.9,.36,0);
+  bx(.12,.1,.16,paintS,s*.96,1.0,.9);
+  // valot
+  const hl=bx(.4,.12,.08,new THREE.MeshPhongMaterial({color:0xffffee,emissive:0xfff2b0,emissiveIntensity:.8}),s*.6,.76,2.12);hl.rotation.y=s*.12;
+  bx(.5,.12,.06,new THREE.MeshPhongMaterial({color:0xff2020,emissive:0xaa0000,emissiveIntensity:.8}),s*.62,.78,-2.1);
+});
+// keula, merkki ja rekisterikilvet
+bx(.9,.1,.05,black,0,.72,2.14);bx(.94,.014,.03,chromeM,0,.78,2.15);bx(.94,.014,.03,chromeM,0,.66,2.15);bx(1.2,.1,.06,black,0,.38,2.12);
+const emb=tex(128,128,g=>{const gr=g.createRadialGradient(50,45,5,64,64,60);gr.addColorStop(0,'#fff');gr.addColorStop(1,'#8a9099');g.fillStyle=gr;g.beginPath();g.arc(64,64,60,0,7);g.fill();g.strokeStyle='#222';g.lineWidth=6;g.stroke();goatMark(g,64,52,26,'#111')});
+const badge=tex(256,48,g=>{g.fillStyle='#e8e8e8';g.font='bold 38px sans-serif';g.textAlign='center';g.fillText('GOAT GT',128,38)});
+pl(.15,.15,emb,0,.72,2.172);pl(.15,.15,emb,0,.74,-2.118,Math.PI);pl(.4,.075,badge,0,.6,-2.115,Math.PI);
+const plateDraw=(g,w,h)=>{g.fillStyle='#f2f2f0';g.fillRect(0,0,w,h);g.strokeStyle='#111';g.lineWidth=6;g.strokeRect(3,3,w-6,h-6);g.fillStyle='#003399';g.fillRect(6,6,62,h-12);g.fillStyle='#fc0';g.font='bold 20px sans-serif';g.textAlign='center';g.fillText('★',37,40);g.fillStyle='#fff';g.font='bold 26px sans-serif';g.fillText('FIN',37,90);g.fillStyle='#111';g.font='bold 80px monospace';g.fillText(PLATE,296,84)};const plateT=tex(520,110,plateDraw);
+pl(.52,.11,plateT,0,.5,2.135);pl(.52,.11,plateT,0,.47,-2.105,Math.PI);
+
+// pyörät
+const wheels=[];const tireM=P(0x131313,15),rimM=P(0xc9ced4,120),dsk=P(0x2a2d31,40);
+[[-1,1.35],[1,1.35],[-1,-1.35],[1,-1.35]].forEach(([s,z])=>{
+  const w=new THREE.Group();w.position.set(s*.8,.33,z);car.add(w);wheels.push(w);
+  const add=(r,h,m,x)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,24),m);o.rotation.z=Math.PI/2;o.position.x=x;w.add(o)};
+  add(.33,.25,tireM,0);add(.23,.27,rimM,0);add(.19,.01,dsk,s*.136);add(.05,.02,rimM,s*.145);
+  for(let i=0;i<3;i++)bx(.012,.4,.045,rimM,s*.142,0,0,w).rotation.x=i*Math.PI/3;
+});
+
+// ---------- pohjan putkisto ----------
+[-1,1].forEach(s=>{
+  bx(.08,.07,2.5,darkM,s*.5,.25,.28);                                             // pitkittäispalkit
+  pipe([s*.3,.22,1.2],[s*.32,.15,.6],.035,stain);                                 // pakoputken alku
+  pipe([s*.32,.15,.6],[s*.32,.15,.2],.075,stain);                                 // katalysaattori
+  bx(.28,.01,.5,steel,s*.32,.255,.4);                                             // lämpökilpi
+  pipe([s*.32,.15,.2],[s*.34,.17,-1.0],.038,stain);                               // keskiputki
+  pipe([s*.34,.17,-1.0],[s*.34,.17,-1.85],.11,P(0x6e757c,60));                    // äänenvaimennin
+  pipe([s*.34,.17,-1.85],[s*.34,.17,-2.18],.045,P(0xeeeeee,150));                 // päätyputki
+  [.6,.2,-1.0].forEach(z=>pipe([s*.32,.15,z-.01],[s*.32,.15,z+.01],.09,darkM));   // laipat
+  bx(.03,.13,.05,black,s*.33,.23,-.5);
+  pipe([s*.3,.23,1.25],[s*.75,.3,1.35],.025,darkM);pipe([s*.3,.23,1.45],[s*.75,.3,1.35],.025,darkM);   // taka-/etuvarret
+  pipe([s*.6,.3,1.08],[s*.76,.33,1.3],.012,steel);                                // raidetangot
+  [1.35,-1.35].forEach(z=>{pipe([s*.68,.3,z],[s*.68,.62,z],.028,black);for(let k=0;k<5;k++){const t=new THREE.Mesh(new THREE.TorusGeometry(.05,.011,6,12),P(0xe0a800,40));t.rotation.x=Math.PI/2;t.position.set(s*.68,.37+k*.045,z);car.add(t)}});
+});
+bx(1.1,.06,.1,darkM,0,.25,1.5);bx(1.1,.06,.1,darkM,0,.25,-.9);
+pipe([-.6,.3,1.08],[.6,.3,1.08],.03,darkM);                                       // ohjausvaihde
+bx(.55,.12,.6,cast,0,.2,.95);bx(.3,.06,.3,cast,0,.12,1.0);                         // moottori + öljypohja
+const plugM=cyl(.02,.03,0xd4a24c,.08,.085,1.02,car);                                          // öljyn tyhjennystulppa
+const oldFilt=cyl(.045,.15,0xe67e22,.33,.2,.85,car);                                            // öljynsuodatin
+pipe([0,.19,.55],[0,.19,-.1],.1,cast);pipe([0,.19,-.1],[0,.19,-.35],.07,cast);     // vaihteisto
+pipe([0,.19,-.35],[0,.3,-1.3],.035,darkM);                                        // vetoakseli
+const df=new THREE.Mesh(new THREE.SphereGeometry(.14,12,10),cast);df.position.set(0,.33,-1.35);df.scale.set(1.2,.9,.9);car.add(df);
+pipe([-.8,.33,-1.35],[.8,.33,-1.35],.03,steel);                                   // taka-akseli
+pipe([-.58,.28,1.2],[-.58,.28,-1.2],.009,0xb87333);                               // jarruputki
+pipe([.58,.28,.8],[.58,.28,-1.2],.012,0x111111);                                  // polttoaineputki
+
+// ---------- tutoriaalin esineet ----------
+car.visible=true;car.position.z=0;
+const cdoor=new THREE.Group();cdoor.position.set(.93,.66,.62);car.add(cdoor);
+{const m=new THREE.Mesh(new THREE.BoxGeometry(.035,.5,1.0),paintS);m.position.set(0,0,-.5);cdoor.add(m)}
+const dpanel=box(.34,.5,.08,0x2b3038,3.2,1.3,-9.94);
+const dbtn=new THREE.Mesh(new THREE.BoxGeometry(.16,.16,.05),new THREE.MeshLambertMaterial({color:0x2ecc71}));dbtn.position.set(3.2,1.38,-9.88);scene.add(dbtn);dbtn.userData.a='door';inter.push(dbtn);
+plane(.3,.1,tex(150,50,(g,w,h)=>{g.fillStyle='#111';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText('OVI',w/2,36)}),3.2,1.14,-9.895);
+const marker=new THREE.Mesh(new THREE.ConeGeometry(.16,.34,4),new THREE.MeshBasicMaterial({color:0xffd60a,depthTest:false}));marker.rotation.x=Math.PI;marker.renderOrder=999;marker.visible=false;scene.add(marker);
+const spot=new THREE.Mesh(new THREE.PlaneGeometry(3,1.4),new THREE.MeshBasicMaterial({color:0xffd60a,transparent:true,opacity:.35}));spot.rotation.x=-Math.PI/2;spot.position.set(0,.03,1.6);spot.visible=false;scene.add(spot);
+function makeNPC(){const g=new THREE.Group();
+ const mk=(w,h,d,c,x,y,z,p=g)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);p.add(m);return m};
+ const legs=[-1,1].map(q=>{const p=new THREE.Group();p.position.set(q*.11,.82,0);g.add(p);mk(.16,.82,.2,0x2c3e66,0,-.41,0,p);mk(.18,.08,.28,0x111111,0,-.78,.04,p);return p});
+ const torso=mk(.44,.62,.26,0xe67e22,0,1.13,0);torso.userData.a='npc';mk(.46,.08,.28,0x333333,0,.83,0);
+ const arms=[-1,1].map(q=>{const p=new THREE.Group();p.position.set(q*.29,1.4,0);g.add(p);mk(.11,.58,.14,0xe67e22,0,-.27,0,p);mk(.1,.1,.12,0xf1c27d,0,-.6,0,p);return p});
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.16,14,12),M(0xf1c27d));head.position.y=1.63;g.add(head);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.175,14,10,0,Math.PI*2,0,Math.PI/2),M(0x1f4e8c));cap.position.y=1.66;g.add(cap);
+ [-1,1].forEach(q=>mk(.03,.03,.02,0x111111,q*.06,1.64,.155));
+ g.userData={legs,arms,torso,cap};return g}
+const npc=makeNPC();npc.visible=false;scene.add(npc);inter.push(npc.userData.torso);
+
+// ---------- työtehtävien kohteet ----------
+const hit=(name,w,h,d,x,y,z,extra)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshBasicMaterial({visible:false}));m.position.set(x,y,z);car.add(m);m.userData=Object.assign({a:name},extra||{});inter.push(m);return m};
+const hbPlug=hit('plug',.22,.25,.22,.08,.085,1.02),hbFilt=hit('filt',.22,.3,.22,.35,.2,.85),hbExh=hit('exh',.3,.3,.4,.32,.15,.2),hbHood=hit('hood',.9,.2,.9,0,1.04,1.5);
+const hbBrake=[-1,1].map((q,k)=>hit('brake',.28,.5,.5,q*.55,.33,1.35,{k})),hbTyre=[[-1,1.35],[1,1.35],[-1,-1.35],[1,-1.35]].map((w,i)=>hit('tyre',.3,.72,.72,w[0]*.93,.33,w[1],{i}));
+const calipers=[-1,1].map(q=>{const d=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.025,20),P(0x9aa0a8,60));d.rotation.z=Math.PI/2;d.position.set(q*.62,.33,1.35);car.add(d);return bx(.07,.14,.16,P(0xc0392b,60),q*.58,.46,1.35)});
+const looseRing=new THREE.Mesh(new THREE.TorusGeometry(.1,.015,6,16),new THREE.MeshBasicMaterial({color:0xff7a00}));looseRing.position.set(.32,.15,.2);looseRing.rotation.y=Math.PI/2;car.add(looseRing);
+const engineBox=bx(.7,.1,.5,cast,0,.99,1.5);const capM=cyl(.05,.04,0xf1c40f,.1,1.06,1.55,car);
+const hood=new THREE.Group();hood.position.set(0,1.045,1.05);car.add(hood);{const m=new THREE.Mesh(new THREE.BoxGeometry(1.4,.03,.9),paintS);m.position.set(0,0,.45);hood.add(m)}
+const pan=new THREE.Group();pan.visible=false;scene.add(pan);
+{const b=new THREE.Mesh(new THREE.CylinderGeometry(.28,.24,.1,18),M(0x2d6a4f));b.position.y=.05;pan.add(b)}
+const panOil=new THREE.Mesh(new THREE.CylinderGeometry(.25,.25,.02,18),new THREE.MeshBasicMaterial({color:0x2b1a05}));panOil.position.y=.03;pan.add(panOil);
+const stream=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,1,8),new THREE.MeshBasicMaterial({color:0x3a2606}));stream.visible=false;scene.add(stream);
+
+// ohjauskotelo + napit
+box(.35,1.2,.25,0x333a44,-3,.6,.5);col(-3.2,-2.8,.3,.7);
+function arrow(ch,bg){return tex(64,64,(g)=>{g.fillStyle=bg;g.fillRect(0,0,64,64);g.fillStyle='#fff';g.font='bold 40px sans-serif';g.textAlign='center';g.fillText(ch,32,46)})}
+function btn(y,ch,bg,a){const b=new THREE.Mesh(new THREE.BoxGeometry(.16,.16,.05),new THREE.MeshLambertMaterial({color:0x888888}));b.position.set(-3,y,.64);scene.add(b);b.userData.a=a;inter.push(b);
+  const p=plane(.15,.15,arrow(ch,bg),-3,y,.666);return b}
+const bUp=btn(1.0,'▲','#1f9d4c','up'),bDown=btn(.78,'▼','#c0392b','down');
+plane(.3,.12,tex(150,60,(g,w,h)=>{g.fillStyle='#111';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='bold 30px sans-serif';g.textAlign='center';g.fillText('LIFTI',w/2,42)}),-3,1.13,.666);
+const lamp=new THREE.Mesh(new THREE.BoxGeometry(.08,.05,.03),new THREE.MeshBasicMaterial({color:0x00e060}));lamp.position.set(-3,.62,.64);scene.add(lamp);
+
+// työpöytä + työkalut
+box(.9,.06,3.2,0x6b4a2b,4.5,.9,-3.5);[[-.4,-1.5],[.4,-1.5],[-.4,1.5],[.4,1.5]].forEach(p=>box(.06,.9,.06,0x333333,4.5+p[0],.45,-3.5+p[1]));
+box(.8,.05,3.1,0x5a4028,4.5,.3,-3.5);col(4.0,5,-5.2,-1.8);
+const TY=.93;
+const TOOLS={};
+function tool(name,label,x,z,build){const g=new THREE.Group();g.position.set(x,TY,z);scene.add(g);build(g);const hb=new THREE.Mesh(new THREE.BoxGeometry(.42,.25,.55),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(x,TY+.08,z);hb.userData={a:'pick',t:name};scene.add(hb);inter.push(hb);TOOLS[name]={g,hb,label}}
+tool('wrench','Jakoavain',4.3,-4.7,g=>{box(.03,.012,.32,0xaab1ba,0,0,0,g);const r=new THREE.Mesh(new THREE.TorusGeometry(.035,.012,6,14),M(0xaab1ba));r.rotation.x=Math.PI/2;r.position.z=.19;g.add(r);const r2=r.clone();r2.position.z=-.19;g.add(r2);g.rotation.y=.3});
+tool('filter','Uusi öljynsuodatin',4.65,-4.7,g=>{cyl(.05,.14,0x2c7be5,0,.07,0,g);cyl(.052,.02,0xd8d8d8,0,.145,0,g)});
+tool('pads','Jarrupalat',4.65,-4.15,g=>{box(.2,.03,.12,0x333333,0,.015,0,g);box(.2,.03,.12,0x444444,0,.05,0,g);box(.2,.012,.12,0xb08040,0,.07,0,g)});
+tool('gauge','Rengasmittari',4.35,-3.6,g=>{cyl(.035,.12,0x555555,0,.04,0,g,Math.PI/2);box(.07,.05,.07,0xc0392b,0,.05,.08,g)});
+tool('can','Öljykannu',4.35,-2.1,g=>{cyl(.05,.12,0xe0a800,0,.06,0,g);cyl(.012,.1,0xe0a800,.05,.14,0,g,.6)});
+{ const g=new THREE.Group();g.position.set(4.62,TY+.015,-3.7);scene.add(g);cyl(.015,.36,0x8b5a2b,0,0,0,g,Math.PI/2);box(.05,.05,.14,0x555a62,0,0,.17,g);g.rotation.y=-.4}
+tool('impact','Mutterinväännin',4.5,-3.1,g=>{box(.1,.1,.22,0xe0a800,0,.07,0,g);box(.06,.14,.07,0x2a2d31,0,.0,-.04,g);cyl(.025,.1,0x8d9399,0,.07,.16,g,Math.PI/2)});
+{const g=new THREE.Group();scene.add(g);const st=[];for(let i=0;i<4;i++){const t=new THREE.Mesh(new THREE.TorusGeometry(.24,.1,8,18),M(0x151515));t.rotation.x=Math.PI/2;t.position.set(3.55,.12+i*.2,-3.5);g.add(t);st.push(t)}
+ const hb=new THREE.Mesh(new THREE.BoxGeometry(.8,.9,.8),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(3.55,.45,-3.5);hb.userData={a:'pick',t:'tyres'};scene.add(hb);inter.push(hb);TOOLS.tyres={g,hb,label:'Renkaat',st};col(3.2,3.9,-3.9,-3.1)}
+{ box(.26,.04,.16,0xc0392b,4.6,TY+.01,-2.5);for(let i=0;i<5;i++)cyl(.02,.03,0x9aa0a8,4.5+i*.05,TY+.045,-2.5);}
+
+// sisustusta
+cyl(.35,.9,0x1f4e8c,-4.2,.45,-8.6);col(-4.6,-3.8,-9,-8.2);
+for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.TorusGeometry(.32,.13,8,18),M(0x151515));t.rotation.x=Math.PI/2;t.position.set(-4.2,.14+i*.26,-6.8);scene.add(t)}col(-4.6,-3.8,-7.2,-6.4);
+
+// ---------- animaatiot ja varasto ----------
+scene.add(cam);
+const fp=new THREE.Group();fp.position.set(.25,-.2,-.55);cam.add(fp);fp.visible=false;
+const FP={};
+const lm=c=>new THREE.MeshLambertMaterial({color:c});
+const fpm=(w,h,d,c,x,y,z,g)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),lm(c));m.position.set(x,y,z);g.add(m);return m};
+const fpg=n=>{const g=new THREE.Group();g.visible=false;fp.add(g);FP[n]=g;return g};
+{const g=fpg('wrench');fpm(.04,.025,.4,0xb8bfc8,0,0,.05,g);const h=new THREE.Mesh(new THREE.TorusGeometry(.055,.02,6,12),lm(0xb8bfc8));h.position.z=-.17;g.add(h);g.rotation.set(.3,-.5,0)}
+{const g=fpg('filter');g.add(new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.2,16),lm(0x2c7be5)));const t=new THREE.Mesh(new THREE.CylinderGeometry(.078,.078,.03,16),lm(0xd8d8d8));t.position.y=.115;g.add(t);g.rotation.x=.3}
+{const g=fpg('pads');fpm(.22,.045,.13,0x3a3a3a,0,0,0,g);fpm(.22,.014,.13,0xb08040,0,.03,0,g);g.rotation.set(.5,.3,0)}
+{const g=fpg('can');g.add(new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.2,16),lm(0xe0a800)));fpm(.035,.035,.15,0xe0a800,0,.13,-.06,g).rotation.x=.5}
+{const g=fpg('gauge');const c=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.24,12),lm(0x555555));c.rotation.x=Math.PI/2;g.add(c);fpm(.09,.09,.04,0xc0392b,0,.06,.08,g);g.rotation.y=.3}
+{const g=fpg('impact');fpm(.09,.09,.24,0xe0a800,0,0,0,g);fpm(.05,.13,.06,0x2a2d31,0,-.1,.04,g);const n=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.12,10),lm(0x8d9399));n.rotation.x=Math.PI/2;n.position.z=-.17;g.add(n);g.rotation.set(.1,-.3,0)}
+{const g=fpg('tyres');g.add(new THREE.Mesh(new THREE.TorusGeometry(.13,.05,8,16),lm(0x1a1a1a)));g.rotation.set(.3,.5,0)}
+const wornM=P(0x57544c,10);const dropped=[];
+function dropTyre(i){scene.updateMatrixWorld(true);const m=new THREE.Mesh(new THREE.TorusGeometry(.24,.1,8,18),wornM);wheels[i].getWorldPosition(m.position);m.rotation.y=Math.PI/2;scene.add(m);dropped.push(m);fallers.push({m,vy:0,floor:.34,out:i%2?1:-1})}
+const bolts=new THREE.Group();bolts.position.set(.32,.15,.2);car.add(bolts);const boltG=[];
+for(let i=0;i<4;i++){const a=i*Math.PI/2+.4,bg=new THREE.Group();bg.position.set(Math.cos(a)*.09,Math.sin(a)*.09,.025);bolts.add(bg);
+ const b=new THREE.Mesh(new THREE.CylinderGeometry(.016,.016,.05,6),lm(0xb87333));b.rotation.x=Math.PI/2;bg.add(b);fpm(.04,.012,.012,0x222222,0,0,.026,bg);boltG.push(bg)}
+const oldPad=[-1,1].map(q=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.03,.12,.1),lm(0x2a1a10));m.position.set(q*.6,.4,1.35);m.visible=false;car.add(m);return m});
+const newPad=[-1,1].map(q=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.03,.12,.1),lm(0xd0a040));m.position.set(q*.6,.4,1.35);m.visible=false;car.add(m);return m});
+const newFilt=cyl(.045,.15,0x2c7be5,.33,.2,.85,car);newFilt.visible=false;
+const fillStream=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.3,8),new THREE.MeshBasicMaterial({color:0xd9a520}));fillStream.position.set(.1,1.22,1.55);fillStream.visible=false;car.add(fillStream);
+wheels[2].scale.set(1,.92,.92);
+const fallers=[];
+const LBL={tyres:['Renkaat',3.55,-3.5],pads:['Jarrupalat',4.65,-4.15],filter:['Öljynsuodatin',4.65,-4.7],can:['Moottoriöljy',4.35,-2.1]};const lblTex={};
+function drawLabel(k){const L=LBL[k];if(!lblTex[k]){const t=tex(256,64,()=>{});const m=new THREE.Mesh(new THREE.PlaneGeometry(.5,.125),new THREE.MeshBasicMaterial({map:t,transparent:true}));m.position.set(L[1],1.3,L[2]);m.rotation.y=-Math.PI/2;scene.add(m);lblTex[k]=t}
+ const t=lblTex[k],g=t.image.getContext('2d');g.clearRect(0,0,256,64);g.fillStyle='#e8dcb8';g.fillRect(0,0,256,64);g.strokeStyle='#5a4a2a';g.lineWidth=4;g.strokeRect(2,2,252,60);g.fillStyle=stock[k]>0?'#2a2418':'#a02020';g.font='bold 26px sans-serif';g.textAlign='center';g.fillText(L[0]+(stock[k]>0?'  ×'+stock[k]:'  LOPPU'),128,41);t.needsUpdate=true}
+
+/* ---------- ääni ---------- */
+let AC=null,master=null,musicBus=null,muted=false,engOsc=null,engGain=null,mum=null,lastV=0;
+const NOTE=n=>440*Math.pow(2,(n-69)/12);
+const CH=[[48,55,59,64],[45,52,55,60],[41,48,52,57],[43,50,55,59]],SC=[72,74,76,79,81,84];
+let chIdx=0;
+function pad(f,t,dur){const o1=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();o1.type='triangle';o2.type='sine';o1.frequency.value=f;o2.frequency.value=f*1.004;lp.type='lowpass';lp.frequency.value=800;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.09,t+2.2);g.gain.linearRampToValueAtTime(.0001,t+dur);o1.connect(lp);o2.connect(lp);lp.connect(g);g.connect(musicBus);o1.start(t);o2.start(t);o1.stop(t+dur+.1);o2.stop(t+dur+.1)}
+function bell(f,t){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.06,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+3.2);o.connect(g);g.connect(musicBus);o.start(t);o.stop(t+3.4)}
+function startMusic(){const bar=()=>{if(!AC)return;try{const t=AC.currentTime+.05,ch=CH[chIdx%CH.length];chIdx++;ch.forEach((n,i)=>pad(NOTE(n),t+i*.15,9.5));
+  let tt=1.2+Math.random();for(let k=0;k<3;k++){if(Math.random()<.7)bell(NOTE(SC[Math.floor(Math.random()*SC.length)]),t+tt);tt+=1.6+Math.random()*1.8}}catch(e){}
+  setTimeout(bar,8000)};bar()}
+function initAudio(){
+ if(AC){try{if(AC.state==='suspended')AC.resume()}catch(e){}return}
+ try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){AC=null;return}
+ try{master=AC.createGain();master.gain.value=muted?0:.9;master.connect(AC.destination);
+  const len=Math.floor(AC.sampleRate*2.8),ir=AC.createBuffer(2,len,AC.sampleRate);
+  for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}
+  const conv=AC.createConvolver();conv.buffer=ir;const rg=AC.createGain();rg.gain.value=.7;conv.connect(rg);rg.connect(master);
+  musicBus=AC.createGain();musicBus.gain.value=0;musicBus.connect(master);musicBus.connect(conv);musicBus.gain.linearRampToValueAtTime(.2,AC.currentTime+8);
+  startMusic();
+  engGain=AC.createGain();engGain.gain.value=0;const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=260;engOsc=AC.createOscillator();engOsc.type='sawtooth';engOsc.frequency.value=50;engOsc.connect(lp);lp.connect(engGain);engGain.connect(master);engOsc.start()
+ }catch(e){window.__err('Ääni ei käynnisty: '+e.message)}}
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,initAudio));
+function startMumble(){if(!AC||mum)return;try{const o=AC.createOscillator(),g=AC.createGain(),f1=AC.createBiquadFilter(),f2=AC.createBiquadFilter(),lp=AC.createBiquadFilter(),mix=AC.createGain();
+ o.type='sawtooth';o.frequency.value=110;f1.type='bandpass';f2.type='bandpass';f1.Q.value=5;f2.Q.value=7;lp.type='lowpass';lp.frequency.value=2200;g.gain.value=0;mix.gain.value=3;
+ o.connect(f1);o.connect(f2);f1.connect(mix);f2.connect(mix);mix.connect(lp);lp.connect(g);g.connect(master);o.start();
+ const V=[[700,1100],[420,2000],[320,850],[540,1500],[800,1300]];
+ const iv=setInterval(()=>{const t=AC.currentTime,v=V[Math.floor(Math.random()*V.length)];f1.frequency.setTargetAtTime(v[0],t,.02);f2.frequency.setTargetAtTime(v[1],t,.02);o.frequency.setTargetAtTime(95+Math.random()*45,t,.03);
+  if(Math.random()<.78){g.gain.cancelScheduledValues(t);g.gain.setTargetAtTime(.22,t,.015);g.gain.setTargetAtTime(.03,t+.09,.03)}else g.gain.setTargetAtTime(0,t,.02)},150);
+ mum={o,g,iv}}catch(e){mum=null}}
+function stopMumble(){if(!mum)return;const m=mum;mum=null;clearInterval(m.iv);try{m.g.gain.setTargetAtTime(0,AC.currentTime,.05);m.o.stop(AC.currentTime+.4)}catch(e){}}
+function blip(f,d){if(!AC||!master)return;try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.setValueAtTime(f,t);o.frequency.linearRampToValueAtTime(f*1.5,t+.12);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+(d||.25));o.connect(g);g.connect(master);o.start(t);o.stop(t+(d||.25)+.05)}catch(e){}}
+function engineSnd(sp){if(!engGain)return;try{const t=AC.currentTime;engGain.gain.setTargetAtTime(sp>0?.07:0,t,.15);engOsc.frequency.setTargetAtTime(48+sp*14,t,.2)}catch(e){}}
+
+function clk(f,d,vol){if(!AC||!master)return;try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(vol||.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.02)}catch(e){}}
+function hiss(d){if(!AC||!master)return;try{const n=Math.floor(AC.sampleRate*d),b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=Math.random()*2-1;const sr=AC.createBufferSource(),hp=AC.createBiquadFilter(),g=AC.createGain();sr.buffer=b;hp.type='highpass';hp.frequency.value=2500;const t=AC.currentTime;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.08,t+.15);g.gain.linearRampToValueAtTime(.0001,t+d);sr.connect(hp);hp.connect(g);g.connect(master);sr.start(t)}catch(e){}}
+function tickSnd(tool){if(tool==='impact')clk(900+Math.random()*500,.025,.05);else if(tool==='wrench')clk(1500+Math.random()*300,.03,.04);else if(tool==='filter')clk(220,.06,.06);else if(tool==='pads')clk(700,.05,.03);else if(tool==='can')clk(160+Math.random()*60,.09,.05)}
+
+/* ---------- ohjaus ---------- */
+const LOW=.12,HIGH=1.95;let liftTarget=LOW,yaw=0,pitch=0,px=0,pz=12.8,started=false,locked=false,fallback=false,drag=false;
+const keys={};const ray=new THREE.Raycaster();ray.far=3.2;
+const $=id=>document.getElementById(id),prompt_=$('prompt'),notesEl=$('notes'),start=$('start'),objEl=$('obj'),todoEl=$('todo'),dlgEl=$('dlg'),pcEl=$('pc');
+function target(){ray.setFromCamera({x:0,y:0},cam);const h=ray.intersectObjects(inter)[0];return h?h.object:null}
+function toast(t,ms){const n=document.createElement('div');n.className='note';n.textContent=t;notesEl.appendChild(n);while(notesEl.children.length>3)notesEl.firstChild.remove();setTimeout(()=>{n.classList.add('out');setTimeout(()=>n.remove(),320)},Math.min(ms||2000,2600))}
+let everLocked=false;
+function enterFallback(){if(fallback)return;fallback=true;start.style.display='none';$('hint').textContent='Katselu: pidä hiiren vasenta painiketta pohjassa ja vedä · nuolet vasen/oikea kääntävät · WASD liiku · E käytä · M musiikki';toast('Hiiren lukitus ei ole käytössä – katsele pitämällä hiiren painiketta pohjassa',4500)}
+function tryLock(){if(fallback)return;const el=R.domElement,fail=()=>{if(!everLocked&&!document.pointerLockElement)enterFallback()};
+ try{let p;try{p=el.requestPointerLock({unadjustedMovement:true})}catch(e){p=el.requestPointerLock()}
+  if(p&&p.catch)p.catch(()=>{try{const q=el.requestPointerLock();if(q&&q.catch)q.catch(fail)}catch(e2){fail()}})}catch(e){fail()}}
+
+/* pelin tila */
+let step=-1,carState='hidden',pcOpen=false,dlgOn=false,endOn=false,mail='new',npcMode='hidden',npcIdx=0,stopTimer=0,doorTarget=0,cdoorTarget=0,mBase=null,hoodTarget=0,lastHint='',retT=-1,retStarted=false,carLeaveT=-1;
+const done={},inv={},got={};const queue=[];let closing=false,firstEnd=true,mailOn=false,mailT=18,arrT=5,curJob=null,jobsDone=0;
+const stock={pads:4,filter:2,can:2,tyres:0},CONS={pads:2,filter:1,can:1,tyres:4};let money=100,act=null,shopOpen=false,shopT=0;const orders=[];
+const wk={plug:0,drainT:0,hood:0,fill:0,fillT:0,brk:[0,0],brkN:0,tyre:[0,0,0,0],tyreT:[0,0,0,0],tyreN:0,sw:[0,0,0,0],swN:0,pw:new THREE.Vector3()};
+const PRESS=[2.2,2.1,1.5,2.2],TNAME=['oikea etu','vasen etu','oikea taka','vasen taka'];
+const ALLT=[['lift','Nosta auto liftillä'],['exh','Kiristä pakoputken liitos'],['drain','Tyhjennä vanha öljy'],['plug','Kiristä tyhjennystulppa'],['filt','Vaihda öljynsuodatin'],['brk','Vaihda jarrupalat'],['swap','Vaihda renkaat'],['low','Laske auto alas'],['fill','Täytä uusi öljy'],['tyre','Tarkista rengaspaineet'],['ret','Luovuta auto asiakkaalle']];
+const TNEED={exh:'exh',drain:'oil',plug:'oil',filt:'oil',fill:'oil',brk:'brk',swap:'swap',tyre:'press'};
+const tasksNow=()=>ALLT.filter(t=>!TNEED[t[0]]||curJob.need[TNEED[t[0]]]);
+const recent={},prevDone={},shown={};
+function renderTodo(){const now=performance.now();
+ tasksNow().forEach(t=>{if(done[t[0]]&&!prevDone[t[0]]){prevDone[t[0]]=true;recent[t[0]]=now;setTimeout(renderTodo,1800)}});
+ const vis=[];let und=0;tasksNow().forEach(t=>{const id=t[0];if(done[id]){if(recent[id]&&now-recent[id]<1700)vis.push(t)}else if(und<3){vis.push(t);und++}});
+ todoEl.innerHTML='<h3>TEHTÄVÄT</h3>'+vis.map(t=>{const id=t[0];let lab=t[1];if(id==='brk')lab+=' '+wk.brkN+'/2';if(id==='tyre')lab+=' '+wk.tyreN+'/4';if(id==='swap')lab+=' '+wk.swN+'/4';const fresh=!shown[id];shown[id]=true;
+  return '<div class="tk'+(done[id]?' ok':'')+(fresh?' fresh':'')+'"><i></i><span>'+lab+'</span></div>'}).join('')}
+const OBJ={0:['Mene tietokoneelle toimiston pöydän luo ja paina E',[0,1.95,10]],
+ 2:['Mene vajan perälle ja avaa tallin ovi painikkeesta (E)',[3.2,2.0,-9.7]],
+ 3:['Ovi aukeaa…',[0,.9,1.6]],
+ 4:['Mene puhumaan asiakkaalle (E)',[0,2.15,0]],
+ 6:['Nosta auto liftillä: paina vihreää ▲-nappia liftin vieressä (E)',[-3,1.45,.64]],
+ 7:['',null],8:['Mene puhumaan asiakkaalle (E)',[0,2.15,0]],9:['Asiakas lähtee…',null],
+ 10:['Odota uutta yhteydenottoa',null]};
+function setObj(t){$('ot').textContent=t}
+function setStep(n){step=n;lastHint='';const o=OBJ[n];$('ocap').textContent=n<=6?'TUTORIAALI':n===10?'TYÖPÄIVÄ':'TEHTÄVÄ';objEl.style.display=o?'block':'none';if(o)setObj(o[0]);mBase=o&&o[1]?o[1].slice():null;marker.visible=!!mBase}
+const inZone=()=>px>-1.6&&px<1.6&&pz>.7&&pz<2.5;
+const underCar=()=>px>-1.5&&px<1.5&&pz>-5.5&&pz<-.5;
+const allWork=()=>{const N=curJob.need;return !!((!N.exh||done.exh)&&(!N.oil||(done.drain&&done.plug&&done.filt&&done.fill))&&(!N.brk||done.brk)&&(!N.swap||done.swap)&&(!N.press||done.tyre))};
+const upDone=()=>{const N=curJob.need;return !!((!N.exh||done.exh)&&(!N.oil||(done.drain&&done.plug&&done.filt))&&(!N.brk||done.brk)&&(!N.swap||done.swap))};
+const INVS=[['wrench','JAKOAVAIN','<circle cx="33" cy="15" r="10" fill="#aab1ba"/><rect x="31" y="2" width="8" height="10" fill="#262a30" transform="rotate(45 33 15)"/><path d="M12 38 28 22" stroke="#aab1ba" stroke-width="7" stroke-linecap="round"/>'],
+ ['filter','SUODATIN','<rect x="14" y="13" width="20" height="26" rx="3" fill="#2c7be5"/><rect x="12" y="8" width="24" height="7" rx="2" fill="#d8d8d8"/><rect x="14" y="23" width="20" height="5" fill="#f1c40f"/>'],
+ ['pads','JARRUPALAT','<rect x="7" y="14" width="34" height="8" fill="#3a3a3a"/><rect x="7" y="22" width="34" height="5" fill="#b08040"/><rect x="7" y="30" width="34" height="5" fill="#b08040"/><rect x="7" y="35" width="34" height="8" fill="#3a3a3a"/>'],
+ ['can','ÖLJY','<rect x="11" y="16" width="24" height="26" rx="3" fill="#e0a800"/><rect x="15" y="8" width="9" height="9" fill="#e0a800"/><path d="M24 10l13-5v5l-13 5z" fill="#e0a800"/><rect x="15" y="25" width="16" height="9" fill="#fff3bf"/>'],
+ ['impact','VÄÄNNIN','<rect x="6" y="12" width="26" height="12" rx="3" fill="#e0a800"/><rect x="28" y="15" width="10" height="6" fill="#8d9399"/><rect x="36" y="12" width="5" height="12" fill="#aab1ba"/><rect x="11" y="24" width="9" height="16" rx="2" fill="#333"/>'],
+ ['tyres','RENKAAT','<circle cx="24" cy="24" r="17" fill="#1b1b1b"/><circle cx="24" cy="24" r="9" fill="#aab1ba"/><circle cx="24" cy="24" r="3" fill="#1b1b1b"/>'],
+ ['gauge','MITTARI','<circle cx="21" cy="25" r="13" fill="#cfd3d8"/><circle cx="21" cy="25" r="9" fill="#14171a"/><path d="M21 25l5-6" stroke="#e0a800" stroke-width="2.5"/><rect x="32" y="21" width="12" height="8" fill="#555"/>']];
+function updateInv(){const own=INVS.filter(x=>(inv[x[0]]||0)>0);$('inv').style.display=own.length?'flex':'none';$('inv').innerHTML=own.map(x=>{const n=inv[x[0]]||0;return '<div class="slot"><svg viewBox="0 0 48 48" stroke="#0e1012" stroke-width="1.5" stroke-linejoin="round">'+x[2]+'</svg><b>'+x[1]+'</b>'+(n>1?'<u>×'+n+'</u>':'')+'</div>'}).join('')}
+function setMoney(d){money+=d;$('money').textContent='€ '+money}
+function refreshStock(){['pads','filter','can','tyres'].forEach(k=>{TOOLS[k].g.visible=stock[k]>0;drawLabel(k)});TOOLS.tyres.st.forEach((m,i)=>m.visible=i<stock.tyres)}
+const PCM=[0,1.95,10,false];
+function need(k,msg){if(inv[k]>0)return true;toast(msg);return false}
+function hintNow(){
+ const N=curJob.need,up=liftG.position.y>1.85,_v=new THREE.Vector3();scene.updateMatrixWorld(true);
+ const wp=m=>{m.getWorldPosition(_v);return _v.y>1.9?[_v.x,_v.y-.45,_v.z,true]:[_v.x,_v.y+.5,_v.z,false]};
+ const tp=t=>{const q=TOOLS[t].hb.position;return [q.x,q.y+.55,q.z,false]};
+ const BU=[-3,1.45,.64,false],BD=[-3,1.25,.64,false];
+ const ti=wk.tyre.findIndex(x=>!x),nb=wk.brk[0]?hbBrake[1]:hbBrake[0],nt=hbTyre[ti>=0?ti:0];
+ const si=wk.sw.findIndex(x=>x<3),ns=hbTyre[si>=0?si:0],mt=wk.sw.filter(x=>x>=2).length,tyHave=(inv.tyres||0),tyOk=stock.tyres+tyHave>=4-mt;
+ const S=[];
+ S.push([()=>done.lift,'Nosta auto liftillä: paina vihreää ▲-nappia liftin vieressä (E)',()=>BU,0]);
+ if(N.exh||N.oil)S.push([()=>inv.wrench||((!N.exh||done.exh)&&(!N.oil||done.plug)),'Mene työpöydälle (vajan oikea seinä) ja poimi JAKOAVAIN (E)',()=>tp('wrench'),0]);
+ if(N.exh)S.push([()=>done.exh,'Mene auton alle ja kiristä pakoputken oranssi liitos (E)',()=>wp(hbExh),1]);
+ if(N.oil){
+  S.push([()=>done.drain,wk.plug===1?'Odota että öljy valuu astiaan…':'Avaa tyhjennystulppa moottorin alta (E) – öljy valuu astiaan',()=>wp(hbPlug),1]);
+  S.push([()=>done.plug,'Kiristä tyhjennystulppa takaisin (E)',()=>wp(hbPlug),1]);
+  S.push([()=>inv.filter||done.filt,stock.filter>0?'Hae työpöydältä UUSI ÖLJYNSUODATIN (sininen)':'Suodatin on loppu! Tilaa lisää tietokoneelta (Varaosat)',()=>stock.filter>0?tp('filter'):PCM,0]);
+  S.push([()=>done.filt,'Vaihda vanha öljynsuodatin (oranssi, moottorin alla) uuteen (E)',()=>wp(hbFilt),1])}
+ if(N.brk){
+  S.push([()=>(inv.pads||0)+wk.brkN>=2,stock.pads>0?'Hae työpöydältä JARRUPALAT':'Jarrupalat loppu! Tilaa lisää tietokoneelta (Varaosat)',()=>stock.pads>0?tp('pads'):PCM,0]);
+  S.push([()=>done.brk,'Vaihda jarrupalat molempiin etupyöriin – punaiset satulat pyörien sisäpuolella ('+wk.brkN+'/2)',()=>wp(nb),1])}
+ if(N.swap){
+  S.push([()=>inv.impact||done.swap,'Hae työpöydältä MUTTERIVÄÄNNIN',()=>tp('impact'),0]);
+  S.push([()=>tyHave>=4-mt||done.swap,tyOk?'Hae UUDET RENKAAT (rengaspino pöydän vieressä)':'Renkaat loppu! Tilaa renkaat tietokoneelta (Varaosat)',()=>tyOk?tp('tyres'):PCM,0]);
+  S.push([()=>done.swap,'Vaihda renkaat ('+wk.swN+'/4): irrota rengas, asenna uusi ja kiristä mutterit (E kolme kertaa / rengas)',()=>wp(ns),1])}
+ S.push([()=>liftG.position.y<.2,'Poistu auton alta ja laske lifti alas (▼-nappi)',()=>BD,0]);
+ if(N.oil){
+  S.push([()=>inv.can||done.fill,stock.can>0?'Hae työpöydältä MOOTTORIÖLJY (keltainen kannu)':'Öljy on loppu! Tilaa lisää tietokoneelta (Varaosat)',()=>stock.can>0?tp('can'):PCM,0]);
+  S.push([()=>done.fill,wk.hood?'Paina E uudelleen konepellillä: täytä uusi öljy':'Avaa konepelti (E)',()=>wp(hbHood),2])}
+ if(N.press){
+  S.push([()=>inv.gauge||done.tyre,'Hae työpöydältä RENGASMITTARI',()=>tp('gauge'),0]);
+  S.push([()=>done.tyre,'Mittaa kaikkien renkaiden paine ('+wk.tyreN+'/4)',()=>wp(nt),2])}
+ const T=S.length+1;
+ for(let i=0;i<S.length;i++){const q=S[i];if(q[0]())continue;const pre='Vaihe '+(i+1)+'/'+T+' · ';
+  if(q[3]===1&&!up)return[pre+'Nosta ensin lifti (▲) – tämä työ tehdään auton alta',BU];
+  if(q[3]===2&&up)return[pre+'Laske ensin lifti alas (▼) ja poistu auton alta',BD];
+  return[pre+q[1],q[2]()]}
+ return['Vaihe '+T+'/'+T+' · Hienoa työtä! Asiakas tulee pian hakemaan auton…',null]}
+
+/* työt ja asiakkaat */
+const MAIL_BODY='Hei!\n\nAutossani (GOAT GT, rekisterinumero '+PLATE+') pitäisi katsoa pari juttua. Öljynvaihto on myöhässä ja pakoputkesta kuuluu outoa ääntä. Ehtisitkö ottaa sen työn alle jo tänään?\n\nTerveisin,\nPekka Virtanen';
+const LINES1=['Moi! Kiitos kun otit auton heti vastaan.','Autossa on pari ongelmaa. Moottorin öljynvaihto on myöhässä ja koneesta kuuluu outoa ääntä.','Pakoputkesta kuuluu kolinaa, ja jarrut tuntuvat vähän pehmeiltä.','Katsotko samalla rengaspaineet? Käyn kahvilla sillä aikaa, tulen takaisin kun työ on valmis. Kiitos!'];
+const LINES2=['Hei taas! Miltä auto näyttää?','Hienoa! Pakoputken kolina on poissa ja auto tuntuu paljon paremmalta.','Tässä maksu: 129 €. Kiitos, hyvin hoidettu!'];
+const REPLIES0=[['Hei Pekka! Kiitos viestistä. Tuo auto tänään, otan sen heti työn alle. Avaan tallin oven kun saavut.',1],['Moi! Se onnistuu. Tule paikalle, niin katsotaan auto yhdessä läpi.',1],['Ei ole aikaa tänään. Kokeile ensi kuussa.',0]];
+const NAMES=['Maija Koskinen','Jari Lehtonen','Sanna Heikkinen','Timo Mäkelä','Laura Nieminen','Kalle Järvinen','Eeva Korhonen','Mikko Laine','Heidi Salo','Antti Rantanen','Pia Virtanen','Olli Hakala'];let nameIdx=Math.floor(Math.random()*NAMES.length);
+const COLS=[0xa11d1d,0x1f4e8c,0x2e7d4f,0xcfd3d8,0x23262b,0xd9a400,0xd2691e,0x5b2d8a];
+const SERV={oil:['Öljynvaihto','moottorin öljynvaihto on myöhässä',45],exh:['Pakoputki','pakoputkesta kuuluu kolinaa',30],brk:['Jarrut','jarrupalat ovat kuluneet',50],swap:['Renkaat','autoon pitäisi vaihtaa uudet renkaat',100],press:['Paineet','rengaspaineet pitäisi tarkistaa',15]};
+const rnd=n=>Math.floor(Math.random()*n);
+const mkPlate=()=>{const L='BCDFHJKLMNPRSTXYZ',r=()=>L[rnd(L.length)];return r()+r()+r()+'-'+(100+rnd(900))};
+const noAcc=t=>t.toLowerCase().replace(/[äå]/g,'a').replace(/ö/g,'o');
+function mkJob(name,need){
+ const ks=['oil','exh','brk','swap','press'].filter(k=>need[k]);const items=ks.map(k=>SERV[k][1]);
+ const pay=20+ks.reduce((q,k)=>q+SERV[k][2],0),plate=mkPlate(),list=items.join('; ');
+ return {name,need,plate,pay,color:COLS[rnd(COLS.length)],shirt:[0xe67e22,0x2e86c1,0x27ae60,0x8e44ad,0xc0392b,0x7f8c8d][rnd(6)],cap:[0x1f4e8c,0x222222,0x7b241c,0x145a32][rnd(4)],
+  email:noAcc(name).replace(' ','.')+'@example.com',subject:need.swap?'Renkaiden vaihto':need.oil?'Öljynvaihto':'Auton huolto',
+  body:'Hei!\n\nAutossani (GOAT GT, rekisterinumero '+plate+') kaipaa huoltoa: '+list+'. Ehtisitkö ottaa sen työn alle pian?\n\nTerveisin,\n'+name,
+  l1:['Moi! Kiitos kun otit auton vastaan.','Autossa on muutama asia: '+list+'.','Käyn kahvilla sillä aikaa, tulen takaisin kun työ on valmis. Kiitos!'],
+  l2:['Hei taas! Miltä auto näyttää?','Hienoa! Auto tuntuu taas kunnossa.','Tässä maksu: '+pay+' €. Kiitos, hyvin hoidettu!']}}
+function genJob(){const pool=['oil','exh','brk','swap'],need={},n=1+(Math.random()<.55?1:0)+(Math.random()<.2?1:0);
+ for(let i=0;i<n;i++)need[pool.splice(rnd(pool.length),1)[0]]=1;if(Math.random()<.45)need.press=1;
+ return mkJob(NAMES[nameIdx++%NAMES.length],need)}
+const JOB0={name:'Pekka Virtanen',need:{oil:1,exh:1,brk:1,press:1},plate:PLATE,pay:129,color:0xa11d1d,email:'pekka@example.com',subject:'Auton huolto?',body:MAIL_BODY,l1:LINES1,l2:LINES2};
+curJob=JOB0;
+const REPG=[['Hei! Kiitos viestistä. Tuo auto tänne, otan sen työn alle heti kun pääsen.',1],['Moi! Se onnistuu. Tule paikalle, niin katsotaan auto yhdessä läpi.',1],['Ei ole aikaa. Kokeile joskus myöhemmin.',0]];
+const inbox=[{job:JOB0,st:'new',time:'17:48',reps:REPLIES0}];let curMail=null,clockM=17*60+48,gShown=false,tmr=0;
+const unread=()=>inbox.filter(m=>m.st==='new').length,unrep=()=>inbox.filter(m=>m.st!=='replied').length;
+function updScr(){const n=unread();setScr(n?(n===1?'1 uusi viesti':n+' uutta viestiä'):'Ei uusia viestejä');const b=$('badge');b.textContent=n;b.style.display=n&&gShown?'flex':'none'}
+function newMail(){const job=genJob();clockM+=8+rnd(20);const hh=Math.floor(clockM/60)%24,mm=clockM%60;
+ inbox.push({job,st:'new',time:String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'),reps:REPG.slice().sort(()=>Math.random()-.5)});
+ updScr();toast('Uusi asiakasviesti tietokoneella',2600);blip(740,.25);
+ if(pcOpen&&$('win').style.display==='flex'&&$('wt').textContent==='Gmail – Saapuneet')renderInbox()}
+function resetJob(job){curJob=job;const N=job.need;
+ [done,recent,prevDone,shown].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
+ Object.assign(wk,{plug:0,drainT:0,hood:0,fill:0,fillT:0,brk:[0,0],brkN:0,tyre:[0,0,0,0],tyreT:[0,0,0,0],tyreN:0,sw:[0,0,0,0],swN:0});
+ retT=-1;retStarted=false;carLeaveT=-1;stopTimer=0;hoodTarget=0;hood.rotation.x=0;wk.hood=0;
+ paintS.color.setHex(job.color);paint(bg,job.color,0x17181a);PLATE=job.plate;plateDraw(plateT.image.getContext('2d'),520,110);plateT.needsUpdate=true;
+ plugM.visible=true;plugM.position.y=.085;plugM.rotation.y=0;pan.visible=false;stream.visible=false;
+ car.add(oldFilt);oldFilt.position.set(.33,.2,.85);oldFilt.rotation.set(0,0,0);oldFilt.visible=true;newFilt.visible=false;newFilt.position.y=.2;
+ capM.position.y=1.06;fillStream.visible=false;
+ looseRing.visible=!!N.exh;looseRing.scale.set(1,1,1);boltG.forEach((b,i)=>{b.position.z=N.exh?.025:0;b.rotation.z=i});
+ calipers.forEach(c=>c.material.color.setHex(0xc0392b));oldPad.concat(newPad).forEach(m=>m.visible=false);
+ wheels.forEach((w,i)=>{w.visible=true;w.position.x=(i%2?1:-1)*.8;w.scale.set(1,1,1);w.children[0].material=N.swap?wornM:tireM});
+ if(N.press&&!N.swap)wheels[2].scale.set(1,.92,.92);
+ clearDropped();todoEl.classList.remove('show');renderTodo()}
+function clearDropped(){dropped.forEach(m=>scene.remove(m));dropped.length=0}
+function openPC(){if(pcOpen)return;pcOpen=true;if(document.pointerLockElement)document.exitPointerLock();pcEl.style.display='flex';$('win').style.display='none';
+ if(gShown){$('loading').style.display='none';$('gicon').style.display='block';$('sicon').style.display='block';updScr()}
+ else{$('loading').style.display='flex';setTimeout(()=>{$('loading').style.display='none';$('gicon').style.display='block';$('sicon').style.display='block';$('gicon').classList.add('pop');gShown=true;updScr()},1300)}}
+function closePC(){if(!pcOpen)return;pcOpen=false;clearInterval(tmr);clearTimeout(tmr);clearInterval(shopT);shopOpen=false;pcEl.style.display='none';tryLock();if(inbox[0].st==='replied'&&step<2)setStep(2)}
+function renderInbox(){clearInterval(tmr);clearTimeout(tmr);$('wt').textContent='Gmail – Saapuneet';$('wback').style.display='none';
+ let h='';for(let i=inbox.length-1;i>=0;i--){const m=inbox[i];h+='<div class="row'+(m.st==='new'?' unread':'')+'" id="row'+(i+1)+'"><span class="dot"></span><b>'+m.job.name+'</b><span>'+m.job.subject+'</span><i>'+m.time+'</i>'+(m.st==='replied'?'<em>vastattu</em>':'')+'</div>'}
+ $('wbody').innerHTML=h;inbox.forEach((m,i)=>{$('row'+(i+1)).onclick=()=>openMsg(m)})}
+function openMsg(m){curMail=m;$('wt').textContent='Gmail – '+m.job.name;$('wback').style.display='inline-block';
+ $('wbody').innerHTML='<div class="mh"><b>'+m.job.name+'</b> &lt;'+m.job.email+'&gt;<br>Aihe: '+m.job.subject+'</div><div id="mbody" class="mb"></div><div id="rep"></div>';
+ if(m.st==='new')typeMail(m);else{$('mbody').textContent=m.job.body;showReplies(m)}}
+function typeMail(m){const el=$('mbody'),B=m.job.body;el.innerHTML='<span class="typing">'+m.job.name.split(' ')[0]+' kirjoittaa<span>.</span><span>.</span><span>.</span></span>';clearInterval(tmr);clearTimeout(tmr);let i=0;
+ tmr=setTimeout(()=>{startMumble();tmr=setInterval(()=>{i+=2;el.textContent=B.slice(0,i);if(i>=B.length){clearInterval(tmr);stopMumble();m.st='read';updScr();showReplies(m)}},35)},1300)}
+function showReplies(m){const r=$('rep');
+ if(m.st==='replied'){r.innerHTML='<div class="sent"></div><div class="okmsg">Vastaus lähetetty</div>';r.querySelector('.sent').textContent=m.sent;return}
+ r.innerHTML='<div class="cap">Valitse vastaus:</div>';
+ m.reps.forEach(x=>{const b=document.createElement('button');b.className='chip';b.textContent=x[0];b.onclick=()=>{
+  if(!x[1]){b.classList.add('bad');const w=document.createElement('div');w.className='warn';w.textContent='Asiakas ei vaikuta tyytyväiseltä… valitse kohteliaampi vastaus.';r.appendChild(w);setTimeout(()=>{w.remove();b.classList.remove('bad')},1800);return}
+  m.sent=x[0];m.st='replied';showReplies(m);$('pcclose').classList.add('glow');blip(600,.3);
+  if(m.job!==JOB0){queue.push(m.job);toast('Asiakas tulee korjaamolle pian',2200)}};r.appendChild(b)})}
+$('gicon').onclick=()=>{shopOpen=false;clearInterval(shopT);$('win').style.display='flex';renderInbox()};
+const SHOP=[['tyres','Renkaat, sarja (4 kpl)',70,4],['pads','Jarrupalat, akselillinen (2 sarjaa)',35,2],['filter','Öljynsuodatin',12,1],['can','Moottoriöljy, kannu',25,1]];let shopMsg='';
+const ordHtml=()=>orders.length?orders.map(o=>'<div class="empty">'+o.name+' – saapuu '+Math.ceil(o.t)+' s</div>').join(''):'<div class="empty">Ei avoimia tilauksia</div>';
+function renderShop(){shopOpen=true;$('wt').textContent='Varaosakauppa';$('wback').style.display='none';
+ let h='<div class="mh"><b>Saldo: '+money+' €</b> · toimitus noin 15 s</div>';
+ SHOP.forEach(x=>{h+='<div class="row shop"><b>'+x[1]+'</b><span>varastossa '+stock[x[0]]+'</span><i>'+x[2]+' €</i><button data-k="'+x[0]+'"'+(money<x[2]?' disabled':'')+'>Tilaa</button></div>'});
+ h+='<div class="cap">Tilaukset</div><div id="ord">'+ordHtml()+'</div>';
+ if(shopMsg)h+='<div class="warn">'+shopMsg+'</div>';
+ $('wbody').innerHTML=h;
+ $('wbody').querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=SHOP.find(y=>y[0]===b.dataset.k);if(money<x[2]){shopMsg='Ei tarpeeksi rahaa.';renderShop();return}
+  setMoney(-x[2]);orders.push({k:x[0],n:x[3],t:15,name:x[1]});shopMsg='';blip(480,.2);renderShop()})}
+$('sicon').onclick=()=>{$('win').style.display='flex';shopMsg='';renderShop();clearInterval(shopT);shopT=setInterval(()=>{const e=$('ord');if(shopOpen&&e)e.innerHTML=ordHtml()},1000)};
+$('wx').onclick=()=>{clearInterval(tmr);clearTimeout(tmr);clearInterval(shopT);shopOpen=false;stopMumble();$('win').style.display='none'};
+$('wback').onclick=()=>{stopMumble();renderInbox()};
+$('pcclose').onclick=()=>{stopMumble();closePC()};
+
+/* dialogi */
+let LINES=[],dlgEnd=null,li=0,typing=false,typeTimer=0,curLine='';
+function showLine(){curLine=LINES[li];let i=0;typing=true;$('dtext').textContent='';clearInterval(typeTimer);startMumble();
+ typeTimer=setInterval(()=>{i++;$('dtext').textContent=curLine.slice(0,i);if(i>=curLine.length){clearInterval(typeTimer);typing=false;stopMumble()}},28)}
+function startDialog(lines,end){$('dname').textContent=curJob.name;LINES=lines;dlgEnd=end;dlgOn=true;li=0;dlgEl.style.display='block';showLine()}
+function advance(){if(typing){clearInterval(typeTimer);$('dtext').textContent=curLine;typing=false;stopMumble();return}li++;
+ if(li>=LINES.length){dlgEl.style.display='none';dlgOn=false;stopMumble();if(dlgEnd)dlgEnd()}else showLine()}
+const LEAVE=[[2.6,-2],[2.7,-8],[1.3,-9.4],[1.3,-13],[3,-21]],RET=[[1.3,-13],[1.3,-9.4],[2.7,-8],[2.6,-2],[1.9,-.5]],ENTER=[[1.7,-1.5],[1.35,-2.3],[1.15,-2.7]],NPCPATH=[[1.35,-2.3],[1.75,-1.5],[1.9,-.5]];
+function endDialog1(){renderTodo();todoEl.classList.add('show');toast('Tehtävälista päivitetty',3200);setStep(6);walkNPC(LEAVE,()=>{npc.visible=false;npcMode='gone'})}
+function endDialog2(){done.ret=true;jobsDone++;setMoney(curJob.pay);renderTodo();toast('Maksu '+curJob.pay+' € vastaanotettu!',3500);blip(660,.5);setStep(9);cdoorTarget=-1.1;walkNPC(ENTER,()=>{npc.visible=false;npcMode='gone';cdoorTarget=0;carLeaveT=.8})}
+function showEnd(){endOn=true;if(document.pointerLockElement)document.exitPointerLock();$('endcard').style.display='flex'}
+function startFree(){mailOn=true;mailT=18;arrT=5}
+function afterCar(){setStep(10);todoEl.classList.remove('show');clearDropped();arrT=4}
+function closeDoor(){doorTarget=0;gdoor.visible=true;gdoor.position.y=2.6;closing=true}
+function startNextJob(){const job=queue.shift();resetJob(job);car.position.z=-22;car.visible=false;carState='hidden';npcMode='gone';npc.visible=false;cdoorTarget=0;cdoor.rotation.y=0;
+ const u=npc.userData;u.torso.material.color.setHex(job.shirt);u.arms.forEach(a=>a.children[0].material.color.setHex(job.shirt));u.cap.material.color.setHex(job.cap);
+ gdoor.visible=true;gdoor.position.y=0;closing=false;doorTarget=2.6;setStep(3);setObj('Asiakas saapuu – ovi aukeaa…');toast('Asiakas saapuu: '+job.name,2600)}
+$('endok').onclick=()=>{endOn=false;$('endcard').style.display='none';setStep(10);todoEl.classList.remove('show');startFree();tryLock()};
+
+/* auto ja asiakas */
+function stopCar(){carState='stopped';stopTimer=1.3;setObj('Auto on paikallaan…')}
+function walkNPC(path,end){NPATH=path;npcIdx=0;nOnEnd=end;npcMode='walk'}
+let NPATH=[],nOnEnd=null;
+function updateCar(dt){let v=0;
+ if(carState==='drive1'){v=4;if(car.position.z>=-5.5){carState='waiting';setObj('Auto odottaa oven sisäpuolella – mene keltaiselle merkille nosturin eteen')}}
+ else if(carState==='waiting'){if(inZone()){carState='drive2';setObj('Auto ajaa sisään…')}}
+ else if(carState==='drive2'){v=Math.max(.45,Math.min(2.4,-car.position.z*1.1+.2));if(car.position.z>=-.02){car.position.z=0;v=0;stopCar()}}
+ else if(carState==='leaving'){v=-3;if(car.position.z<-24){carState='gone';car.visible=false;v=0;closeDoor();if(firstEnd){firstEnd=false;showEnd()}else afterCar()}}
+ else if(carState==='stopped'){stopTimer-=dt;if(stopTimer<=0){carState='parked';cdoorTarget=-1.1;npc.visible=true;npc.scale.setScalar(.2);npc.position.set(1.2,0,-2.7);setObj('Asiakas nousee autosta…');walkNPC(NPCPATH,()=>{npcMode='stand';cdoorTarget=0;setStep(4)})}}
+ if(carLeaveT>0){carLeaveT-=dt;if(carLeaveT<=0)carState='leaving'}
+ if(v!==0){const d=v*dt;car.position.z+=d;wheels.forEach(w=>w.rotation.x+=d/.33)}
+ if(Math.abs(v-lastV)>.01){lastV=v;engineSnd(Math.abs(v))}}
+function updateNPC(dt){
+ if(npcMode==='walk'){if(npc.scale.x<1)npc.scale.setScalar(Math.min(1,npc.scale.x+dt*2));
+  const t=NPATH[npcIdx],dx=t[0]-npc.position.x,dz=t[1]-npc.position.z,d=Math.hypot(dx,dz),m=1.3*dt,u=npc.userData;
+  if(d<=m){npc.position.x=t[0];npc.position.z=t[1];npcIdx++;if(npcIdx>=NPATH.length){npcMode='idle';u.legs.concat(u.arms).forEach(l=>l.rotation.x=0);if(nOnEnd)nOnEnd()}}
+  else{npc.position.x+=dx/d*m;npc.position.z+=dz/d*m;npc.rotation.y=Math.atan2(dx,dz);const sw=Math.sin(performance.now()/160)*.6;u.legs[0].rotation.x=sw;u.legs[1].rotation.x=-sw;u.arms[0].rotation.x=-sw;u.arms[1].rotation.x=sw}}
+ else if(npcMode==='stand')npc.rotation.y=Math.atan2(px-npc.position.x,pz-npc.position.z);
+ cdoor.rotation.y+=(cdoorTarget-cdoor.rotation.y)*Math.min(1,dt*6)}
+function startAct(label,dur,tool,tick,fin){act={label,dur,t:0,tool,tick,fin};$('pl').textContent=label+'…';$('pf').style.width='0%';$('prog').style.display='block';Object.keys(FP).forEach(k=>FP[k].visible=k===tool);fp.visible=true}
+function fpAnimate(a){const t=a.t,p=t/a.dur;
+ switch(a.tool){
+  case 'wrench':fp.position.set(.18,-.18,-.55);fp.rotation.set(.2,0,Math.sin(t*9)*.35);break;
+  case 'filter':fp.position.set(.05+Math.sin(t*3)*.02,-.15,-.5);fp.rotation.set(0,t*6,0);break;
+  case 'pads':fp.position.set(.1,-.15+Math.sin(t*5)*.02,-.5);fp.rotation.set(.2,0,Math.sin(t*6)*.1);break;
+  case 'can':fp.position.set(.2,-.12,-.5);fp.rotation.set(0,0,-Math.min(1,p*3)*1.0+Math.sin(t*8)*.03);break;
+  case 'gauge':fp.position.set(.15,-.18,-.5-Math.max(0,Math.sin(t*6))*.1);fp.rotation.set(0,.3,0);break;
+  case 'impact':fp.position.set(.18+Math.sin(t*70)*.004,-.18,-.5);fp.rotation.set(.1,0,Math.sin(t*55)*.03);break;
+  case 'tyres':fp.position.set(.1,-.2,-.55-Math.sin(Math.min(1,p)*3.14)*.1);fp.rotation.set(0,0,t*2);break}}
+function updateAct(dt){const a=act;a.t+=dt;const p=Math.min(1,a.t/a.dur);fpAnimate(a);if(a.tick)a.tick(p,dt);$('pf').style.width=(p*100)+'%';
+ const tk=a.tool==='impact'?14:a.tool==='wrench'?6:a.tool==='can'?4:a.tool==='pads'?5:a.tool==='filter'?3:0;
+ if(tk&&Math.floor(a.t*tk)!==Math.floor((a.t-dt)*tk))tickSnd(a.tool);
+ if(a.t>=a.dur){act=null;$('prog').style.display='none';fp.visible=false;if(a.fin)a.fin()}}
+function updateWork(dt){
+ if(wk.plug===1){wk.drainT+=dt;const k=Math.min(1,wk.drainT/5),top=wk.pw.y-.02,surf=.05+k*.05,L=top-surf;stream.scale.set(k>.85?(1-k)/.15:1,L,k>.85?(1-k)/.15:1);stream.position.set(wk.pw.x,(top+surf)/2,wk.pw.z);panOil.position.y=.03+k*.05;
+  if(k>=1){wk.plug=2;stream.visible=false;done.drain=true;renderTodo();toast('Öljy on valunut. Kiristä tyhjennystulppa jakoavaimella.',3200);blip(480)}}
+ hood.rotation.x+=(hoodTarget-hood.rotation.x)*Math.min(1,dt*5);
+ if(looseRing.visible&&!act){const k=1+.15*Math.sin(performance.now()/180);looseRing.scale.set(k,k,k)}
+ for(let i=fallers.length-1;i>=0;i--){const f=fallers[i];f.vy-=9.8*dt;f.m.position.y+=f.vy*dt;f.m.rotation.x+=dt*2;if(f.out&&Math.abs(f.m.position.x)<1.35)f.m.position.x+=f.out*dt*1.1;if(f.m.position.y<=f.floor){f.m.position.y=f.floor;f.m.rotation.x=0;fallers.splice(i,1)}}
+ for(let i=orders.length-1;i>=0;i--){const o=orders[i];o.t-=dt;if(o.t<=0){orders.splice(i,1);stock[o.k]+=o.n;refreshStock();toast('Paketti saapui: '+o.name,3500);blip(620,.4);if(shopOpen)renderShop()}}}
+
+function pickTool(t){const T=TOOLS[t];
+ if(CONS[t]){if(stock[t]<=0){toast('Varasto loppu! Tilaa lisää tietokoneelta (Varaosat).');return}
+  const n=Math.min(CONS[t]-(inv[t]||0),stock[t]);if(n<=0){toast('Sinulla on jo tämä mukana.');return}
+  inv[t]=(inv[t]||0)+n;stock[t]-=n;refreshStock()}
+ else{inv[t]=1;T.g.visible=false;const i=inter.indexOf(T.hb);if(i>=0)inter.splice(i,1)}
+ got[t]=true;updateInv();blip(440,.15);toast('Poimit: '+T.label)}
+function promptFor(o){const u=o.userData,a=u.a;
+ if(a==='pc')return '[E] Käytä tietokonetta';
+ if(a==='up')return '[E] Nosta lifti';if(a==='down')return '[E] Laske lifti';if(a==='door')return '[E] Avaa tallin ovi';
+ if(a==='npc')return (step===4||step===8)?'[E] Puhu asiakkaalle':null;
+ if(a==='pick'){if(step<6)return null;if(CONS[u.t])return stock[u.t]>0?'[E] Poimi: '+TOOLS[u.t].label+' (varastossa '+stock[u.t]+')':'Loppu – tilaa tietokoneelta';return '[E] Poimi: '+TOOLS[u.t].label}
+ if(step<7||act)return null;
+ const N=curJob.need;if((a==='plug'||a==='filt'||a==='hood')&&!N.oil||a==='exh'&&!N.exh||a==='brake'&&!N.brk)return null;
+ if(a==='plug')return wk.plug===0?'[E] Avaa tyhjennystulppa (jakoavain)':wk.plug===2?'[E] Kiristä tyhjennystulppa (jakoavain)':null;
+ if(a==='filt')return done.filt?null:'[E] Vaihda öljynsuodatin (uusi suodatin)';
+ if(a==='exh')return done.exh?null:'[E] Kiristä löysä liitos (jakoavain)';
+ if(a==='brake')return wk.brk[u.k]?null:'[E] Vaihda jarrupalat';
+ if(a==='hood')return done.fill&&!wk.hood?null:wk.hood?(wk.fill===0?'[E] Täytä uusi öljy (moottoriöljy)':null):'[E] Avaa konepelti';
+ if(a==='tyre'){const i=u.i;if(N.swap&&wk.sw[i]<3){const q=wk.sw[i];return q===0?'[E] Irrota rengas (mutterinväännin)':q===1?'[E] Asenna uusi rengas':'[E] Kiristä pyöränmutterit (mutterinväännin)'}return N.press&&!wk.tyre[i]?'[E] Mittaa rengaspaine (rengasmittari)':null}
+ return null}
+function interact(){
+ if(dlgOn){advance();return}
+ if(pcOpen||endOn||act)return;
+ const o=target();if(!o)return;const u=o.userData,a=u.a;
+ if(a==='pc'){openPC();return}
+ if(a==='door'){if(step===2){doorTarget=2.6;setStep(3);setObj('Ovi aukeaa…');toast('Ovi aukeaa…')}else if(step<2)toast('Ensin tietokoneelle – asiakkaalle pitää vastata.');else if(step>=10)toast('Ovi aukeaa itsestään, kun asiakas saapuu.');else toast('Ovi on jo auki.');return}
+ if(a==='npc'){if(step===4)startDialog(curJob.l1,endDialog1);else if(step===8)startDialog(curJob.l2,endDialog2);return}
+ if(a==='up'||a==='down'){if(step<6){toast('Nosturi ei ole vielä käytössä – seuraa tehtävää.');return}
+  if(a==='down'&&underCar()){toast('Poistu auton alta ennen kuin lasket nosturin!');return}liftTarget=a==='up'?HIGH:LOW;return}
+ if(a==='pick'){if(step<6){toast('Työkaluja tarvitaan vasta myöhemmin.');return}pickTool(u.t);return}
+ if(step<7)return;
+ {const N=curJob.need;if((a==='plug'||a==='filt'||a==='hood')&&!N.oil||a==='exh'&&!N.exh||a==='brake'&&!N.brk)return}
+ if(a==='plug'){
+  if(wk.plug===0){if(!need('wrench','Tarvitset jakoavaimen pöydältä.'))return;
+   startAct('Avataan tyhjennystulppaa',1.8,'wrench',p=>{plugM.position.y=.085-p*.05;plugM.rotation.y=p*20},()=>{wk.plug=1;wk.drainT=0;scene.updateMatrixWorld(true);plugM.getWorldPosition(wk.pw);plugM.visible=false;plugM.position.y=.085;pan.position.set(wk.pw.x,0,wk.pw.z);pan.visible=true;stream.visible=true;toast('Tulppa irti – öljy valuu astiaan…');blip(300)})}
+  else if(wk.plug===1)toast('Odota että öljy on valunut.');
+  else if(wk.plug===2){if(!need('wrench','Tarvitset jakoavaimen.'))return;plugM.visible=true;plugM.position.y=.02;
+   startAct('Kiristetään tyhjennystulppa',1.6,'wrench',p=>{plugM.position.y=.02+p*.065;plugM.rotation.y=p*18},()=>{wk.plug=3;done.plug=true;plugM.position.y=.085;pan.visible=false;renderTodo();toast('Tyhjennystulppa kiristetty');blip(520)})}}
+ else if(a==='filt'){if(done.filt)return;if(!need('filter','Tarvitset uuden öljynsuodattimen pöydältä.'))return;let dropped=false;
+  startAct('Vaihdetaan öljynsuodatin',3.2,'filter',p=>{
+   if(p<.45){oldFilt.rotation.y+=.5;oldFilt.position.y=.2-p/.45*.07}
+   else{if(!dropped){dropped=true;scene.attach(oldFilt);fallers.push({m:oldFilt,vy:-.5,floor:.075});newFilt.visible=true}
+    const q=(p-.45)/.55;newFilt.position.y=.1+.1*q;newFilt.rotation.y=(1-q)*12}},
+   ()=>{inv.filter=0;updateInv();newFilt.position.y=.2;done.filt=true;renderTodo();toast('Öljynsuodatin vaihdettu');blip(520)})}
+ else if(a==='exh'){if(done.exh)return;if(!need('wrench','Tarvitset jakoavaimen pöydältä.'))return;
+  startAct('Kiristetään pakoputken liitosta',2.6,'wrench',p=>{boltG.forEach((b,i)=>{b.rotation.z=p*14+i;b.position.z=.025*(1-p)});looseRing.scale.setScalar(1-.35*p)},
+   ()=>{done.exh=true;looseRing.visible=false;boltG.forEach(b=>b.position.z=0);renderTodo();toast('Pakoputken liitos kiristetty – kolina loppui!',3000);blip(560)})}
+ else if(a==='brake'){const k=u.k;if(wk.brk[k])return;if(!(inv.pads>0)){toast('Jarrupalat ovat kuluneet! Tarvitset uudet jarrupalat pöydältä.');return}
+  const cx=calipers[k].position.x;oldPad[k].visible=true;oldPad[k].position.y=.4;newPad[k].visible=false;
+  startAct('Vaihdetaan jarrupalat',2.6,'pads',p=>{calipers[k].position.x=cx+Math.sin(p*70)*.004;
+   if(p<.5){oldPad[k].position.y=.4-p*.5}else{oldPad[k].visible=false;newPad[k].visible=true;newPad[k].position.y=.15+(p-.5)/.5*.25}},
+   ()=>{calipers[k].position.x=cx;newPad[k].position.y=.4;inv.pads--;updateInv();wk.brk[k]=1;wk.brkN++;calipers[k].material.color.setHex(0x2ecc71);if(wk.brkN===2)done.brk=true;renderTodo();toast('Jarrupalat vaihdettu ('+wk.brkN+'/2)');blip(500)})}
+ else if(a==='hood'){
+  if(!wk.hood){if(done.fill)return;wk.hood=1;hoodTarget=-1.1;blip(300,.15);toast('Konepelti auki');return}
+  if(wk.fill===0){if(!need('can','Tarvitset moottoriöljyä pöydältä.'))return;wk.fill=1;
+   startAct('Täytetään moottoriöljyä',3.4,'can',p=>{capM.position.y=1.06+(p<.12?p/.12*.12:p>.88?(1-p)/.12*.12:.12);fillStream.visible=p>.18&&p<.88},
+    ()=>{fillStream.visible=false;capM.position.y=1.06;inv.can=0;updateInv();wk.fill=2;done.fill=true;wk.hood=0;hoodTarget=0;renderTodo();toast('Uusi öljy täytetty');blip(560)})}}
+ else if(a==='tyre'){const i=u.i,N=curJob.need;
+  if(N.swap&&wk.sw[i]<3){
+   if(liftG.position.y<1.85){toast('Nosta auto ensin liftillä.');return}
+   const q=wk.sw[i],side=i%2?1:-1,x0=side*.8,w=wheels[i];
+   if(q===0){if(!need('impact','Tarvitset mutterinvääntimen pöydältä.'))return;
+    startAct('Irrotetaan pyöränmutterit',1.8,'impact',p=>{w.position.x=x0+Math.sin(p*90)*.004},()=>{w.position.x=x0;w.visible=false;dropTyre(i);wk.sw[i]=1;toast('Vanha rengas irti');blip(300,.2)})}
+   else if(q===1){if(!(inv.tyres>0)){toast('Tarvitset uuden renkaan. Hae renkaat pöydän vierestä.');return}
+    startAct('Asennetaan uusi rengas',1.6,'tyres',p=>{w.visible=true;w.children[0].material=tireM;w.position.x=x0+side*.6*(1-p)},()=>{w.position.x=x0;inv.tyres--;updateInv();wk.sw[i]=2;w.scale.set(1,1,1);blip(420,.15)})}
+   else{if(!need('impact','Tarvitset mutterinvääntimen pöydältä.'))return;
+    startAct('Kiristetään pyöränmutterit',2,'impact',p=>{w.position.x=x0+Math.sin(p*90)*.003},()=>{w.position.x=x0;wk.sw[i]=3;wk.swN++;if(wk.swN===4)done.swap=true;renderTodo();toast('Rengas vaihdettu ('+wk.swN+'/4)');blip(500)})}
+   return}
+  if(!N.press||wk.tyre[i])return;if(!need('gauge','Tarvitset rengasmittarin pöydältä.'))return;const pr=wk.sw[i]===3?2.2:PRESS[i];
+  const ok=()=>{wk.tyre[i]=2;wk.tyreN++;if(wk.tyreN===4)done.tyre=true;renderTodo();blip(500)};
+  startAct('Mitataan rengaspainetta',1.3,'gauge',null,()=>{
+   if(pr>=2){ok();toast('Rengas ('+TNAME[i]+'): '+pr+' bar – ok')}
+   else{toast('Rengas ('+TNAME[i]+'): '+pr+' bar – liian matala, täytetään…',2200);hiss(2.2);
+    startAct('Täytetään rengasta',2.2,'gauge',p=>{wheels[i].scale.set(1,.92+.08*p,.92+.08*p)},()=>{wheels[i].scale.set(1,1,1);ok();toast('Rengas ('+TNAME[i]+'): 2.2 bar – täytetty')})}})}}
+addEventListener('keydown',e=>{keys[e.code]=true;
+ if(e.code==='Space'&&G.started)e.preventDefault();
+ if(e.code==='KeyM'&&!e.repeat){muted=!muted;if(master)master.gain.value=muted?0:.9;toast(muted?'Musiikki pois':'Musiikki päällä',1500)}
+ if(!G.started)return;
+ if(e.code==='KeyE'&&!e.repeat)interact();
+ if(e.code==='Escape'&&pcOpen){stopMumble();closePC()}});
+addEventListener('keyup',e=>keys[e.code]=false);
+function look(dx,dy){yaw-=dx*.0025;pitch=Math.max(-1.4,Math.min(1.4,pitch-dy*.0025))}
+let mdx=0,mdy=0,dragX=0,dragY=0,dragOx=0,dragOy=0;
+addEventListener('mousemove',e=>{if(pcOpen||endOn)return;if(locked){const x=e.movementX||0,y=e.movementY||0;if(Math.abs(x)>400||Math.abs(y)>400)return;mdx+=x;mdy+=y}else if(drag){dragX=e.clientX-dragOx;dragY=e.clientY-dragOy}});
+R.domElement.addEventListener('mousedown',e=>{if(locked)interact();else if(fallback){drag=true;dragOx=e.clientX;dragOy=e.clientY;dragX=dragY=0}else if(G.started&&!pcOpen&&!endOn)tryLock()});
+addEventListener('mouseup',()=>{drag=false;dragX=dragY=0});addEventListener('blur',()=>{drag=false;dragX=dragY=0;mdx=mdy=0});
+start.addEventListener('click',()=>tryLock());
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===R.domElement;if(locked)everLocked=true;mdx=mdy=0;if(!locked&&started&&!fallback&&!pcOpen&&!endOn){start.style.display='flex';G.started=false}});
+document.addEventListener('pointerlockerror',()=>{if(!everLocked&&!document.pointerLockElement)enterFallback()});
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight)});
+
+function free(x,z){const r=.35;if(x<-4.65||x>4.65||z<-9.65||z>13.65)return false;for(const c of cols)if(!(c===liftCol&&liftG.position.y>1.85)&&x>c[0]-r&&x<c[1]+r&&z>c[2]-r&&z<c[3]+r)return false;return true}
+const clock=new THREE.Clock();let menuT=0,uiOn=null;
+function loop(){requestAnimationFrame(loop);try{started=G.started;if(started&&step<0){car.visible=false;car.position.z=-22;setStep(0)}const dt=Math.min(clock.getDelta(),.05);const busy=pcOpen||dlgOn||endOn;
+  if(started&&!busy){
+    if(locked){const cx=Math.max(-300,Math.min(300,mdx)),cy=Math.max(-300,Math.min(300,mdy));yaw-=cx*.0025;pitch=Math.max(-1.4,Math.min(1.4,pitch-cy*.0025))}
+    else if(drag){const ax=Math.abs(dragX)>8?dragX-Math.sign(dragX)*8:0,ay=Math.abs(dragY)>8?dragY-Math.sign(dragY)*8:0;yaw-=ax*.006*dt;pitch=Math.max(-1.4,Math.min(1.4,pitch-ay*.004*dt))}
+    if(keys.ArrowLeft)yaw+=1.8*dt;if(keys.ArrowRight)yaw-=1.8*dt;
+    let f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),s=(keys.KeyD?1:0)-(keys.KeyA?1:0);
+    const l=Math.hypot(f,s)||1;f/=l;s/=l;const sp=(keys.ShiftLeft?4.5:2.6)*dt;
+    const dx=(-Math.sin(yaw)*f+Math.cos(yaw)*s)*sp,dz=(-Math.cos(yaw)*f-Math.sin(yaw)*s)*sp;
+    if(!act){if(free(px+dx,pz))px+=dx;if(free(px,pz+dz))pz+=dz}}
+  mdx=mdy=0;
+  if(started){
+    if(doorTarget>0&&gdoor.position.y<doorTarget){gdoor.position.y=Math.min(doorTarget,gdoor.position.y+1.3*dt);if(gdoor.position.y>=doorTarget){gdoor.visible=false;carState='drive1';car.position.z=-22;car.visible=true;setObj('Mene nosturin eteen keltaiselle merkille')}}
+    if(closing){gdoor.position.y=Math.max(0,gdoor.position.y-1.3*dt);if(gdoor.position.y<=0)closing=false}
+    if(mailOn){mailT-=dt;if(mailT<=0){mailT=25+Math.random()*35;if(unrep()<2&&queue.length<3)newMail()}}
+    if(step===10){if(queue.length){arrT-=dt;if(arrT<=0)startNextJob()}else arrT=4}
+    updateCar(dt);updateNPC(dt);updateWork(dt);if(act)updateAct(dt)}
+  spot.visible=step===3&&carState!=='parked'&&carState!=='stopped';
+  const d=liftTarget-liftG.position.y,st=.45*dt,moving=Math.abs(d)>.001;
+  liftG.position.y+=Math.abs(d)<st?d:Math.sign(d)*st;lamp.material.color.setHex(moving?0xffa000:0x00e060);
+  if(step===7&&done.lift&&upDone()&&!done.low&&liftG.position.y<.2){done.low=true;renderTodo()}
+  if(step>=6&&step<7&&!done.lift&&liftG.position.y>HIGH-.03){done.lift=true;renderTodo();toast('Auto on nosturissa. Hae työkalut pöydältä!',3200);blip(520);setStep(7)}
+  if(step===7&&!retStarted){const h=hintNow();if(h[0]!==lastHint){lastHint=h[0];setObj(h[0])}mBase=h[1]?h[1].slice():null;
+   if(allWork()&&liftG.position.y<.2&&retT<0)retT=2.5}
+  if(retT>0){retT-=dt;if(retT<=0){retT=-5;retStarted=true;npc.visible=true;npc.scale.setScalar(1);npc.position.set(3,0,-20);setObj('Asiakas saapuu…');mBase=null;toast('Asiakas tulee hakemaan autoa',3000);walkNPC(RET,()=>{npcMode='stand';setStep(8)})}}
+  if(step===10){const un=unrep()>0,t=un?'Uusi asiakasviesti – mene tietokoneelle ja vastaa':queue.length?'Seuraava asiakas saapuu pian…':'Ei töitä juuri nyt – odota uutta yhteydenottoa';if(t!==lastHint){lastHint=t;setObj(t)}mBase=un?PCM.slice():null}
+  if((step===4||step===8)&&npcMode==='stand')mBase=[npc.position.x,2.15,npc.position.z];
+  if(mBase&&!busy){marker.visible=true;marker.rotation.x=mBase[3]?0:Math.PI;marker.position.set(mBase[0],mBase[1]+Math.sin(performance.now()/250)*.08,mBase[2])}else marker.visible=false;
+  if(!started){menuT+=dt;const a=menuT*.12,r=3.7+Math.sin(menuT*.21)*.25;cam.position.set(Math.sin(a)*r,1.45+Math.sin(menuT*.3)*.3,-3+Math.cos(a)*r);cam.lookAt(0,.95,-3)}
+  else{cam.position.set(px,1.65,pz);cam.rotation.set(pitch,yaw,0)}
+  if(uiOn!==started){uiOn=started;$('ui').style.display=started?'':'none';$('startbtn').textContent=step>=0?'Jatka peliä':'Aloita peli'}
+  const o=started&&!busy?target():null;[bUp,bDown,dbtn].forEach(b=>b.material.emissive.setHex(b===o?0x555555:0));
+  const pt=o?promptFor(o):null;
+  if(pt){prompt_.textContent=pt;prompt_.style.display='block'}else prompt_.style.display='none';
+  R.render(scene,cam)}catch(err){if(!loop.e){loop.e=1;window.__err('Silmukkavirhe: '+err.message)}}}
+updateInv();refreshStock();loop();
+
+// Pelipaja: Save & End Game + lataus
+window.rrSaveGame=()=>{try{localStorage.setItem('goat_save',JSON.stringify({money,stock,jobsDone,px,pz,yaw}))}catch(e){}};
+try{const s=JSON.parse(localStorage.getItem('goat_save')||'null');
+  if(s){money=s.money;Object.assign(stock,s.stock||{});jobsDone=s.jobsDone||0;if(typeof s.px==='number'){px=s.px;pz=s.pz;yaw=s.yaw||0}$('money').textContent='€ '+money}}catch(e){}
+</script></body></html>
+
+</body></html>

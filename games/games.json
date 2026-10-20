@@ -1,0 +1,175 @@
+{
+  "games": [
+    {
+      "id": "rautasatama",
+      "name": "Rautasatama",
+      "type": "html",
+      "path": "rautasatama/index.html",
+      "cover": "rautasatama/cover.svg",
+      "version": "0.5",
+      "endButton": "top-left",
+      "tags": [
+        "Avoin maailma",
+        "Autot",
+        "3D"
+      ],
+      "description": "GTA-tyylinen satamakaupunki saarineen ja siltoineen. Aloita safe housesta, osta autoja, pakoile poliisia ja säästä rahat kassakaappiin.",
+      "updates": [
+        "Safe house sisätiloineen ja kassakaappi säästöille",
+        "Puhelin, jolla saa oman auton paikalle",
+        "Hahmon kustomointi ja ostettavat autot"
+      ]
+    },
+    {
+      "id": "kahlekaverit",
+      "name": "Kahlekaverit",
+      "type": "html",
+      "path": "kahlekaverit/index.html",
+      "cover": "kahlekaverit/cover.jpg",
+      "version": "0.4",
+      "endButton": "top-left",
+      "tags": [
+        "Co-op",
+        "Nettipeli",
+        "3D"
+      ],
+      "description": "Pate ja Masa on kahlittu toisiinsa ketjulla. Kantakaa särkyvät tavarat kartanosta pakuun ennen aamua, kaksin isot esineet, ja älkää herättäkö Ilkkaa, robotti-imuria.",
+      "updates": [
+        "Uutta: nettipeli liittymiskoodilla, kumpikin omalla koneellaan",
+        "3D-näkymä ja 20 erilaista esinettä",
+        "Isot esineet vaativat kaksi kantajaa",
+        "Grafiikka: laatu tai suorituskyky (G)"
+      ]
+    },
+    {
+      "id": "kuutiomaa",
+      "name": "Kuutiomaa",
+      "type": "html",
+      "path": "kuutiomaa/index.html",
+      "cover": "kuutiomaa/cover.jpg",
+      "version": "0.3",
+      "endButton": "top-right",
+      "tags": [
+        "Hiekkalaatikko",
+        "Craftaus",
+        "3D"
+      ],
+      "description": "Kuutiomaailma biomeineen, kylineen ja eläimineen. Hakkaa puita, craftaa työkaluja ja rakenna. Jokaisella käyttäjänimellä on oma tallennettu maailma.",
+      "updates": [
+        "Biomit, kylät ja eläimet",
+        "Inventaario ja craftaus",
+        "Maailma tallentuu käyttäjänimelle"
+      ]
+    },
+    {
+      "id": "getting-under-it",
+      "name": "Getting Under It",
+      "type": "html",
+      "path": "getting-under-it/index.html",
+      "cover": "getting-under-it/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "Taito",
+        "2D"
+      ],
+      "description": "Istut kylpyammeessa, johon on sidottu ilmapalloja. Kaiva itsesi 700 metriä alas pelkällä hakulla, kun ilmapallot vetävät koko ajan ylöspäin.",
+      "updates": [
+        "Uutta: Save & End Game tallentaa syvyyden, ja alkuvalikosta pääsee jatkamaan"
+      ]
+    },
+    {
+      "id": "syva-vesi",
+      "name": "Syvä Vesi",
+      "type": "html",
+      "path": "syva-vesi/index.html",
+      "cover": "syva-vesi/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "Hiiviskely",
+        "Veneet",
+        "2D"
+      ],
+      "description": "Yöllinen veneretki Golfvirralle. Pudota lasti syvään veteen ja palaa satamaan ennen aamua, ilman että partioveneet tai majakan valo huomaavat sinut.",
+      "updates": [
+        "Uutta: peli muistaa, monesko yö on menossa"
+      ]
+    },
+    {
+      "id": "haunted-room",
+      "name": "Haunted Room",
+      "type": "html",
+      "path": "haunted-room/index.html",
+      "cover": "haunted-room/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "Kauhu",
+        "Tutkiminen",
+        "3D"
+      ],
+      "description": "Paranormaalitutkijana selvität taskulampun ja mittareiden avulla, kummitteleeko huoneessa. Kaikki liike ei tarkoita riivausta.",
+      "updates": [
+        "Useita huonetyyppejä: keittiö, olohuone, sauna, varasto, autotalli",
+        "Uutta: tapausnumero ja ennätys tallentuvat"
+      ]
+    },
+    {
+      "id": "goat-mechanic",
+      "name": "The Goat Mechanic",
+      "type": "html",
+      "path": "goat-mechanic/index.html",
+      "cover": "goat-mechanic/cover.jpg",
+      "version": "Demo",
+      "endButton": "top-left",
+      "tags": [
+        "Simulaattori",
+        "Autot",
+        "3D"
+      ],
+      "description": "Automekaanikkosimulaattori. Ota töitä vastaan tietokoneelta, nosta auto liftille ja vaihda öljyt, jarrupalat ja renkaat.",
+      "updates": [
+        "Öljynvaihto, jarrupalat ja renkaiden vaihto",
+        "Uutta: rahat, varasto ja tehdyt työt tallentuvat"
+      ]
+    },
+    {
+      "id": "metsasurvival",
+      "name": "Metsäsurvival",
+      "type": "html",
+      "path": "metsasurvival/index.html",
+      "cover": "metsasurvival/cover.jpg",
+      "version": "Demo",
+      "endButton": "top-right",
+      "tags": [
+        "Survival",
+        "Craftaus",
+        "Low poly"
+      ],
+      "description": "Kerää keppejä ja kiviä, rakenna työkalupöytä ja tee kirves. Reseptikirja kertoo, mitä voit valmistaa.",
+      "updates": [
+        "Uutta: reppu, sijainti ja työkalupöydät tallentuvat"
+      ]
+    },
+    {
+      "id": "autopeli",
+      "name": "Autopeli",
+      "type": "html",
+      "path": "autopeli/index.html",
+      "cover": "autopeli/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-right",
+      "tags": [
+        "Kilpa-ajo",
+        "Autot",
+        "3D"
+      ],
+      "description": "Ylhäältä kuvattu kilpa-ajopeli. Aja kisa, paranna kierrosennätystä aika-ajossa tai voita mestaruus urassa.",
+      "updates": [
+        "Kisa, aika-ajo ja ura",
+        "Uutta: uran tilanne tallentuu"
+      ]
+    }
+  ]
+}

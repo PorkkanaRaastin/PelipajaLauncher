@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'" />
+  <title>Pelipaja</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="locked">
+  <!-- Peliohjainlogo, käytetään useassa kohdassa -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="logo-pad" viewBox="0 0 32 32">
+      <path fill="currentColor" d="M9.6 8.5h12.8c3.4 0 6 2.5 6.6 5.8l1.4 8.1c.5 2.9-1.6 5.3-4.4 5.3-1.7 0-3.1-.9-3.9-2.4l-1.1-2.1h-10l-1.1 2.1c-.8 1.5-2.2 2.4-3.9 2.4-2.8 0-4.9-2.4-4.4-5.3l1.4-8.1c.6-3.3 3.2-5.8 6.6-5.8z"/>
+      <path fill="var(--pad-detail, #3fbf5f)" d="M9 13.2h2.2v2.2h2.2v2.2h-2.2v2.2H9v-2.2H6.8v-2.2H9z"/>
+      <circle fill="var(--pad-detail, #3fbf5f)" cx="21.6" cy="14.6" r="1.55"/>
+      <circle fill="var(--pad-detail, #3fbf5f)" cx="24.8" cy="17.8" r="1.55"/>
+      <rect fill="var(--pad-detail, #3fbf5f)" x="14.4" y="11.3" width="3.2" height="1.4" rx=".7"/>
+    </symbol>
+  </svg>
+
+  <!-- KIRJAUTUMINEN: näkyy, kunnes käyttäjä on kirjautunut -->
+  <section id="auth" class="auth">
+    <div class="auth-art">
+      <canvas id="authCanvas" aria-hidden="true"></canvas>
+      <div class="auth-hero">
+        <div class="hero-mark"><svg><use href="#logo-pad"/></svg></div>
+        <h2>Pelipaja</h2>
+        <p>Täällä pelit syntyvät.<br>Kaikki pelisi, tallennuksesi ja peliaikasi yhdessä paikassa.</p>
+      </div>
+    </div>
+    <div class="auth-panel">
+      <div class="brand auth-brand">
+        <div class="brand-mark"><svg><use href="#logo-pad"/></svg></div>
+        <div class="brand-text"><strong>Pelipaja</strong><span>Rasmuksen pelit</span></div>
+      </div>
+
+      <!-- Kirjaudu sisään -->
+      <form class="auth-step" id="stepLogin" novalidate>
+        <h1>Kirjaudu sisään</h1>
+        <p class="auth-lead">Peliaikasi, käynnistykset ja pelien tallennukset kulkevat tilisi mukana.</p>
+        <label class="field"><span>Sähköposti tai käyttäjänimi</span>
+          <input id="loginId" autocomplete="username" spellcheck="false" /></label>
+        <label class="field"><span>Salasana</span>
+          <div class="pw"><input id="loginPw" type="password" autocomplete="current-password" /><button type="button" class="pw-toggle" data-for="loginPw">Näytä</button></div></label>
+        <label class="check"><input type="checkbox" id="loginRemember" checked /> Muista minut tällä koneella</label>
+        <p class="auth-err" id="loginErr" role="alert"></p>
+        <button class="auth-btn" id="loginBtn" type="submit">Kirjaudu</button>
+        <p class="auth-switch">Ei vielä tiliä? <button type="button" class="link" data-go="stepSignup">Luo tili</button></p>
+      </form>
+
+      <!-- Luo tili 1/3: käyttäjänimi ja sähköposti -->
+      <form class="auth-step" id="stepSignup" novalidate hidden>
+        <div class="steps"><i class="on"></i><i></i><i></i><span>Vaihe 1/3</span></div>
+        <h1>Luo tili</h1>
+        <p class="auth-lead">Valitse käyttäjänimi ja anna sähköposti. Lähetämme siihen 6-numeroisen vahvistuskoodin.</p>
+        <label class="field"><span>Käyttäjänimi</span>
+          <input id="suName" autocomplete="username" maxlength="20" spellcheck="false" placeholder="esim. Rasmus_R" /></label>
+        <label class="field"><span>Sähköposti</span>
+          <input id="suEmail" type="email" autocomplete="email" spellcheck="false" placeholder="nimi@esimerkki.fi" /></label>
+        <p class="auth-err" id="suErr" role="alert"></p>
+        <button class="auth-btn" id="suBtn" type="submit">Lähetä vahvistuskoodi</button>
+        <p class="auth-switch">Onko sinulla jo tili? <button type="button" class="link" data-go="stepLogin">Kirjaudu</button></p>
+      </form>
+
+      <!-- Luo tili 2/3: vahvistuskoodi -->
+      <form class="auth-step" id="stepVerify" novalidate hidden>
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i><span>Vaihe 2/3</span></div>
+        <h1>Tarkista sähköpostisi</h1>
+        <p class="auth-lead">Lähetimme 6-numeroisen vahvistuskoodin osoitteeseen <b id="verifyEmail"></b>. Koodi on voimassa 15 minuuttia.</p>
+        <div class="code-boxes" id="codeBoxes">
+          <input inputmode="numeric" maxlength="1" aria-label="Numero 1" /><input inputmode="numeric" maxlength="1" aria-label="Numero 2" /><input inputmode="numeric" maxlength="1" aria-label="Numero 3" /><span class="code-gap"></span><input inputmode="numeric" maxlength="1" aria-label="Numero 4" /><input inputmode="numeric" maxlength="1" aria-label="Numero 5" /><input inputmode="numeric" maxlength="1" aria-label="Numero 6" />
+        </div>
+        <p class="auth-err" id="verifyErr" role="alert"></p>
+        <button class="auth-btn" id="verifyBtn" type="submit">Vahvista</button>
+        <p class="auth-switch">Eikö koodia tullut? Katso myös roskaposti. <button type="button" class="link" id="resendBtn">Lähetä uusi koodi</button></p>
+        <p class="auth-switch"><button type="button" class="link" data-go="stepSignup">← Vaihda sähköposti</button></p>
+      </form>
+
+      <!-- Luo tili 3/3: salasana -->
+      <form class="auth-step" id="stepPassword" novalidate hidden>
+        <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><span>Vaihe 3/3</span></div>
+        <h1>Luo salasana</h1>
+        <p class="auth-lead" id="pwLead">Sähköposti vahvistettu. Viimeisenä salasana.</p>
+        <label class="field"><span>Salasana</span>
+          <div class="pw"><input id="suPw" type="password" autocomplete="new-password" /><button type="button" class="pw-toggle" data-for="suPw">Näytä</button></div></label>
+        <label class="field"><span>Salasana uudelleen</span>
+          <input id="suPw2" type="password" autocomplete="new-password" /></label>
+        <ul class="rules" id="pwRules">
+          <li data-rule="len">Vähintään 8 merkkiä</li>
+          <li data-rule="mix">Kirjaimia ja numeroita tai erikoismerkkejä</li>
+          <li data-rule="match">Salasanat täsmäävät</li>
+        </ul>
+        <p class="auth-err" id="pwErr" role="alert"></p>
+        <button class="auth-btn" id="pwBtn" type="submit">Luo tili</button>
+      </form>
+    </div>
+  </section>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><svg><use href="#logo-pad"/></svg></div>
+      <div class="brand-text">
+        <strong>Pelipaja</strong>
+        <span>Rasmuksen pelit</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-view="home">Etusivu</button>
+      <button class="nav-btn" data-view="library">Kirjasto</button>
+      <button class="nav-btn" data-view="settings">Asetukset</button>
+    </nav>
+
+    <div class="side-label">Pelit</div>
+    <ul id="sideGames" class="side-games"></ul>
+
+    <button id="openFolder" class="side-folder dev-only" hidden>+ Lisää peli</button>
+
+    <div class="user-chip">
+      <div class="avatar" id="userAvatar">?</div>
+      <div class="user-text"><b id="userName">–</b><span id="userEmail"></span></div>
+      <button class="logout" id="logoutBtn" title="Kirjaudu ulos">Ulos</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- ETUSIVU: valittu peli isona -->
+    <section id="view-home" class="view active">
+      <div class="hero" id="hero">
+        <div class="hero-bg" id="heroBg"></div>
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <div class="hero-tags" id="heroTags"></div>
+          <h1 id="heroTitle">Ladataan…</h1>
+          <p id="heroDesc"></p>
+        </div>
+      </div>
+
+      <div class="playbar">
+        <button id="playBtn" class="play-btn" disabled>
+          <span class="play-label">PELAA</span>
+          <span class="play-sub" id="playSub"></span>
+        </button>
+        <div class="stat"><span>Peliaika</span><b id="statTime">–</b></div>
+        <div class="stat"><span>Viimeksi pelattu</span><b id="statLast">–</b></div>
+        <div class="stat"><span>Käynnistyksiä</span><b id="statLaunches">–</b></div>
+        <div class="stat"><span>Versio</span><b id="statVersion">–</b></div>
+      </div>
+
+      <div class="notes" id="notesWrap">
+        <h2>Päivitykset</h2>
+        <ul id="notes"></ul>
+      </div>
+    </section>
+
+    <!-- KIRJASTO: kaikki pelit ruudukkona -->
+    <section id="view-library" class="view">
+      <header class="view-head">
+        <h1>Kirjasto</h1>
+        <input id="search" type="search" placeholder="Hae peliä…" />
+      </header>
+      <div id="grid" class="grid"></div>
+    </section>
+
+    <!-- ASETUKSET -->
+    <section id="view-settings" class="view">
+      <header class="view-head"><h1>Asetukset</h1></header>
+      <div class="setting account">
+        <div>
+          <b id="accName">–</b>
+          <span id="accInfo"></span>
+        </div>
+        <button id="logoutBtn2" class="ghost-btn">Kirjaudu ulos</button>
+      </div>
+      <label class="setting">
+        <input type="checkbox" id="optMinimize" />
+        <div>
+          <b>Pienennä Pelipaja, kun peli käynnistyy</b>
+          <span>Pelipaja palaa esiin, kun suljet pelin.</span>
+        </div>
+      </label>
+      <div class="setting info dev-only" hidden>
+        <div>
+          <b>Uuden pelin lisääminen</b>
+          <span>Laita pelin kansio <code>games</code>-kansioon ja lisää siitä rivi
+            <code>games/games.json</code>-tiedostoon. Lista päivittyy itsestään.</span>
+        </div>
+        <button id="openFolder2" class="ghost-btn">Avaa games-kansio</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="auth-background.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

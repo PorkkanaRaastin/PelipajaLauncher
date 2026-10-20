@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Metsäsurvival – demo</title>
+<style>
+:root{--bg:#16231c;--panel:rgba(18,28,22,.9);--fg:#f1eddc;--dim:#b9b8a2;--ac:#f0b84a;--ok:#8fd16a;--bad:#e07a5f;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#16231c}}
+:root[data-theme="dark"]{--bg:#16231c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--fg);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;inset:0;pointer-events:none}
+#help{position:absolute;left:14px;top:calc(12px + env(safe-area-inset-top,0px));background:var(--panel);padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.6;color:var(--dim)}
+#help b{color:var(--fg)}
+#cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:var(--fg);opacity:.8}
+#prompt{position:absolute;left:50%;top:56%;transform:translateX(-50%);font-size:16px;background:var(--panel);padding:6px 14px;border-radius:8px;display:none;white-space:nowrap}
+#toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);font-size:17px;color:var(--ac);opacity:0;transition:opacity .3s;text-shadow:0 2px 6px #000}
+#inv{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px}
+.slot{background:var(--panel);border-radius:10px;padding:8px 14px;min-width:64px;text-align:center;font-size:13px;color:var(--dim)}
+.slot{position:relative;width:58px;height:58px;min-width:0;padding:6px;box-sizing:border-box;border:2px solid transparent}
+.slot.sel{border-color:var(--ac)}
+.slot.empty .ico{opacity:.25;filter:grayscale(1)}
+.ico{width:100%;height:100%}
+.slot b{position:absolute;left:5px;top:2px;font-size:11px;color:var(--dim)}
+.slot span{position:absolute;right:5px;bottom:2px;font-size:14px;font-weight:bold;color:var(--fg);text-shadow:0 1px 3px #000}
+.ic{display:inline-block;width:18px;height:18px;vertical-align:-4px;margin-right:4px}
+#invp{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,10,7,.6)}
+#invp.open{display:flex}
+#invbox{background:var(--panel);border:1px solid #3a4a3f;width:min(540px,92vw);border-radius:14px;padding:20px 22px}
+#invbox h2{margin:0 0 4px;font-size:24px}
+#invbox p.sub{margin:0 0 14px;font-size:13px;color:var(--dim)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.card{background:rgba(0,0,0,.22);border:2px solid transparent;border-radius:10px;padding:10px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.card.sel{border-color:var(--ac)}
+.card.empty{opacity:.45}
+.card .ico{width:44px;height:44px;flex:none}
+.card b{display:block;font-size:15px}
+.card small{color:var(--dim);font-size:12px}
+#book{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,10,7,.6)}
+#book.open{display:flex}
+#bookbox{background:#f0e6c8;color:#3a2a14;width:min(560px,92vw);max-height:84%;overflow:auto;border-radius:6px 14px 14px 6px;padding:22px 26px;border-left:14px solid #6b4423;box-shadow:0 10px 40px #000a}
+#bookbox h2{margin:0 0 4px;font-family:Georgia,"Times New Roman",serif;font-size:28px}
+#bookbox p.sub{margin:0 0 16px;font-size:13px;color:#6d5a3a}
+.rec{border-top:2px dashed #b9a577;padding:14px 0}
+.rec h3{margin:0 0 4px;font-family:Georgia,serif;font-size:20px}
+.rec p{margin:0 0 8px;font-size:14px}
+.cost{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:14px}
+.cost .ok{color:#3d7a1e}.cost .no{color:#b4412a}
+.rec button{font:inherit;font-size:15px;padding:8px 18px;border:0;border-radius:8px;background:#3d7a1e;color:#fff;cursor:pointer}
+.rec button:disabled{background:#a39a80;cursor:not-allowed}
+.rec button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+#bookclose{margin-top:6px;font-size:12px;color:#6d5a3a}
+#start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,20,14,.82);text-align:center;cursor:pointer}
+#resume{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,20,14,.55);text-align:center;cursor:pointer;font-size:20px}
+#start h1{font-size:34px;margin:0 0 8px}
+#start p{margin:4px 0;color:var(--dim)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="help"><b>WASD</b> liiku · <b>hiiri</b> katso · <b>E</b> poimi / käytä · <b>I</b> reppu · <b>1–5</b> valitse · <b>F</b> aseta · <b>R</b> reseptikirja · <b>Shift</b> juokse</div>
+  <div id="cross"></div><div id="prompt"></div><div id="toast"></div>
+  <div id="inv"></div>
+</div>
+<div id="book"><div id="bookbox"></div></div>
+<div id="invp"><div id="invbox"></div></div>
+<div id="resume"><div>Hiiri vapautui – klikkaa jatkaaksesi</div></div>
+<div id="start"><div><h1>Metsäsurvival</h1><p>Kerää keppejä ja kiviä, tee työkalupöytä ja kirves.</p><p>Klikkaa aloittaaksesi</p></div></div>
+
+<script src="../_shared/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const canvas=$('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x9fd3e6);
+scene.fog=new THREE.Fog(0x9fd3e6,45,170);
+const camera=new THREE.PerspectiveCamera(70,1,.1,400);
+camera.rotation.order='YXZ';
+scene.add(camera);
+scene.add(new THREE.HemisphereLight(0xdff3ff,0x4a5a3a,.75));
+const sun=new THREE.DirectionalLight(0xfff0cf,.9);sun.position.set(40,60,20);scene.add(sun);
+
+// Maasto
+const H=(x,z)=>Math.sin(x*.05)*1.6+Math.cos(z*.07)*1.4+Math.sin((x+z)*.15)*.4;
+const tg=new THREE.PlaneGeometry(220,220,55,55);tg.rotateX(-Math.PI/2);
+const tp=tg.attributes.position;
+for(let i=0;i<tp.count;i++)tp.setY(i,H(tp.getX(i),tp.getZ(i)));
+tg.computeVertexNormals();
+scene.add(new THREE.Mesh(tg,new THREE.MeshLambertMaterial({color:0x5f9440,flatShading:true})));
+
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
+const mTrunk=mat(0x6b4a2b),mLeaf=mat(0x2f6b3a),mLeaf2=mat(0x3c8247),mStick=mat(0x8a5e34),mStone=mat(0x8d9096),mWood=mat(0x9a6a37);
+
+// Ympäristö
+const roadZ=x=>Math.sin(x*.03)*25+10;
+const camps=[-45,20,68].map(x=>({x,z:roadZ(x)+11}));
+const nearRoad=(x,z)=>Math.abs(z-roadZ(x))<4.5||camps.some(c=>Math.hypot(c.x-x,c.z-z)<9||(Math.abs(x-c.x)<3&&z>roadZ(c.x)-4&&z<c.z));
+const ok=(x,z)=>!nearRoad(x,z)&&Math.hypot(x,z)>3;
+const flames=[],smoke=[],obst=[],clouds=[],birds=[],bushes=[],flying=[],falling=[];
+const mRoad=new THREE.MeshLambertMaterial({color:0xa58b62,flatShading:true,side:THREE.DoubleSide});
+function strip(pts,w){
+  const pos=[],idx=[];
+  pts.forEach((p,i)=>{const a=pts[Math.max(i-1,0)],b=pts[Math.min(i+1,pts.length-1)];
+    let tx=b[0]-a[0],tz=b[1]-a[1];const l=Math.hypot(tx,tz)||1;tx/=l;tz/=l;
+    for(const q of [-1,1]){const x=p[0]-tz*q*w/2,z=p[1]+tx*q*w/2;pos.push(x,H(x,z)+.1,z)}
+    if(i)idx.push(2*i-2,2*i-1,2*i,2*i-1,2*i+1,2*i)});
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+  scene.add(new THREE.Mesh(g,mRoad));
+}
+const main=[];for(let x=-110;x<=110;x+=2)main.push([x,roadZ(x)]);strip(main,3.4);
+camps.forEach(c=>{const b=[];for(let z=roadZ(c.x);z<=c.z;z+=2)b.push([c.x,z]);b.push([c.x,c.z]);strip(b,2.2)});
+
+function camp(c,k){
+  const x=c.x,z=c.z,y=H(x,z);
+  for(let i=0;i<9;i++){const a=i/9*6.283,r=new THREE.Mesh(new THREE.IcosahedronGeometry(.22,0),mStone);r.position.set(x+Math.cos(a)*.8,H(x,z)+.12,z+Math.sin(a)*.8);scene.add(r)}
+  for(let i=0;i<2;i++){const l=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,1.1,5),mTrunk);l.rotation.set(0,i*1.6,1.25);l.position.set(x,y+.2,z);scene.add(l)}
+  const fl=new THREE.Mesh(new THREE.ConeGeometry(.3,.9,5),new THREE.MeshBasicMaterial({color:0xff7a1c}));fl.position.set(x,y+.6,z);
+  const fl2=new THREE.Mesh(new THREE.ConeGeometry(.17,.6,5),new THREE.MeshBasicMaterial({color:0xffd24a}));fl2.position.set(x,y+.5,z);
+  const light=new THREE.PointLight(0xff9040,1.4,14);light.position.set(x,y+1.2,z);
+  scene.add(fl,fl2,light);flames.push({fl,fl2,light,ph:k*2});
+  for(let i=0;i<5;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(.25,.25,.25),new THREE.MeshBasicMaterial({color:0x8a8a8a,transparent:true,opacity:.5}));scene.add(p);smoke.push({m:p,t:i*.8,x,y,z,ph:k+i})}
+  obst.push({x,z,r:1});
+  [[-4.6,-2.4,mat(0xc8553d),.4],[4.4,-3,mat(0x3d6fa8),-.5]].forEach(([dx,dz,m,r])=>{
+    const t=new THREE.Mesh(new THREE.ConeGeometry(1.9,1.9,4),m),tx=x+dx,tz=z+dz;
+    t.position.set(tx,H(tx,tz)+.85,tz);t.rotation.y=Math.PI/4+r;scene.add(t);obst.push({x:tx,z:tz,r:1.7})});
+  for(let i=0;i<3;i++){const a=i*2.1+k,l=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,1.2,6),mWood),sx=x+Math.cos(a)*2.6,sz=z+Math.sin(a)*2.6;
+    l.rotation.set(0,-a-Math.PI/2,Math.PI/2);l.position.set(sx,H(sx,sz)+.22,sz);scene.add(l)}
+}
+camps.forEach(camp);
+
+for(let i=-6;i<=6;i++)for(const [ax,az] of [[i*20,-120],[i*20,120],[-120,i*20],[120,i*20]]){
+  const h=rnd(28,48),r=rnd(22,32),m=new THREE.Mesh(new THREE.ConeGeometry(r,h,6),mat(0x5d7568));
+  m.position.set(ax+rnd(-6,6),h/2-6,az+rnd(-6,6));m.rotation.y=rnd(0,3);scene.add(m);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(r*.32,h*.28,6),mat(0xf2f5f7));cap.position.set(m.position.x,h-6-h*.14,m.position.z);cap.rotation.y=m.rotation.y;scene.add(cap);
+}
+const mCloud=new THREE.MeshLambertMaterial({color:0xffffff,flatShading:true,emissive:0x555555});
+for(let i=0;i<16;i++){const g=new THREE.Group(),n=Math.floor(rnd(4,8));
+  for(let j=0;j<n;j++){const q=new THREE.Mesh(new THREE.IcosahedronGeometry(rnd(3,6),0),mCloud);q.position.set(j*4.2-n*2,rnd(-1,1.2),rnd(-2.5,2.5));q.scale.y=.65;g.add(q)}
+  g.position.set(rnd(-170,170),rnd(48,75),rnd(-170,170));g.userData.v=rnd(.6,1.5);scene.add(g);clouds.push(g)}
+function makeBird(col){
+  const g=new THREE.Group(),m=new THREE.MeshLambertMaterial({color:col,flatShading:true});
+  const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.28,0),m);b.scale.set(1.5,.8,.8);g.add(b);
+  const h=new THREE.Mesh(new THREE.IcosahedronGeometry(.14,0),m);h.position.set(.42,.08,0);g.add(h);
+  const bk=new THREE.Mesh(new THREE.ConeGeometry(.05,.18,4),mat(0xe8a33d));bk.rotation.z=-Math.PI/2;bk.position.set(.58,.08,0);g.add(bk);
+  const t=new THREE.Mesh(new THREE.BoxGeometry(.3,.03,.16),m);t.position.set(-.45,0,0);g.add(t);
+  g.userData.w=[-1,1].map(q=>{const w=new THREE.Group();w.position.set(0,.05,q*.12);const wm=new THREE.Mesh(new THREE.BoxGeometry(.28,.03,.7),m);wm.position.z=q*.35;w.add(wm);g.add(w);return w});
+  g.rotation.order='YXZ';return g}
+for(let i=0;i<10;i++){const g=makeBird([0x3b3b46,0x6b4a3a,0x2f4f6b][i%3]);scene.add(g);
+  birds.push({g,cx:rnd(-70,70),cz:rnd(-70,70),r:rnd(12,30),y:rnd(14,26),a:rnd(0,6.28),sp:rnd(.25,.45)*(i%2?1:-1),ph:rnd(0,6)})}
+for(let i=0;i<70;i++){const x=rnd(-88,88),z=rnd(-88,88);if(!ok(x,z)){i--;continue}
+  const g=new THREE.Group();for(let j=0;j<3;j++){const q=new THREE.Mesh(new THREE.IcosahedronGeometry(rnd(.5,.8),0),j%2?mLeaf:mLeaf2);q.position.set(rnd(-.5,.5),.4,rnd(-.5,.5));g.add(q)}
+  g.position.set(x,H(x,z),z);scene.add(g);bushes.push({g,ph:rnd(0,6)})}
+for(let i=0;i<24;i++){const x=rnd(-88,88),z=rnd(-88,88);if(!ok(x,z)){i--;continue}
+  const r=rnd(1,2.2),m=new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),mat(0x7d8087));m.scale.y=.7;m.rotation.y=rnd(0,3);m.position.set(x,H(x,z)+r*.35,z);scene.add(m);obst.push({x,z,r:r*.9})}
+function scatter(geo,n,colors,yoff,sc){
+  const im=new THREE.InstancedMesh(geo,new THREE.MeshLambertMaterial({flatShading:true}),n),d=new THREE.Object3D(),c=new THREE.Color();
+  for(let i=0;i<n;i++){let x,z;do{x=rnd(-92,92);z=rnd(-92,92)}while(!ok(x,z));
+    d.position.set(x,H(x,z)+yoff,z);d.rotation.y=rnd(0,6);d.scale.setScalar(rnd(sc[0],sc[1]));d.updateMatrix();im.setMatrixAt(i,d.matrix);im.setColorAt(i,c.set(colors[i%colors.length]))}
+  scene.add(im)}
+scatter(new THREE.ConeGeometry(.14,.55,4),900,[0x5fa043,0x4f8f3a,0x76b24c],.2,[.7,1.5]);
+scatter(new THREE.OctahedronGeometry(.13,0),260,[0xf4f1e8,0xf2c744,0xe8749a,0xa97be0],.2,[.8,1.3]);
+
+function fallTree(t){const dx=t.x-P.x,dz=t.z-P.z,l=Math.hypot(dx,dz)||1;falling.push({m:t.m,ax:new THREE.Vector3(dz/l,0,-dx/l),ang:0,v:0,end:0})}
+function animate(dt,time){
+  for(const c of clouds){c.position.x+=c.userData.v*dt;if(c.position.x>180)c.position.x=-180}
+  for(const b of birds){
+    b.a+=b.sp*dt;const sg=Math.sign(b.sp);
+    b.g.position.set(b.cx+Math.cos(b.a)*b.r,b.y+Math.sin(time*.7+b.ph)*1.2,b.cz+Math.sin(b.a)*b.r);
+    b.g.rotation.y=Math.atan2(-Math.cos(b.a)*sg,-Math.sin(b.a)*sg);b.g.rotation.x=.3*sg;
+    const glide=Math.sin(time*.4+b.ph)>.6?.12:1,f=Math.sin(time*(9+b.ph)+b.ph)*.8*glide,w=b.g.userData.w;w[0].rotation.x=f;w[1].rotation.x=-f;
+  }
+  for(const f of flames){const k=Math.sin(time*14+f.ph)*.5+Math.sin(time*23+f.ph*2)*.5;f.fl.scale.set(1+k*.12,1+k*.25,1+k*.12);f.fl2.scale.y=1+k*.3;f.fl.rotation.y=time*3;f.light.intensity=1.3+k*.35}
+  for(const s of smoke){s.t+=dt;if(s.t>4)s.t=0;const u=s.t/4;s.m.position.set(s.x+Math.sin(s.t*1.5+s.ph)*.25+s.t*.25,s.y+1+s.t*1.1,s.z);s.m.scale.setScalar(.6+s.t*.5);s.m.material.opacity=.5*(1-u)}
+  for(const t of trees){t.m.rotation.x=Math.sin(time*.9+t.x*.3)*.015;if(t.shake>0)t.shake=Math.max(0,t.shake-dt);t.m.rotation.z=t.shake>0?Math.sin(time*45)*.05*t.shake/.4:0}
+  for(const b of bushes)b.g.rotation.z=Math.sin(time*1.3+b.ph)*.03;
+  for(let i=flying.length-1;i>=0;i--){const f=flying[i];f.t+=dt;const k=Math.min(f.t/.25,1);f.m.position.lerp(camera.position,k*.25+.05);f.m.scale.setScalar(Math.max(1-k,.01));if(k>=1){scene.remove(f.m);flying.splice(i,1)}}
+  for(let i=falling.length-1;i>=0;i--){const f=falling[i];
+    if(f.ang<1.5){f.v+=3.5*dt;const da=Math.min(f.v*dt,1.5-f.ang);f.ang+=da;f.m.rotateOnWorldAxis(f.ax,da)}
+    else{f.end+=dt;f.m.scale.multiplyScalar(1-dt*2.5);if(f.end>.9){scene.remove(f.m);falling.splice(i,1)}}}
+}
+
+// Puut
+const trees=[];
+for(let i=0;i<60;i++){
+  const x=rnd(-88,88),z=rnd(-88,88);if(Math.hypot(x,z)<8||nearRoad(x,z)){i--;continue}
+  const g=new THREE.Group();
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(.25,.4,2.2,6),mTrunk);t.position.y=1.1;g.add(t);
+  const c1=new THREE.Mesh(new THREE.ConeGeometry(1.8,3,7),mLeaf);c1.position.y=3.3;g.add(c1);
+  const c2=new THREE.Mesh(new THREE.ConeGeometry(1.3,2.4,7),mLeaf2);c2.position.y=5;g.add(c2);
+  g.position.set(x,H(x,z),z);g.scale.setScalar(rnd(.8,1.35));g.rotation.y=rnd(0,6);
+  scene.add(g);trees.push({m:g,x,z,hp:3});
+}
+for(let i=0;i<28;i++){
+  const x=rnd(-88,88),z=rnd(-88,88);if(Math.hypot(x,z)<8||nearRoad(x,z)){i--;continue}
+  const g=new THREE.Group(),col=[0x4f9a3a,0x6aae45,0xd68a2e][i%3];
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(.22,.38,2.4,6),mTrunk);t.position.y=1.2;g.add(t);
+  for(let j=0;j<3;j++){const l=new THREE.Mesh(new THREE.IcosahedronGeometry(rnd(1.1,1.6),0),mat(col));l.position.set(rnd(-.8,.8),rnd(2.8,3.8),rnd(-.8,.8));g.add(l)}
+  g.position.set(x,H(x,z),z);g.scale.setScalar(rnd(.9,1.3));g.rotation.y=rnd(0,6);scene.add(g);trees.push({m:g,x,z,hp:3});
+}
+// Keppejä ja kiviä
+const items=[];
+function spawn(type){
+  const x=rnd(-60,60),z=rnd(-60,60);let m;
+  if(type==='keppi'){
+    const gm=new THREE.CylinderGeometry(.04,.05,rnd(.8,1.3),5);gm.rotateZ(Math.PI/2);
+    m=new THREE.Mesh(gm,mStick);m.rotation.y=rnd(0,6);m.position.set(x,H(x,z)+.07,z);
+  }else{
+    m=new THREE.Mesh(new THREE.IcosahedronGeometry(.2,0),mStone);
+    m.scale.set(rnd(.8,1.3),rnd(.6,.9),rnd(.8,1.3));m.rotation.set(rnd(0,3),rnd(0,3),0);m.position.set(x,H(x,z)+.1,z);
+  }
+  scene.add(m);items.push({m,type,x,z});
+}
+for(let i=0;i<55;i++)spawn('keppi');
+for(let i=0;i<45;i++)spawn('kivi');
+// Aloitusalueelle muutama valmiiksi
+for(let i=0;i<5;i++){spawn('keppi');spawn('kivi')}
+items.slice(-10).forEach(it=>{const a=rnd(0,6.28),r=rnd(3,8);it.x=Math.cos(a)*r;it.z=Math.sin(a)*r;it.m.position.x=it.x;it.m.position.z=it.z;it.m.position.y=H(it.x,it.z)+(it.type==='keppi'?.07:.1)});
+
+// Kirves kädessä
+const axe=new THREE.Group();
+const ah=new THREE.Mesh(new THREE.BoxGeometry(.06,.6,.06),mWood);
+const hd=new THREE.Mesh(new THREE.BoxGeometry(.28,.16,.05),mStone);hd.position.set(.12,.24,0);
+axe.add(ah,hd);axe.position.set(.45,-.45,-.8);axe.rotation.set(-.3,.2,-.35);axe.visible=false;camera.add(axe);
+
+// Pelaaja ja tila
+const P={x:0,z:0,yaw:0,pitch:0};
+const inv={keppi:0,kivi:0,puu:0,kirves:0,poyta:1};
+const bench=[];let swing=0;
+const ITEMS=[
+ {id:'keppi',name:'Keppi',info:'Vahva oksa. Perustarvike.',icon:'<polygon points="5,27 24,6 27,9 8,30" fill="#8a5e34"/><polygon points="24,6 27,9 29,7 26,4" fill="#b8854a"/><polygon points="15,17 21,19 19,22" fill="#6b4a2b"/>'},
+ {id:'kivi',name:'Kivi',info:'Pieni, terävä kivi.',icon:'<polygon points="4,22 9,11 18,8 27,14 28,23 16,28" fill="#8d9096"/><polygon points="9,11 18,8 16,18" fill="#b9bcc2"/><polygon points="16,18 27,14 28,23 16,28" fill="#6c6f75"/>'},
+ {id:'puu',name:'Puu',info:'Hakattua halkoa.',icon:'<polygon points="4,10 22,10 22,24 4,24" fill="#9a6a37"/><polygon points="4,10 22,10 22,14 4,14" fill="#b98448"/><ellipse cx="22" cy="17" rx="5" ry="7" fill="#e0bd86"/><ellipse cx="22" cy="17" rx="2.2" ry="3.4" fill="#b98a4e"/>'},
+ {id:'kirves',name:'Kivikirves',info:'Kaataa puita.',icon:'<polygon points="8,28 11,29 23,9 20,6" fill="#9a6a37"/><polygon points="16,5 27,8 24,16 18,12" fill="#8d9096"/><polygon points="16,5 27,8 21,9" fill="#b9bcc2"/>'},
+ {id:'poyta',name:'Työkalupöytä',info:'Aseta maahan (F), riko takaisin (E).',icon:'<polygon points="3,12 29,12 27,17 5,17" fill="#b98448"/><rect x="6" y="17" width="3" height="11" fill="#6b4a2b"/><rect x="23" y="17" width="3" height="11" fill="#6b4a2b"/><polygon points="12,7 19,7 20,12 11,12" fill="#8d9096"/>'}
+];
+const NAMES=Object.fromEntries(ITEMS.map(i=>[i.id,i.name]));
+const ICON=Object.fromEntries(ITEMS.map(i=>[i.id,`<svg viewBox="0 0 32 32" width="100%" height="100%">${i.icon}</svg>`]));
+let sel='poyta';
+function drawInvPanel(){
+  $('invbox').innerHTML='<h2>Reppu</h2><p class="sub">Klikkaa esinettä valitaksesi sen. Sulje painamalla I.</p><div class="grid">'+ITEMS.map(it=>`<div class="card${sel===it.id?' sel':''}${inv[it.id]?'':' empty'}" data-i="${it.id}"><div class="ico">${ICON[it.id]}</div><div><b>${it.name} ×${inv[it.id]}</b><small>${it.info}</small></div></div>`).join('')+'</div>';
+}
+$('invbox').addEventListener('click',e=>{const c=e.target.closest('.card');if(c){sel=c.dataset.i;drawInv()}});
+function drawInv(){
+  $('inv').innerHTML=ITEMS.map((it,i)=>`<div class="slot${sel===it.id?' sel':''}${inv[it.id]?'':' empty'}"><b>${i+1}</b><div class="ico">${ICON[it.id]}</div><span>${inv[it.id]}</span></div>`).join('');
+  if(panel==='inv')drawInvPanel();
+}
+let tt;function toast(s){const t=$('toast');t.textContent=s;t.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>t.style.opacity=0,1800)}
+const nearBench=()=>bench.some(b=>Math.hypot(b.x-P.x,b.z-P.z)<5);
+
+// Reseptit
+const RECIPES=[
+ {id:'poyta',name:'Työkalupöytä',desc:'Työkalupöytä reppuusi. Aseta se maahan F-näppäimellä.',cost:{keppi:5,kivi:3},
+  can:()=>true,make(){inv.poyta++},build(){
+    const g=new THREE.Group();
+    const top=new THREE.Mesh(new THREE.BoxGeometry(1.8,.14,1),mWood);top.position.y=.9;g.add(top);
+    [[-.8,-.4],[.8,-.4],[-.8,.4],[.8,.4]].forEach(([a,b])=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.12,.9,.12),mTrunk);l.position.set(a,.45,b);g.add(l)});
+    const tool=new THREE.Mesh(new THREE.IcosahedronGeometry(.14,0),mStone);tool.position.set(.3,1.06,0);g.add(tool);
+    const x=P.x-Math.sin(P.yaw)*2.5,z=P.z-Math.cos(P.yaw)*2.5;
+    g.position.set(x,H(x,z),z);g.rotation.y=P.yaw;scene.add(g);bench.push({x,z,m:g});
+  }},
+ {id:'kirves',name:'Kivikirves',desc:'Kirves puiden kaatamiseen. Vaatii työkalupöydän lähelle.',cost:{keppi:3,kivi:2},
+  can:()=>nearBench()&&!inv.kirves,why:()=>inv.kirves?'Sinulla on jo kirves':'Mene työkalupöydän lähelle',make(){inv.kirves=1;axe.visible=true}}
+];
+function drawBook(){
+  $('bookbox').innerHTML='<h2>Reseptikirja</h2><p class="sub">Kerää tarvikkeet maasta ja valmista esineitä.</p>'+RECIPES.map(r=>{
+    const enough=Object.entries(r.cost).every(([k,v])=>inv[k]>=v),ok=enough&&r.can();
+    const costs=Object.entries(r.cost).map(([k,v])=>`<span class="${inv[k]>=v?'ok':'no'}"><i class="ic">${ICON[k]}</i>${NAMES[k]} ${inv[k]}/${v}</span>`).join('');
+    const note=enough&&!r.can()?`<p style="color:#b4412a">${r.why()}</p>`:'';
+    return `<div class="rec"><h3>${r.name}</h3><p>${r.desc}</p><div class="cost">${costs}</div>${note}<button data-r="${r.id}" ${ok?'':'disabled'}>Valmista</button></div>`;
+  }).join('')+'<div id="bookclose">Sulje kirja painamalla R</div>';
+}
+$('bookbox').addEventListener('click',e=>{
+  const id=e.target.dataset&&e.target.dataset.r;if(!id)return;
+  const r=RECIPES.find(x=>x.id===id);
+  if(!Object.entries(r.cost).every(([k,v])=>inv[k]>=v)||!r.can())return;
+  Object.entries(r.cost).forEach(([k,v])=>inv[k]-=v);r.make();
+  toast(r.name+' valmistettu!');drawInv();drawBook();
+});
+let bookOpen=false,panel=null;
+function togglePanel(w){
+  panel=panel===w?null:w;bookOpen=!!panel;
+  $('book').classList.toggle('open',panel==='book');$('invp').classList.toggle('open',panel==='inv');
+  if(panel){keys={};if(document.pointerLockElement)document.exitPointerLock();if(panel==='book')drawBook();else drawInvPanel()}else{lock();setTimeout(syncResume,300)}
+  syncResume();
+}
+
+// Syöte
+let keys={},drag=false,started=false;
+addEventListener('keydown',e=>{
+  if(!started)return;
+  const k=e.key.toLowerCase();
+  if(k==='r'){togglePanel('book');return}
+  if(k==='i'||k==='tab'){e.preventDefault();togglePanel('inv');return}
+  if(bookOpen)return;
+  if(k.length===1&&k>='1'&&k<='5'){sel=ITEMS[+k-1].id;drawInv();return}
+  keys[k]=true;if(k==='e')interact();if(k==='f')place();
+});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+let noLock=false,lockErrs=0;
+const isLocked=()=>document.pointerLockElement===canvas;
+function lock(){
+  const fb=()=>{try{canvas.requestPointerLock()}catch(e){}};
+  try{const r=canvas.requestPointerLock({unadjustedMovement:true});if(r&&r.catch)r.catch(fb)}catch(e){fb()}
+}
+function syncResume(){$('resume').style.display=(started&&!bookOpen&&!isLocked()&&!noLock)?'flex':'none'}
+document.addEventListener('pointerlockchange',()=>{if(isLocked())lockErrs=0;syncResume()});
+document.addEventListener('pointerlockerror',()=>{if(++lockErrs>=3)noLock=true;syncResume()});
+$('resume').addEventListener('click',()=>{lock();setTimeout(syncResume,300)});
+addEventListener('blur',()=>{keys={}});
+$('start').addEventListener('click',()=>{started=true;$('start').style.display='none';lock();setTimeout(syncResume,300)});
+canvas.addEventListener('mousedown',()=>{drag=true;if(!bookOpen&&started&&!noLock&&!isLocked())lock()});
+addEventListener('mouseup',()=>drag=false);
+addEventListener('mousemove',e=>{
+  if(bookOpen||!started)return;
+  if(isLocked()||(noLock&&drag)){const mx=e.movementX,my=e.movementY;if(Math.abs(mx)>250||Math.abs(my)>250)return;P.yaw-=mx*.0025;P.pitch=Math.max(-1.3,Math.min(1.3,P.pitch-my*.0025))}
+});
+
+// Kohde ja toiminta
+let target=null;
+function findTarget(){
+  target=null;let best=1e9,txt='';
+  for(const it of items){const d=Math.hypot(it.x-P.x,it.z-P.z);if(d<2.3&&d<best){best=d;target={kind:'item',o:it};txt=`[E] Poimi ${NAMES[it.type].toLowerCase()}`}}
+  for(const t of trees){const d=Math.hypot(t.x-P.x,t.z-P.z);if(d<3&&d<best){best=d;target={kind:'tree',o:t};txt=inv.kirves?'[E] Hakkaa puuta':'Tarvitset kirveen'}}
+  for(const b of bench){const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<3&&d<best){best=d;target={kind:'bench',o:b};txt='[E] Riko työkalupöytä'}}
+  if(!txt&&sel==='poyta'&&inv.poyta)txt='[F] Aseta työkalupöytä';
+  const p=$('prompt');p.style.display=txt&&!bookOpen?'block':'none';p.textContent=txt;
+}
+function interact(){
+  if(!target)return;
+  if(target.kind==='bench'){const b=target.o;scene.remove(b.m);bench.splice(bench.indexOf(b),1);inv.poyta++;toast('+1 työkalupöytä');drawInv();return}
+  if(target.kind==='item'){
+    const it=target.o;items.splice(items.indexOf(it),1);flying.push({m:it.m,t:0});inv[it.type]++;toast('+1 '+NAMES[it.type].toLowerCase());drawInv();
+  }else if(inv.kirves){
+    const t=target.o;if(swing>0)return;swing=.45;setTimeout(()=>{if(t.dead)return;t.hp--;t.shake=.4;if(t.hp<=0){t.dead=true;trees.splice(trees.indexOf(t),1);inv.puu+=4;toast('+4 puuta');drawInv();fallTree(t)}},200);
+    
+  }
+}
+
+function place(){
+  if(sel!=='poyta'||!inv.poyta)return;
+  const x=P.x-Math.sin(P.yaw)*2.5,z=P.z-Math.cos(P.yaw)*2.5;
+  if(bench.some(b=>Math.hypot(b.x-x,b.z-z)<2.2)){toast('Liian lähellä toista pöytää');return}
+  inv.poyta--;RECIPES[0].build();toast('Työkalupöytä asetettu');drawInv();
+}
+// Silmukka
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();drawInv();
+const clock=new THREE.Clock();
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=Math.min(clock.getDelta(),.05);
+  const time=clock.elapsedTime;animate(dt,time);
+  if(started&&!bookOpen){
+    let f=(keys['w']||keys['arrowup']?1:0)-(keys['s']||keys['arrowdown']?1:0);
+    let s=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0);
+    const sp=(keys['shift']?9:5)*dt,len=Math.hypot(f,s)||1;
+    P.x+=(-Math.sin(P.yaw)*f+Math.cos(P.yaw)*s)/len*sp;
+    P.z+=(-Math.cos(P.yaw)*f-Math.sin(P.yaw)*s)/len*sp;
+    P.x=Math.max(-92,Math.min(92,P.x));P.z=Math.max(-92,Math.min(92,P.z));
+  }
+  for(const t of trees.concat(obst)){const d=Math.hypot(t.x-P.x,t.z-P.z),rr=(t.r||.9)+.1;if(d<rr&&d>0){P.x+=(P.x-t.x)/d*(rr-d);P.z+=(P.z-t.z)/d*(rr-d)}}
+  const mvg=started&&!bookOpen&&(keys['w']||keys['a']||keys['s']||keys['d']||keys['arrowup']||keys['arrowdown']||keys['arrowleft']||keys['arrowright']);
+  P.mv=(P.mv||0)+((mvg?1:0)-(P.mv||0))*Math.min(dt*8,1);P.bob=(P.bob||0)+dt*(keys['shift']?13:9)*P.mv;
+  const sw=Math.cos(P.bob*.5)*.03*P.mv;
+  camera.position.set(P.x+Math.cos(P.yaw)*sw,H(P.x,P.z)+1.7+Math.sin(P.bob)*.05*P.mv,P.z-Math.sin(P.yaw)*sw);
+  const tf=keys['shift']&&mvg?77:70;camera.fov+=(tf-camera.fov)*Math.min(dt*6,1);camera.updateProjectionMatrix();
+  camera.rotation.set(P.pitch+Math.sin(P.bob)*.004*P.mv,P.yaw,Math.sin(P.bob*.5)*.006*P.mv);
+  if(swing>0){swing=Math.max(0,swing-dt);const u=1-swing/.45,a=u<.3?u/.3*.7:u<.6?.7-(u-.3)/.3*1.9:-1.2*(1-(u-.6)/.4);axe.rotation.x=-.3+a}else axe.rotation.x=-.3;
+  axe.position.y=-.45+Math.sin(time*1.6)*.006+Math.sin(P.bob*2)*.012*P.mv;axe.position.x=.45+Math.sin(P.bob)*.015*P.mv;
+  findTarget();
+  renderer.render(scene,camera);
+}
+// Pelipaja: Save & End Game + lataus
+window.rrSaveGame=()=>{try{localStorage.setItem('ms_save',JSON.stringify({inv,P:{x:P.x,z:P.z,yaw:P.yaw},bench:bench.map(b=>({x:b.x,z:b.z,r:b.m.rotation.y}))}))}catch(e){}};
+try{const s=JSON.parse(localStorage.getItem('ms_save')||'null');
+  if(s){Object.assign(inv,s.inv||{});
+    const build=RECIPES.find(r=>r.id==='poyta').build;
+    for(const b of s.bench||[]){P.yaw=b.r;P.x=b.x+Math.sin(b.r)*2.5;P.z=b.z+Math.cos(b.r)*2.5;build()}
+    if(s.P){P.x=s.P.x;P.z=s.P.z;P.yaw=s.P.yaw}
+    axe.visible=!!inv.kirves;drawInv()}}catch(e){console.error(e)}
+loop();
+</script>
+</body>
+</html>

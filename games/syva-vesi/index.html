@@ -1,0 +1,296 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Syvä Vesi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Monoton&family=Barlow:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: koko ruudun canvas, ohut HUD-nauha ylhäällä, kosketusnapit alhaalla. Yksi tumma maailma tarkoituksella. */
+:root{
+  --night:#040d14; --sea:#0b3a44; --ink:#d9f2f2; --dim:#7fa3aa;
+  --neon:#ff4fa3; --cyan:#3fe6e0; --amber:#ffc35c; --danger:#ff5a4f;
+  --f-display:"Monoton","Impact",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;background:var(--night);color:var(--ink);font-family:var(--f-body);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:linear-gradient(var(--night),transparent);font-family:var(--f-mono);font-size:13px;pointer-events:none}
+.stat{display:flex;flex-direction:column;gap:2px;font-variant-numeric:tabular-nums}
+.stat small{font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.stat b{font-weight:600;font-size:16px}
+#clock{color:var(--amber)}
+#depth.deep{color:var(--cyan)}
+.susp{flex:1 1 140px;min-width:120px;max-width:260px}
+.bar{height:6px;background:#ffffff1a;border-radius:3px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;width:0;background:var(--danger);transition:width .15s}
+#msg{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(560px,calc(100% - 32px));
+  font-style:italic;font-size:17px;text-align:center;color:var(--ink);text-shadow:0 0 12px #000,0 0 3px #000;opacity:0;transition:opacity .6s;pointer-events:none}
+#msg.on{opacity:1}
+.screen{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at 70% 30%,#123a4a 0%,var(--night) 70%);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px;z-index:5;overflow:auto}
+.card{max-width:520px;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(44px,12vw,84px);line-height:1;margin:0;color:var(--neon);
+  text-shadow:0 0 8px #ff4fa388,0 0 28px #ff4fa355;text-wrap:balance}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan)}
+.card p{margin:0;line-height:1.55;color:#bcd8dc;font-size:16px}
+.keys{font-family:var(--f-mono);font-size:13px;color:var(--dim);display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
+.keys kbd{color:var(--ink)}
+button.go{align-self:flex-start;font:600 16px var(--f-mono);letter-spacing:.08em;color:var(--night);background:var(--cyan);border:0;border-radius:4px;padding:12px 22px;cursor:pointer}
+button.go:focus-visible{outline:2px solid var(--neon);outline-offset:3px}
+#touch{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(16px + env(safe-area-inset-bottom,0px));pointer-events:none}
+#touch .grp{display:flex;gap:10px;pointer-events:auto}
+#touch button{width:64px;height:64px;border-radius:50%;border:1px solid #3fe6e066;background:#0b3a4499;color:var(--ink);font:600 20px var(--f-mono);touch-action:none}
+#touch button.drop{width:auto;padding:0 18px;border-radius:32px;font-size:13px;letter-spacing:.1em;border-color:var(--neon);color:var(--neon)}
+#touch button.held{background:#3fe6e044}
+@media (pointer:fine){#touch{display:none}#msg{bottom:calc(40px + env(safe-area-inset-bottom,0px))}}
+</style>
+
+<canvas id="c"></canvas>
+<div id="hud">
+  <div class="stat"><small>Yö</small><b id="night">1</b></div>
+  <div class="stat"><small>Kello</small><b id="clock">01:00</b></div>
+  <div class="stat"><small>Lasti</small><b id="cargo">3</b></div>
+  <div class="stat"><small>Syvyys</small><b id="depth">0 m</b></div>
+  <div class="stat susp"><small>Epäily</small><div class="bar"><i id="susp"></i></div></div>
+</div>
+<div id="msg"></div>
+<div id="touch">
+  <div class="grp"><button id="tL" aria-label="Vasen">◀</button><button id="tR" aria-label="Oikea">▶</button></div>
+  <div class="grp"><button id="tD" class="drop">PUDOTA</button><button id="tB" aria-label="Taakse">▼</button><button id="tF" aria-label="Eteen">▲</button></div>
+</div>
+
+<div class="screen" id="menu">
+  <div class="card">
+    <div class="eyebrow">Miami · kello 01:00 · vene "Hiljainen Hetki"</div>
+    <h1>Syvä Vesi</h1>
+    <p>Päivisin olet poliisilaitoksen tunnollinen laboratoriotyöntekijä. Öisin ajat veneelläsi ulos lahdelta. Kannella on painavia, huolellisesti käärittyjä paketteja, eikä kenenkään pidä koskaan nähdä niitä.</p>
+    <p>Aja Golfvirran syvänteeseen (yli 200 m), pudota lasti ja palaa satamaan ennen aamunkoittoa. Vältä partioveneiden ja majakan valokeiloja.</p>
+    <div class="keys"><kbd>W A S D / nuolet</kbd><span>ohjaus</span><kbd>Välilyönti</kbd><span>pudota paketti</span></div>
+    <button class="go" id="start">Lähde vesille</button>
+  </div>
+</div>
+<div class="screen" id="over" hidden>
+  <div class="card">
+    <div class="eyebrow" id="overEy">Yö 1</div>
+    <h1 id="overH">Pysäytetty</h1>
+    <p id="overP"></p>
+    <button class="go" id="again">Jatka</button>
+  </div>
+</div>
+
+<script>
+(()=>{
+const W=2400,H=1600,SHORE=270,DEEP=200;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let vw=0,vh=0,dpr=1,zoom=1;
+function resize(){dpr=Math.min(2,window.devicePixelRatio||1);vw=cv.clientWidth;vh=cv.clientHeight;cv.width=vw*dpr;cv.height=vh*dpr;zoom=vw<640?0.62:1;}
+addEventListener('resize',resize);resize();
+
+/* ---------- maailma ---------- */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function depth(x,y){
+  if(x<=SHORE+30)return 0;
+  let d=Math.pow((x-SHORE-30)/1700,2.1)*240+Math.sin(y/170)*12+Math.sin(y/53+x/90)*4;
+  if(x>1950)d+=(x-1950)*0.9;
+  for(const s of islands){const k=Math.hypot(x-s.x,y-s.y)-s.r;if(k<160)d*=clamp(k/160,0,1);}
+  return Math.max(0,Math.min(900,d));
+}
+const islands=[{x:880,y:480,r:85,light:true},{x:1320,y:1080,r:115},{x:1660,y:330,r:62},{x:660,y:900,r:46},{x:1050,y:1460,r:55}];
+const contours=[50,100,200].map(lv=>{const pts=[];for(let y=0;y<=H;y+=20){let lo=SHORE,hi=W;for(let i=0;i<22;i++){const m=(lo+hi)/2;let d=Math.pow((m-SHORE-30)/1700,2.1)*240+Math.sin(y/170)*12+(m>1950?(m-1950)*0.9:0);if(d<lv)lo=m;else hi=m;}pts.push([lo,y]);}return{lv,pts};});
+const city=[];for(let y=0;y<H;y+=rnd(26,44)){const w=rnd(60,200);const h=rnd(18,34);const win=[];for(let i=0;i<w/9;i++)if(Math.random()<.35)win.push([rnd(6,w-6),rnd(4,h-4),Math.random()<.2?'#ff4fa3':Math.random()<.5?'#ffd27a':'#9ff']);city.push({x:SHORE-w-rnd(14,60),y,w,h,win});}
+const sparks=[];for(let i=0;i<520;i++)sparks.push({x:rnd(SHORE,W),y:rnd(0,H),p:rnd(0,6.28),l:rnd(4,12)});
+const MARINA={x:SHORE,y:1190,w:170,h:230};
+const routes=[
+  [[560,300],[1460,240],[1480,760],[600,780]],
+  [[1820,180],[1880,1450],[1760,820]],
+  [[480,1480],[1500,1500],[1150,1000]],
+  [[1180,620],[1960,900],[1220,1320]],
+  [[2140,240],[2180,1380]],
+  [[700,150],[2250,160],[2250,600]],
+];
+
+/* ---------- tila ---------- */
+let state='menu',night=1,p,boats,cargo,minutes,susp,wake,splashes,t=0,dropCd=0,msgT=0,lightNote=0,lastDrop=null;
+const keys={};
+function setup(){
+  p={x:SHORE+60,y:1300,a:0,v:0};
+  cargo=Math.min(6,2+night);minutes=60;susp=0;wake=[];splashes=[];t=0;
+  boats=routes.slice(0,Math.min(routes.length,night+1)).map((r,i)=>({x:r[0][0],y:r[0][1],r,i:1,a:0,sp:55+night*9,ph:i*1.7}));
+  say(pick(['Kaupunki nukkuu. Minä en.','Tavallinen mies, tavallinen vene, tavallinen yöajelu.',cargo+' pakettia. Yksi suunta: syvyys.']));
+}
+const pick=a=>a[Math.random()*a.length|0];
+const msgEl=document.getElementById('msg');
+function say(s){msgEl.textContent=s;msgEl.classList.add('on');msgT=4.5;}
+
+/* ---------- syöte ---------- */
+const KM={ArrowUp:'u',KeyW:'u',ArrowDown:'d',KeyS:'d',ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',Space:'x',KeyE:'x'};
+addEventListener('keydown',e=>{const k=KM[e.code];if(k){keys[k]=true;e.preventDefault();}});
+addEventListener('keyup',e=>{const k=KM[e.code];if(k)keys[k]=false;});
+[['tL','l'],['tR','r'],['tF','u'],['tB','d'],['tD','x']].forEach(([id,k])=>{const b=document.getElementById(id);
+  const on=e=>{e.preventDefault();keys[k]=true;b.classList.add('held');},off=()=>{keys[k]=false;b.classList.remove('held');};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);});
+
+/* ---------- logiikka ---------- */
+function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;}
+function lhAngle(){return t*0.55;}
+function update(dt){
+  t+=dt;minutes+=dt*1.6;
+  // vene
+  if(keys.u)p.v+=130*dt;else if(keys.d)p.v-=170*dt;else p.v*=1-0.55*dt;
+  p.v=clamp(p.v,-60,200);
+  const tr=(keys.r?1:0)-(keys.l?1:0);
+  p.a+=tr*1.9*dt*clamp(Math.abs(p.v)/80,0.3,1)*(p.v<0?-1:1);
+  p.x+=Math.cos(p.a)*p.v*dt;p.y+=Math.sin(p.a)*p.v*dt;
+  if(p.x>1950)p.y-=18*dt; // Golfvirta virtaa pohjoiseen
+  if(p.x<SHORE+14){p.x=SHORE+14;p.v*=-0.3;}
+  p.x=clamp(p.x,0,W-10);p.y=clamp(p.y,10,H-10);
+  for(const s of islands){const dx=p.x-s.x,dy=p.y-s.y,d=Math.hypot(dx,dy);if(d<s.r+14){p.x=s.x+dx/d*(s.r+14);p.y=s.y+dy/d*(s.r+14);p.v*=0.4;}}
+  if(Math.abs(p.v)>15&&Math.random()<dt*30)wake.push({x:p.x-Math.cos(p.a)*16,y:p.y-Math.sin(p.a)*16,l:1.6});
+  wake.forEach(w=>w.l-=dt);wake=wake.filter(w=>w.l>0);
+  splashes.forEach(s=>s.l-=dt);splashes=splashes.filter(s=>s.l>0);
+  // partiot
+  let lit=false;
+  for(const b of boats){
+    const [tx,ty]=b.r[b.i];const dx=tx-b.x,dy=ty-b.y,d=Math.hypot(dx,dy);
+    if(d<12)b.i=(b.i+1)%b.r.length;else{b.x+=dx/d*b.sp*dt;b.y+=dy/d*b.sp*dt;b.a+=angDiff(Math.atan2(dy,dx),b.a)*Math.min(1,dt*2);}
+    b.cone=b.a+Math.sin(t*0.7+b.ph)*0.6;
+    const px=p.x-b.x,py=p.y-b.y,pd=Math.hypot(px,py);
+    if(pd<70||(pd<270&&Math.abs(angDiff(Math.atan2(py,px),b.cone))<0.3))lit=true;
+  }
+  const L=islands[0];const lx=p.x-L.x,ly=p.y-L.y,ld=Math.hypot(lx,ly);
+  if(ld<440&&ld>L.r&&Math.abs(angDiff(Math.atan2(ly,lx),lhAngle()))<0.09)lit=true;
+  if(lit){susp+=55*dt;if(lightNote<=0){say(pick(['Valo. Hymyile ja vilkuta.','Rauhallisesti. Olen vain yöllä kalassa.','Ei katsekontaktia valoon.']));lightNote=6;}}
+  else susp-=10*dt;
+  lightNote-=dt;susp=clamp(susp,0,100);
+  // pudotus
+  dropCd-=dt;
+  if(keys.x&&dropCd<=0&&cargo>0){
+    dropCd=0.6;const dp=depth(p.x,p.y);
+    if(dp<DEEP){say('Liian matalaa. Täällä kaikki löytyisi aamulla.');}
+    else{cargo--;splashes.push({x:p.x,y:p.y,l:2});
+      const near=boats.some(b=>Math.hypot(b.x-p.x,b.y-p.y)<380);
+      if(near){susp+=30;say('Joku saattoi kuulla loiskeen.');}
+      else say(cargo?pick(['Golfvirta hoitaa loput.','Kaksisataa metriä hiljaisuutta.','Siisti. Järjestelmällinen. Huomaamaton.']):'Lasti poissa. Takaisin laiturille ennen aamua.');}
+  }
+  // loppu
+  if(susp>=100)return end(false,'Pysäytetty','Partiovene ajoi kylkeen ja valo osui kannelle. Rannikkovartiosto haluaa tarkastaa veneen.');
+  if(minutes>=330)return end(false,'Aamu koitti','Aurinko nousi ennen kuin olit kotona. Varhaiset kalastajat muistavat veneesi nimen.');
+  if(cargo===0&&p.x<MARINA.x+MARINA.w&&p.y>MARINA.y&&p.y<MARINA.y+MARINA.h&&Math.abs(p.v)<60)
+    return end(true,'Kotona','Vene kiinni laiturissa, kansi pesty. Aamulla viet töihin munkkeja ja hymyilet kuin tavallinen kollega.');
+  msgT-=dt;if(msgT<=0)msgEl.classList.remove('on');
+}
+function end(win,h,txt){
+  state='over';
+  document.getElementById('overEy').textContent='Yö '+night+(win?' · onnistui':' · epäonnistui');
+  document.getElementById('overH').textContent=h;
+  document.getElementById('overH').style.color=win?'var(--cyan)':'var(--danger)';
+  document.getElementById('overP').textContent=txt+(win?' Seuraavana yönä partioita on enemmän.':'');
+  document.getElementById('again').textContent=win?'Seuraava yö':'Yritä uudelleen';
+  if(win)night++;
+  if(window.rrSaveGame)window.rrSaveGame();
+  document.getElementById('over').hidden=false;
+}
+
+/* ---------- piirto ---------- */
+function cone(x,y,a,len,half,col){
+  const g=ctx.createRadialGradient(x,y,4,x,y,len);g.addColorStop(0,col);g.addColorStop(1,'rgba(255,240,200,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,y,len,a-half,a+half);ctx.closePath();ctx.fill();
+}
+function hull(x,y,a,len,col){
+  ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();
+  ctx.moveTo(len,0);ctx.quadraticCurveTo(len*.3,-len*.42,-len*.8,-len*.36);ctx.lineTo(-len*.8,len*.36);ctx.quadraticCurveTo(len*.3,len*.42,len,0);ctx.fill();ctx.restore();
+}
+function draw(){
+  const cx=clamp(p.x-vw/zoom/2,0,Math.max(0,W-vw/zoom)),cy=clamp(p.y-vh/zoom/2,-60,Math.max(0,H-vh/zoom));
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#03080d';ctx.fillRect(0,0,vw,vh);
+  ctx.setTransform(dpr*zoom,0,0,dpr*zoom,-cx*dpr*zoom,-cy*dpr*zoom);
+  // meri
+  const g=ctx.createLinearGradient(SHORE,0,W,0);g.addColorStop(0,'#0e4650');g.addColorStop(.55,'#08303a');g.addColorStop(.8,'#041a24');g.addColorStop(1,'#020c14');
+  ctx.fillStyle=g;ctx.fillRect(SHORE,0,W-SHORE,H);
+  // välke
+  ctx.lineWidth=1.2;
+  for(const s of sparks){const a=(Math.sin(t*1.4+s.p)+1)/2*.35;if(a<.05)continue;ctx.strokeStyle=`rgba(160,230,235,${a})`;ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+s.l,s.y);ctx.stroke();}
+  // syvyyskäyrät
+  ctx.setLineDash([6,8]);ctx.font='11px "IBM Plex Mono",monospace';
+  for(const c of contours){ctx.strokeStyle=c.lv===DEEP?'rgba(63,230,224,.55)':'rgba(63,230,224,.18)';ctx.lineWidth=c.lv===DEEP?2:1;ctx.beginPath();c.pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
+    ctx.fillStyle=ctx.strokeStyle;for(let k=4;k<c.pts.length;k+=18)ctx.fillText(c.lv+' m',c.pts[k][0]+6,c.pts[k][1]);}
+  ctx.setLineDash([]);
+  // golfvirta
+  ctx.fillStyle='rgba(63,230,224,.12)';ctx.font='600 54px "IBM Plex Mono",monospace';
+  ctx.save();ctx.translate(2230,1100);ctx.rotate(-Math.PI/2);ctx.fillText('GOLFVIRTA',0,0);ctx.restore();
+  ctx.strokeStyle='rgba(63,230,224,.18)';ctx.lineWidth=2;
+  for(let i=0;i<14;i++){const x=2010+(i%4)*95,y=((i*137-t*40)%H+H)%H;ctx.beginPath();ctx.moveTo(x-8,y+10);ctx.lineTo(x,y);ctx.lineTo(x+8,y+10);ctx.stroke();}
+  // maa ja kaupunki
+  ctx.fillStyle='#070a10';ctx.fillRect(-400,0,SHORE+400,H);
+  for(const b of city){ctx.fillStyle='#10141f';ctx.fillRect(b.x,b.y,b.w,b.h);for(const [wx,wy,c] of b.win){ctx.fillStyle=c;ctx.fillRect(b.x+wx,b.y+wy,3,3);}}
+  ctx.shadowColor='#ff4fa3';ctx.shadowBlur=14;ctx.strokeStyle='#ff4fa3';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(SHORE,0);ctx.lineTo(SHORE,MARINA.y);ctx.moveTo(SHORE,MARINA.y+MARINA.h);ctx.lineTo(SHORE,H);ctx.stroke();ctx.shadowBlur=0;
+  // satama
+  const home=cargo===0;ctx.fillStyle=home?`rgba(63,230,224,${.08+.06*Math.sin(t*4)})`:'rgba(255,255,255,.03)';ctx.fillRect(MARINA.x,MARINA.y,MARINA.w,MARINA.h);
+  ctx.fillStyle='#3a3027';for(let i=0;i<4;i++)ctx.fillRect(SHORE,MARINA.y+15+i*62,120,7);
+  ctx.fillStyle='#ffd27a';for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(SHORE+118,MARINA.y+18+i*62,2.5,0,7);ctx.fill();}
+  ctx.fillStyle='rgba(63,230,224,.7)';ctx.font='11px "IBM Plex Mono",monospace';ctx.fillText('SATAMA',SHORE+10,MARINA.y-8);
+  // saaret
+  for(const s of islands){ctx.fillStyle='#2b2a22';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill();ctx.fillStyle='#0f2018';ctx.beginPath();ctx.arc(s.x,s.y,s.r-12,0,7);ctx.fill();
+    ctx.strokeStyle='#1c3a2a';ctx.lineWidth=2;for(let i=0;i<s.r/18;i++){const a=i*2.4,r=(s.r-24)*((i*37)%10)/10,x=s.x+Math.cos(a)*r,y=s.y+Math.sin(a)*r;for(let k=0;k<5;k++){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.cos(k*1.26)*9,y+Math.sin(k*1.26)*9);ctx.stroke();}}}
+  // vana
+  for(const w of wake){ctx.strokeStyle=`rgba(200,245,245,${w.l/1.6*.4})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(w.x,w.y,(1.6-w.l)*14+2,0,7);ctx.stroke();}
+  for(const s of splashes){ctx.strokeStyle=`rgba(63,230,224,${s.l/2})`;ctx.lineWidth=2;for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(s.x,s.y,(2-s.l)*30+k*12,0,7);ctx.stroke();}}
+  // valot (additiivinen)
+  ctx.globalCompositeOperation='lighter';
+  for(const b of boats)cone(b.x,b.y,b.cone,270,0.3,'rgba(255,245,210,.42)');
+  const L=islands[0];cone(L.x,L.y,lhAngle(),440,0.09,'rgba(255,230,160,.5)');
+  ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='#fff3c4';ctx.beginPath();ctx.arc(L.x,L.y,6,0,7);ctx.fill();
+  // partioveneet
+  for(const b of boats){hull(b.x,b.y,b.a,20,'#dfe6ea');ctx.fillStyle=(t*2%1<.5)?'#4aa8ff':'#ff4f4f';ctx.beginPath();ctx.arc(b.x,b.y,3,0,7);ctx.fill();}
+  // pelaaja
+  hull(p.x,p.y,p.a,17,'#e9e2d0');
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle='#6b4a32';for(let i=0;i<cargo;i++)ctx.fillRect(-12+(i%3)*6,(i<3?-5:1),5,4);ctx.restore();
+  // aamunkoitto
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const dawn=clamp((minutes-270)/60,0,1);if(dawn>0){ctx.fillStyle=`rgba(255,140,90,${dawn*.22})`;ctx.fillRect(0,0,vw,vh);}
+  if(susp>40){ctx.fillStyle=`rgba(255,60,60,${(susp-40)/60*.18*(0.6+0.4*Math.sin(t*8))})`;ctx.fillRect(0,0,vw,vh);}
+  minimap();
+}
+function minimap(){
+  const mw=vw<640?120:170,mh=mw*H/W,mx=vw-mw-16,my=(vw<640?118:72)+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0),s=mw/W;
+  ctx.fillStyle='rgba(4,13,20,.8)';ctx.fillRect(mx,my,mw,mh);
+  ctx.fillStyle='#10141f';ctx.fillRect(mx,my,SHORE*s,mh);
+  ctx.strokeStyle='rgba(63,230,224,.6)';ctx.lineWidth=1;ctx.beginPath();contours[2].pts.forEach(([x,y],i)=>i?ctx.lineTo(mx+x*s,my+y*s):ctx.moveTo(mx+x*s,my+y*s));ctx.stroke();
+  ctx.fillStyle='#2b2a22';for(const i of islands){ctx.beginPath();ctx.arc(mx+i.x*s,my+i.y*s,i.r*s,0,7);ctx.fill();}
+  ctx.fillStyle='rgba(63,230,224,.5)';ctx.fillRect(mx,my+MARINA.y*s,MARINA.w*s,MARINA.h*s);
+  ctx.fillStyle='#ff5a4f';for(const b of boats)ctx.fillRect(mx+b.x*s-1.5,my+b.y*s-1.5,3,3);
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(mx+p.x*s,my+p.y*s,2.5,0,7);ctx.fill();
+  ctx.strokeStyle='rgba(127,163,170,.5)';ctx.strokeRect(mx+.5,my+.5,mw-1,mh-1);
+}
+const $=id=>document.getElementById(id);
+function hud(){
+  const m=Math.floor(minutes);$('clock').textContent=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+  $('night').textContent=night;$('cargo').textContent=cargo;
+  const d=Math.round(depth(p.x,p.y));$('depth').textContent=d+' m';$('depth').classList.toggle('deep',d>=DEEP);
+  $('susp').style.width=susp+'%';
+}
+
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(state==='play'){update(dt);hud();}
+  if(p)draw();
+  requestAnimationFrame(loop);
+}
+try{night=Math.max(1,+localStorage.getItem('sv_night')||1)}catch(e){night=1}
+if(night>1)$('start').textContent='Jatka: yö '+night;
+setup();state='menu';requestAnimationFrame(loop);
+// Pelipaja: Save & End Game
+window.rrSaveGame=()=>{try{localStorage.setItem('sv_night',String(night))}catch(e){}};
+$('start').onclick=()=>{$('menu').hidden=true;setup();state='play';};
+$('again').onclick=()=>{$('over').hidden=true;for(const k in keys)keys[k]=false;setup();state='play';};
+})();
+</script>
+
+</body></html>
