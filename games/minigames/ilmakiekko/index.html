@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>Ilmakiekko</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// Ilmakiekko: lyö kiekko kaverin maaliin. Kumpikin pysyy omalla puolellaan. Seitsemän maalia voittaa.
+const { W, H, C, key, beep, text, rect, circle, over, shake, clamp } = Mini;
+const TOP = 48, M = 20, WIN = 7, GOAL = 170;
+const FX = M, FY = TOP + M, FW = W - 2 * M, FH = H - TOP - 2 * M;
+const CY = FY + FH / 2;
+const MR = 30, PR = 20;
+let mallets, puck, goalT, goalMsg, score;
+
+function resetPuck(towards) {
+  puck = { x: W / 2 + towards * 120, y: CY, vx: 0, vy: 0 };
+  mallets[0].x = FX + 90; mallets[0].y = CY;
+  mallets[1].x = FX + FW - 90; mallets[1].y = CY;
+}
+
+Mini.run({
+  id: "ilmakiekko",
+  title: "Ilmakiekko",
+  description: "Lyö kiekko kaverin maaliin. Seitsemän maalia voittaa.",
+  players: 2,
+  controls: [
+    ["Pelaaja 1", ["W", "A", "S", "D"], "liikuta mailaa (vasen puoli)", C.p1],
+    ["Pelaaja 2", ["↑", "←", "↓", "→"], "liikuta mailaa (oikea puoli)", C.p2],
+  ],
+  reset() {
+    mallets = [{ x: 0, y: 0, vx: 0, vy: 0, color: C.p1 }, { x: 0, y: 0, vx: 0, vy: 0, color: C.p2 }];
+    score = [0, 0];
+    goalT = 0; goalMsg = null;
+    resetPuck(Math.random() < 0.5 ? -1 : 1);
+  },
+  coverSetup() {
+    mallets[0].x = 320; mallets[0].y = 260; mallets[1].x = 700; mallets[1].y = 380;
+    puck.x = 430; puck.y = 300; score = [3, 4];
+  },
+  update(dt) {
+    if (goalT > 0) {
+      goalT -= dt;
+      if (goalT <= 0) {
+        const side = goalMsg ? goalMsg.side : 1;
+        goalMsg = null;
+        resetPuck(side); // kiekko maalin päästäneen puolelle
+      }
+      return;
+    }
+    const ACC = 3600, MAX = 560;
+    const ctl = [["KeyW", "KeyS", "KeyA", "KeyD"], ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]];
+    mallets.forEach((m, i) => {
+      const [u, d, l, r] = ctl[i];
+      const ix = (key(r) ? 1 : 0) - (key(l) ? 1 : 0);
+      const iy = (key(d) ? 1 : 0) - (key(u) ? 1 : 0);
+      m.vx += ix * ACC * dt; m.vy += iy * ACC * dt;
+      if (!ix) m.vx *= Math.pow(0.0005, dt);
+      if (!iy) m.vy *= Math.pow(0.0005, dt);
+      const sp = Math.hypot(m.vx, m.vy);
+      if (sp > MAX) { m.vx *= MAX / sp; m.vy *= MAX / sp; }
+      m.x += m.vx * dt; m.y += m.vy * dt;
+      const minX = i === 0 ? FX + MR : W / 2 + MR;
+      const maxX = i === 0 ? W / 2 - MR : FX + FW - MR;
+      if (m.x < minX) { m.x = minX; m.vx = 0; }
+      if (m.x > maxX) { m.x = maxX; m.vx = 0; }
+      if (m.y < FY + MR) { m.y = FY + MR; m.vy = 0; }
+      if (m.y > FY + FH - MR) { m.y = FY + FH - MR; m.vy = 0; }
+    });
+    const steps = 4;
+    for (let s = 0; s < steps; s++) {
+      const h = dt / steps;
+      puck.x += puck.vx * h; puck.y += puck.vy * h;
+      // seinät (maalien kohdalla aukko)
+      const inGoalY = Math.abs(puck.y - CY) < GOAL / 2;
+      if (puck.y < FY + PR) { puck.y = FY + PR; puck.vy = Math.abs(puck.vy) * 0.92; beep(260, 0.03, "sine", 0.04); }
+      if (puck.y > FY + FH - PR) { puck.y = FY + FH - PR; puck.vy = -Math.abs(puck.vy) * 0.92; beep(260, 0.03, "sine", 0.04); }
+      if (!inGoalY) {
+        if (puck.x < FX + PR) { puck.x = FX + PR; puck.vx = Math.abs(puck.vx) * 0.92; beep(260, 0.03, "sine", 0.04); }
+        if (puck.x > FX + FW - PR) { puck.x = FX + FW - PR; puck.vx = -Math.abs(puck.vx) * 0.92; beep(260, 0.03, "sine", 0.04); }
+      }
+      // mailat
+      for (const m of mallets) {
+        const dx = puck.x - m.x, dy = puck.y - m.y, d = Math.hypot(dx, dy);
+        if (d < MR + PR && d > 0) {
+          const nx = dx / d, ny = dy / d;
+          puck.x = m.x + nx * (MR + PR); puck.y = m.y + ny * (MR + PR);
+          const rel = (puck.vx - m.vx) * nx + (puck.vy - m.vy) * ny;
+          if (rel < 0) {
+            puck.vx -= 1.9 * rel * nx; puck.vy -= 1.9 * rel * ny;
+            const sp = Math.hypot(puck.vx, puck.vy);
+            if (sp > 1100) { puck.vx *= 1100 / sp; puck.vy *= 1100 / sp; }
+            beep(420 + Math.min(400, sp / 3), 0.04, "square", 0.04);
+          }
+        }
+      }
+      // maali
+      if (puck.x < FX - PR || puck.x > FX + FW + PR) {
+        const scorer = puck.x < FX ? 1 : 0;
+        score[scorer]++;
+        shake(10, 0.3);
+        beep(scorer ? 520 : 620, 0.3, "triangle", 0.06, 300);
+        if (score[scorer] >= WIN) {
+          over({ title: `Pelaaja ${scorer + 1} voitti!`, color: scorer ? C.p2 : C.p1, lines: [`${score[0]} – ${score[1]}`] });
+          return;
+        }
+        goalMsg = { text: `MAALI! Pelaaja ${scorer + 1}`, color: scorer ? C.p2 : C.p1, side: scorer ? -1 : 1 }; // -1 = vasen (pelaaja 1 päästi)
+        goalT = 1.4;
+        puck.vx = puck.vy = 0;
+        return;
+      }
+    }
+    puck.vx *= Math.pow(0.82, dt); puck.vy *= Math.pow(0.82, dt);
+  },
+  draw(ctx) {
+    rect(0, 0, W, TOP, C.panel);
+    rect(FX - 8, FY - 8, FW + 16, FH + 16, C.line, 30);
+    rect(FX, FY, FW, FH, "#141a21", 24);
+    ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(W / 2, FY); ctx.lineTo(W / 2, FY + FH); ctx.stroke();
+    ctx.beginPath(); ctx.arc(W / 2, CY, 70, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(FX, CY, 110, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(FX + FW, CY, 110, Math.PI / 2, Math.PI * 1.5); ctx.stroke();
+    rect(FX - 10, CY - GOAL / 2, 12, GOAL, C.p1, 4);
+    rect(FX + FW - 2, CY - GOAL / 2, 12, GOAL, C.p2, 4);
+    circle(puck.x, puck.y, PR, C.text);
+    circle(puck.x, puck.y, PR - 6, "#c9cfd8");
+    for (const m of mallets) {
+      circle(m.x, m.y + 3, MR, "rgba(0,0,0,0.35)");
+      circle(m.x, m.y, MR, m.color);
+      circle(m.x, m.y, MR - 10, "rgba(0,0,0,0.2)");
+      circle(m.x, m.y, 9, m.color);
+    }
+    text("PELAAJA 1", 24, 24, 14, C.p1, "left", 800);
+    text("PELAAJA 2", W - 24, 24, 14, C.p2, "right", 800);
+    text(`${score[0]}   –   ${score[1]}`, W / 2, 24, 26, C.text, "center", 800);
+    if (goalMsg) Mini.banner(goalMsg.text, goalMsg.color, CY - 120);
+  },
+});
+</script>
+</body>
+</html>

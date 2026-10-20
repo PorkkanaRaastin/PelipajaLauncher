@@ -47,7 +47,7 @@ for (const g of games) {
   if (g.type === "html") {
     const html = fs.readFileSync(g.target, "utf8");
     if (!/<meta[^>]+charset/i.test(html)) fail(`${g.id}: <meta charset="utf-8"> puuttuu`);
-    if (!/rrSaveGame/.test(html)) console.warn(`  ! ${g.id}: ei window.rrSaveGame-funktiota (Save & End Game ei tallenna)`);
+    if (!/rrSaveGame|_mini\.js/.test(html)) console.warn(`  ! ${g.id}: ei window.rrSaveGame-funktiota (Save & End Game ei tallenna)`);
   }
 }
 

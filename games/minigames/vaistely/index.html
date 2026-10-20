@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>Väistely</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// Väistely: väistä putoavia laatikoita ja kerää kolikoita. Mitä kauemmin selviät, sitä nopeammin sataa.
+const { W, H, C, key, pressed, beep, text, rect, circle, submitScore, best, over, shake, clamp, rand } = Mini;
+const FLOOR = H - 60;
+let pl, blocks, coins, time, score, spawnT, coinT, particles, dashCd, combo;
+
+Mini.run({
+  id: "vaistely",
+  title: "Väistely",
+  description: "Laatikoita sataa taivaalta. Väistä ne ja kerää kolikot.",
+  players: 1,
+  controls: [[null, ["A", "D"], "tai ← →: liiku"], [null, ["Välilyönti"], "syöksähdys (pieni latausaika)"]],
+  formatScore: (s) => s,
+  reset() {
+    pl = { x: W / 2, w: 40, h: 40, vx: 0, dash: 0, face: 1 };
+    blocks = []; coins = []; particles = [];
+    time = 0; score = 0; spawnT = 0; coinT = 2; dashCd = 0; combo = 0;
+  },
+  coverSetup() {
+    for (let i = 0; i < 9; i++) blocks.push({ x: 60 + i * 100 + rand(-20, 20), y: rand(40, 380), s: rand(30, 60), vy: 0, rot: rand(0, 3) });
+    coins.push({ x: 700, y: FLOOR - 30, t: 0 });
+    time = 34;
+  },
+  update(dt) {
+    time += dt;
+    const diff = 1 + time / 25;
+    let dir = (key("KeyD", "ArrowRight") ? 1 : 0) - (key("KeyA", "ArrowLeft") ? 1 : 0);
+    if (dir) pl.face = dir;
+    dashCd = Math.max(0, dashCd - dt);
+    if (pressed("Space", "KeyW", "ArrowUp") && dashCd <= 0) {
+      pl.dash = 0.16; dashCd = 0.9;
+      beep(500, 0.08, "triangle", 0.05, 300);
+    }
+    const target = dir * 420;
+    pl.vx += (target - pl.vx) * Math.min(1, dt * 14);
+    if (pl.dash > 0) { pl.dash -= dt; pl.vx = pl.face * 1100; }
+    pl.x = clamp(pl.x + pl.vx * dt, pl.w / 2, W - pl.w / 2);
+
+    spawnT -= dt;
+    if (spawnT <= 0) {
+      spawnT = Math.max(0.12, 0.6 / diff);
+      const s = rand(26, 26 + 30 * Math.min(1.5, diff / 2));
+      blocks.push({ x: rand(s / 2, W - s / 2), y: -s, s, vy: rand(180, 260) * Math.min(2.4, diff), rot: rand(0, 3) });
+    }
+    coinT -= dt;
+    if (coinT <= 0) { coinT = rand(1.5, 3); coins.push({ x: rand(40, W - 40), y: FLOOR - 26, t: 0 }); }
+
+    const px = pl.x - pl.w / 2, py = FLOOR - pl.h;
+    for (const b of blocks) {
+      b.y += b.vy * dt; b.rot += dt * 2;
+      const hs = b.s * 0.42; // armollinen osuma-alue
+      if (b.x + hs > px && b.x - hs < px + pl.w && b.y + hs > py && b.y - hs < FLOOR) {
+        shake(10, 0.3);
+        const final = Math.floor(time * 10) + score;
+        const isBest = submitScore(final);
+        over({ title: "Osuma!", color: C.danger, lines: [`Aika ${time.toFixed(1)} s  ·  kolikot ${score / 50}`, `Pisteet: ${final}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+        return;
+      }
+      if (b.y > FLOOR - b.s / 2 && !b.landed) {
+        b.landed = true;
+        for (let i = 0; i < 6; i++) particles.push({ x: b.x, y: FLOOR, vx: rand(-120, 120), vy: rand(-200, -60), life: 0.4 });
+      }
+    }
+    blocks = blocks.filter((b) => !b.landed);
+    for (const c of coins) {
+      c.t += dt;
+      if (Math.abs(c.x - pl.x) < 34 && c.t > 0) {
+        c.t = -99; score += 50;
+        beep(988, 0.06, "square", 0.04); setTimeout(() => beep(1318, 0.08, "square", 0.04), 60);
+      }
+    }
+    coins = coins.filter((c) => c.t >= 0 && c.t < 6);
+    for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 600 * dt; p.life -= dt; }
+    particles = particles.filter((p) => p.life > 0);
+  },
+  draw(ctx) {
+    Mini.grid();
+    rect(0, FLOOR, W, H - FLOOR, C.panel);
+    rect(0, FLOOR, W, 4, C.line);
+    for (const c of coins) {
+      const sx = Math.abs(Math.cos(c.t * 4));
+      ctx.save(); ctx.translate(c.x, c.y + Math.sin(c.t * 5) * 4); ctx.scale(Math.max(0.2, sx), 1);
+      circle(0, 0, 12, C.p2); circle(0, 0, 7, "#d39a16");
+      ctx.restore();
+    }
+    for (const b of blocks) {
+      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot);
+      rect(-b.s / 2, -b.s / 2, b.s, b.s, C.danger, 6);
+      rect(-b.s / 2 + 5, -b.s / 2 + 5, b.s - 10, b.s - 10, "rgba(0,0,0,0.18)", 4);
+      ctx.restore();
+    }
+    for (const p of particles) rect(p.x - 2, p.y - 2, 4, 4, C.muted);
+    // pelaaja
+    const px = pl.x - pl.w / 2, py = FLOOR - pl.h;
+    if (pl.dash > 0) { ctx.globalAlpha = 0.3; rect(px - pl.face * 30, py, pl.w, pl.h, C.accent, 8); ctx.globalAlpha = 1; }
+    rect(px, py, pl.w, pl.h, C.accent, 8);
+    circle(pl.x + pl.face * 7, py + 14, 4, C.bg);
+    rect(px, FLOOR - 6, pl.w * (1 - dashCd / 0.9), 3, C.text);
+    text(`${(time).toFixed(1)} s`, W / 2, 30, 26, C.text, "center", 800);
+    text(`Kolikot ${score / 50}`, W - 24, 30, 17, C.p2, "right", 800);
+    text(`Ennätys ${best()}`, 24 + 150, 30, 15, C.muted, "left", 600);
+  },
+});
+</script>
+</body>
+</html>

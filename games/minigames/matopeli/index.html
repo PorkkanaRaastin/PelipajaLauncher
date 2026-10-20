@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>Matopeli</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// Matopeli: syö omenoita, älä osu seinään tai itseesi
+const { W, H, C, key, pressed, beep, text, rect, submitScore, best, over, shake } = Mini;
+const CELL = 30, COLS = 30, ROWS = 18;
+const OX = (W - COLS * CELL) / 2, OY = 54;
+
+let snake, dir, nextDirs, apple, score, stepT, stepLen, pulse, particles;
+
+function freeCell() {
+  for (;;) {
+    const c = { x: Mini.randInt(0, COLS - 1), y: Mini.randInt(0, ROWS - 1) };
+    if (!snake.some((s) => s.x === c.x && s.y === c.y)) return c;
+  }
+}
+
+Mini.run({
+  id: "matopeli",
+  title: "Matopeli",
+  description: "Syö omenoita ja kasva. Älä törmää seinään tai häntääsi.",
+  players: 1,
+  controls: [[null, ["W", "A", "S", "D"], "tai nuolet: käänny"]],
+  reset() {
+    snake = [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }, { x: 5, y: 9 }];
+    dir = { x: 1, y: 0 };
+    nextDirs = [];
+    apple = freeCell();
+    score = 0;
+    stepT = 0;
+    stepLen = 0.11;
+    pulse = 0;
+    particles = [];
+  },
+  coverSetup() {
+    snake = [];
+    for (let i = 0; i < 16; i++) snake.push({ x: 18 - Math.min(i, 8), y: 6 + Math.max(0, i - 8) });
+    apple = { x: 22, y: 6 };
+    score = 12;
+  },
+  update(dt) {
+    const turn = (x, y) => {
+      const last = nextDirs.length ? nextDirs[nextDirs.length - 1] : dir;
+      if (last.x === -x && last.y === -y) return;
+      if (last.x === x && last.y === y) return;
+      if (nextDirs.length < 3) nextDirs.push({ x, y });
+    };
+    if (pressed("KeyW", "ArrowUp")) turn(0, -1);
+    if (pressed("KeyS", "ArrowDown")) turn(0, 1);
+    if (pressed("KeyA", "ArrowLeft")) turn(-1, 0);
+    if (pressed("KeyD", "ArrowRight")) turn(1, 0);
+
+    pulse += dt;
+    for (const p of particles) {
+      p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    }
+    particles = particles.filter((p) => p.life > 0);
+
+    stepT += dt;
+    while (stepT >= stepLen) {
+      stepT -= stepLen;
+      if (nextDirs.length) dir = nextDirs.shift();
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      const eats = head.x === apple.x && head.y === apple.y;
+      const body = eats ? snake : snake.slice(0, -1);
+      if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS || body.some((s) => s.x === head.x && s.y === head.y)) {
+        shake(8, 0.25);
+        const isBest = submitScore(score);
+        over({ title: "Törmäys!", color: C.danger, lines: [`Omenoita: ${score}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+        return;
+      }
+      snake.unshift(head);
+      if (eats) {
+        score++;
+        beep(660 + score * 8, 0.06, "square", 0.04);
+        for (let i = 0; i < 12; i++) {
+          const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * 120;
+          particles.push({ x: OX + apple.x * CELL + 15, y: OY + apple.y * CELL + 15, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.4 });
+        }
+        apple = freeCell();
+        stepLen = Math.max(0.055, 0.11 - score * 0.0018);
+      } else snake.pop();
+    }
+  },
+  draw(ctx) {
+    rect(OX - 6, OY - 6, COLS * CELL + 12, ROWS * CELL + 12, C.panel, 12);
+    for (let y = 0; y < ROWS; y++)
+      for (let x = 0; x < COLS; x++) if ((x + y) % 2) rect(OX + x * CELL, OY + y * CELL, CELL, CELL, "rgba(255,255,255,0.018)");
+    // omena
+    const r = 10 + Math.sin(pulse * 6) * 1.5;
+    Mini.circle(OX + apple.x * CELL + 15, OY + apple.y * CELL + 16, r, C.danger);
+    rect(OX + apple.x * CELL + 14, OY + apple.y * CELL + 2, 3, 7, C.accentDark, 1);
+    // mato
+    snake.forEach((s, i) => {
+      const t = i / Math.max(1, snake.length - 1);
+      const g = Math.round(191 - t * 70);
+      rect(OX + s.x * CELL + 2, OY + s.y * CELL + 2, CELL - 4, CELL - 4, `rgb(${63 - t * 20},${g},${95 - t * 25})`, 7);
+    });
+    const h = snake[0];
+    const ex = dir.x * 5, ey = dir.y * 5;
+    Mini.circle(OX + h.x * CELL + 15 + ex - dir.y * 6, OY + h.y * CELL + 15 + ey - dir.x * 6, 3, C.bg);
+    Mini.circle(OX + h.x * CELL + 15 + ex + dir.y * 6, OY + h.y * CELL + 15 + ey + dir.x * 6, 3, C.bg);
+    for (const p of particles) Mini.circle(p.x, p.y, 3 * (p.life / 0.4), C.danger);
+    // HUD
+    text(`Omenat ${score}`, W - 40, 26, 20, C.text, "right", 800);
+    text(`Ennätys ${best()}`, W / 2, 26, 15, C.muted, "center", 600);
+  },
+});
+</script>
+</body>
+</html>

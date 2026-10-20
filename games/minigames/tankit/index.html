@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>Tankit</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// Tankit: ammu kaveria, ammukset kimpoavat seinistä kerran. Viisi osumaa voittaa.
+const { W, H, C, key, pressed, beep, text, rect, circle, over, shake, clamp } = Mini;
+const TOP = 48, WIN = 5, R = 18;
+const WALLS = [
+  [0, TOP, W, 10], [0, H - 10, W, 10], [0, TOP, 10, H - TOP], [W - 10, TOP, 10, H - TOP],
+  [200, 150, 20, 140], [740, 310, 20, 140], [400, 120, 160, 20], [400, 460, 160, 20],
+  [460, 250, 40, 100], [120, 420, 120, 20], [720, 180, 120, 20],
+];
+let tanks, shots, particles, roundT, msg;
+
+function spawnTanks(keepScore) {
+  const s = tanks ? tanks.map((t) => t.score) : [0, 0];
+  tanks = [
+    { x: 80, y: 140, a: 0, color: C.p1, cd: 0, score: keepScore ? s[0] : 0, alive: true, keys: { f: "KeyW", b: "KeyS", l: "KeyA", r: "KeyD", fire: ["Space", "KeyF"] } },
+    { x: W - 80, y: H - 100, a: Math.PI, color: C.p2, cd: 0, score: keepScore ? s[1] : 0, alive: true, keys: { f: "ArrowUp", b: "ArrowDown", l: "ArrowLeft", r: "ArrowRight", fire: ["Enter", "NumpadEnter", "ShiftRight", "Numpad0"] } },
+  ];
+  shots = [];
+  msg = null;
+}
+function hitWall(x, y, r) {
+  for (const [wx, wy, ww, wh] of WALLS) {
+    const nx = clamp(x, wx, wx + ww), ny = clamp(y, wy, wy + wh);
+    if ((x - nx) ** 2 + (y - ny) ** 2 < r * r) return [wx, wy, ww, wh];
+  }
+  return null;
+}
+function boom(x, y, color, n = 24) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = Mini.rand(60, 320);
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: Mini.rand(0.3, 0.8), color });
+  }
+}
+
+Mini.run({
+  id: "tankit",
+  title: "Tankit",
+  description: "Ammukset kimpoavat seinistä kerran. Viisi osumaa voittaa.",
+  players: 2,
+  controls: [
+    ["Pelaaja 1", ["W", "A", "S", "D"], "aja,  Välilyönti = ammu", C.p1],
+    ["Pelaaja 2", ["↑", "←", "↓", "→"], "aja,  Enter = ammu", C.p2],
+  ],
+  reset() {
+    tanks = null;
+    particles = [];
+    roundT = 0;
+    spawnTanks(false);
+  },
+  coverSetup() {
+    tanks[0].x = 300; tanks[0].y = 320; tanks[0].a = -0.3;
+    tanks[1].x = 650; tanks[1].y = 230; tanks[1].a = 2.8;
+    shots.push({ x: 400, y: 290, vx: 1, vy: -0.3, bounces: 1, owner: 0 }, { x: 560, y: 250, vx: -1, vy: 0.1, bounces: 1, owner: 1 });
+    tanks[0].score = 3; tanks[1].score = 2;
+  },
+  update(dt) {
+    if (msg) {
+      roundT -= dt;
+      if (roundT <= 0) spawnTanks(true);
+    }
+    tanks.forEach((t, i) => {
+      if (!t.alive) return;
+      const k = t.keys;
+      const turnDir = (key(k.r) ? 1 : 0) - (key(k.l) ? 1 : 0);
+      const moveDir = (key(k.f) ? 1 : 0) - (key(k.b) ? 1 : 0);
+      t.a += turnDir * 3.2 * dt;
+      const sp = moveDir * (moveDir > 0 ? 190 : 130) * dt;
+      const nx = t.x + Math.cos(t.a) * sp, ny = t.y + Math.sin(t.a) * sp;
+      const other = tanks[1 - i];
+      const blockedByTank = other.alive && Math.hypot(nx - other.x, ny - other.y) < R * 2;
+      if (!hitWall(nx, t.y, R) && !blockedByTank) t.x = nx;
+      if (!hitWall(t.x, ny, R) && !blockedByTank) t.y = ny;
+      t.cd = Math.max(0, t.cd - dt);
+      if (pressed(...k.fire) && t.cd <= 0 && shots.filter((s) => s.owner === i).length < 3) {
+        t.cd = 0.45;
+        shots.push({ x: t.x + Math.cos(t.a) * (R + 10), y: t.y + Math.sin(t.a) * (R + 10), vx: Math.cos(t.a), vy: Math.sin(t.a), bounces: 1, owner: i, life: 3 });
+        beep(i ? 360 : 420, 0.07, "square", 0.04, -120);
+      }
+    });
+    const SPEED = 420;
+    for (const s of shots) {
+      s.life -= dt;
+      const steps = 4;
+      for (let k = 0; k < steps && s.life > 0; k++) {
+        const ox = s.x, oy = s.y;
+        s.x += (s.vx * SPEED * dt) / steps;
+        s.y += (s.vy * SPEED * dt) / steps;
+        if (hitWall(s.x, s.y, 5)) {
+          if (s.bounces-- <= 0) { s.life = 0; boom(s.x, s.y, C.muted, 6); break; }
+          // kumpi akseli osui
+          if (hitWall(s.x, oy, 5)) s.vx = -s.vx; else s.vy = -s.vy;
+          s.x = ox; s.y = oy;
+          beep(700, 0.03, "sine", 0.03);
+        }
+        tanks.forEach((t, i) => {
+          if (!t.alive || s.life <= 0) return;
+          if (Math.hypot(s.x - t.x, s.y - t.y) < R + 4) {
+            s.life = 0;
+            t.alive = false;
+            boom(t.x, t.y, t.color, 40);
+            shake(12, 0.35);
+            beep(120, 0.4, "sawtooth", 0.06, -60);
+            const winner = tanks[1 - i];
+            if (!msg) {
+              winner.score++;
+              if (winner.score >= WIN) {
+                over({ title: `Pelaaja ${2 - i} voitti!`, color: winner.color, lines: [`${tanks[0].score} – ${tanks[1].score}`] });
+              } else {
+                msg = { text: `Osuma! Piste pelaajalle ${2 - i}`, color: winner.color };
+                roundT = 1.6;
+              }
+            }
+          }
+        });
+      }
+    }
+    shots = shots.filter((s) => s.life > 0);
+    for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; p.life -= dt; }
+    particles = particles.filter((p) => p.life > 0);
+  },
+  draw(ctx) {
+    rect(0, 0, W, TOP, C.panel);
+    Mini.grid();
+    for (const [x, y, w, h] of WALLS) rect(x, y, w, h, C.line, 3);
+    for (const [x, y, w, h] of WALLS) rect(x, y, w, Math.min(4, h), "rgba(255,255,255,0.08)");
+    for (const t of tanks) {
+      if (!t.alive) continue;
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.rotate(t.a);
+      rect(-R, -R, R * 2, 8, "#11151b", 3);
+      rect(-R, R - 8, R * 2, 8, "#11151b", 3);
+      rect(-R + 3, -R + 5, R * 2 - 6, R * 2 - 10, t.color, 6);
+      rect(0, -4, R + 14, 8, t.color, 3);
+      circle(0, 0, 9, "rgba(0,0,0,0.25)");
+      ctx.restore();
+    }
+    for (const s of shots) circle(s.x, s.y, 5, tanks[s.owner].color), circle(s.x, s.y, 2.5, C.text);
+    for (const p of particles) { ctx.globalAlpha = Math.min(1, p.life * 2); rect(p.x - 3, p.y - 3, 6, 6, p.color); }
+    ctx.globalAlpha = 1;
+    text(`PELAAJA 1   ${tanks[0].score}`, 24, 24, 16, C.p1, "left", 800);
+    text(`${tanks[1].score}   PELAAJA 2`, W - 24, 24, 16, C.p2, "right", 800);
+    text(`Ensimmäinen ${WIN} osumaan`, W / 2, 24, 13, C.muted, "center", 700);
+    if (msg) Mini.banner(msg.text, msg.color);
+  },
+});
+</script>
+</body>
+</html>

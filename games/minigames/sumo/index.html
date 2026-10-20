@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>Sumo</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// Sumo: tönäise kaveri ulos kehästä. Kehä pienenee erän edetessä. Viisi erävoittoa voittaa.
+const { W, H, C, key, pressed, beep, text, rect, circle, over, shake } = Mini;
+const TOP = 48, CX = W / 2, CY = TOP + (H - TOP) / 2, R0 = 230, PR = 30, WIN = 5;
+let ps, ringR, roundT, msg, countdown, wins, particles;
+
+function newRound() {
+  ps = [
+    { x: CX - 110, y: CY, vx: 0, vy: 0, color: C.p1, dashCd: 0, dash: 0, out: false, keys: ["KeyW", "KeyS", "KeyA", "KeyD", "Space"], face: 0 },
+    { x: CX + 110, y: CY, vx: 0, vy: 0, color: C.p2, dashCd: 0, dash: 0, out: false, keys: ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter"], face: Math.PI },
+  ];
+  ringR = R0;
+  msg = null;
+  countdown = 1.8;
+}
+
+Mini.run({
+  id: "sumo",
+  title: "Sumo",
+  description: "Tönäise kaveri ulos kehästä. Syöksyllä lähtee kunnon vauhti.",
+  players: 2,
+  controls: [
+    ["Pelaaja 1", ["W", "A", "S", "D"], "liiku,  Välilyönti = syöksy", C.p1],
+    ["Pelaaja 2", ["↑", "←", "↓", "→"], "liiku,  Enter = syöksy", C.p2],
+  ],
+  reset() {
+    wins = [0, 0];
+    particles = [];
+    newRound();
+  },
+  coverSetup() {
+    countdown = 0;
+    ps[0].x = CX - 40; ps[0].y = CY + 20; ps[0].face = 0.2;
+    ps[1].x = CX + 22; ps[1].y = CY + 30; ps[1].face = Math.PI + 0.2;
+    wins = [2, 3];
+  },
+  update(dt) {
+    for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; }
+    particles = particles.filter((p) => p.life > 0);
+    if (msg) {
+      roundT -= dt;
+      for (const p of ps) if (p.out) { p.x += p.vx * dt; p.y += p.vy * dt; p.fall = (p.fall || 0) + dt; }
+      if (roundT <= 0) newRound();
+      return;
+    }
+    if (countdown > 0) {
+      countdown -= dt;
+      if (countdown <= 0) beep(880, 0.12, "square", 0.05);
+      return;
+    }
+    ringR = Math.max(140, ringR - 6 * dt);
+    for (const p of ps) {
+      const [u, d, l, r, dash] = p.keys;
+      const ix = (key(r) ? 1 : 0) - (key(l) ? 1 : 0);
+      const iy = (key(d) ? 1 : 0) - (key(u) ? 1 : 0);
+      const len = Math.hypot(ix, iy) || 1;
+      p.vx += (ix / len) * 900 * dt;
+      p.vy += (iy / len) * 900 * dt;
+      if (ix || iy) p.face = Math.atan2(iy, ix);
+      p.dashCd = Math.max(0, p.dashCd - dt);
+      p.dash = Math.max(0, p.dash - dt);
+      if (pressed(dash) && p.dashCd <= 0) {
+        p.vx += Math.cos(p.face) * 620;
+        p.vy += Math.sin(p.face) * 620;
+        p.dashCd = 1.4; p.dash = 0.25;
+        beep(300, 0.12, "sawtooth", 0.04, 300);
+      }
+      p.vx *= Math.pow(0.12, dt); p.vy *= Math.pow(0.12, dt);
+      p.x += p.vx * dt; p.y += p.vy * dt;
+    }
+    // törmäys (kimmoisa, syöksyjä on vaikea pysäyttää)
+    const [a, b] = ps;
+    const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);
+    if (dist < PR * 2 && dist > 0) {
+      const nx = dx / dist, ny = dy / dist;
+      const ov = PR * 2 - dist;
+      a.x -= nx * ov / 2; a.y -= ny * ov / 2; b.x += nx * ov / 2; b.y += ny * ov / 2;
+      const rel = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+      if (rel > 0) {
+        const ma = a.dash > 0 ? 2.2 : 1, mb = b.dash > 0 ? 2.2 : 1;
+        const j = (1.6 * rel) / (1 / ma + 1 / mb);
+        a.vx -= (j / ma) * nx; a.vy -= (j / ma) * ny;
+        b.vx += (j / mb) * nx; b.vy += (j / mb) * ny;
+        if (rel > 150) { shake(Math.min(10, rel / 80), 0.15); beep(140 + Math.min(200, rel / 4), 0.07, "square", 0.05); }
+        for (let i = 0; i < 6; i++) particles.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, vx: Mini.rand(-150, 150), vy: Mini.rand(-150, 150), life: 0.3 });
+      }
+    }
+    const outs = ps.map((p) => Math.hypot(p.x - CX, p.y - CY) > ringR + PR * 0.3);
+    if (outs[0] || outs[1]) {
+      ps.forEach((p, i) => (p.out = outs[i]));
+      beep(200, 0.4, "sawtooth", 0.05, -120);
+      shake(8, 0.25);
+      if (outs[0] && outs[1]) msg = { text: "Molemmat ulos – tasapeli!", color: C.text };
+      else {
+        const w = outs[0] ? 1 : 0;
+        wins[w]++;
+        if (wins[w] >= WIN) {
+          over({ title: `Pelaaja ${w + 1} voitti!`, color: w ? C.p2 : C.p1, lines: [`Erät ${wins[0]} – ${wins[1]}`] });
+          return;
+        }
+        msg = { text: `Pelaaja ${w + 1} voitti erän`, color: w ? C.p2 : C.p1 };
+      }
+      roundT = 1.6;
+    }
+  },
+  draw(ctx) {
+    rect(0, 0, W, TOP, C.panel);
+    Mini.grid();
+    circle(CX, CY + 10, ringR + 26, "rgba(0,0,0,0.35)");
+    circle(CX, CY, ringR + 22, "#2b2418");
+    circle(CX, CY, ringR + 14, "#c9a46a");
+    circle(CX, CY, ringR, "#d8b77e");
+    ctx.strokeStyle = "rgba(0,0,0,0.12)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(CX, CY, ringR * 0.55, 0, Math.PI * 2); ctx.stroke();
+    rect(CX - 46, CY - 3, 20, 6, "rgba(0,0,0,0.25)", 2); rect(CX + 26, CY - 3, 20, 6, "rgba(0,0,0,0.25)", 2);
+    for (const p of particles) rect(p.x - 3, p.y - 3, 6, 6, "#f3e2bf");
+    for (const p of ps) {
+      const s = p.out ? Math.max(0.2, 1 - (p.fall || 0) * 0.8) : 1;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s, s);
+      circle(0, 5, PR, "rgba(0,0,0,0.3)");
+      if (p.dash > 0) { ctx.globalAlpha = 0.35; circle(-Math.cos(p.face) * 16, -Math.sin(p.face) * 16, PR, p.color); ctx.globalAlpha = 1; }
+      circle(0, 0, PR, p.color);
+      circle(0, 0, PR - 7, "rgba(255,255,255,0.12)");
+      const ex = Math.cos(p.face), ey = Math.sin(p.face);
+      circle(ex * 12 - ey * 9, ey * 12 + ex * 9, 5, C.text); circle(ex * 12 + ey * 9, ey * 12 - ex * 9, 5, C.text);
+      circle(ex * 14 - ey * 9, ey * 14 + ex * 9, 2.5, C.bg); circle(ex * 14 + ey * 9, ey * 14 - ex * 9, 2.5, C.bg);
+      ctx.restore();
+      if (!p.out) rect(p.x - 20, p.y + PR + 8, 40 * (1 - p.dashCd / 1.4), 4, p.color, 2);
+    }
+    text("PELAAJA 1", 24, 24, 14, C.p1, "left", 800);
+    text("PELAAJA 2", W - 24, 24, 14, C.p2, "right", 800);
+    for (let i = 0; i < WIN; i++) {
+      rect(W / 2 - 150 + i * 24, 16, 16, 16, i < wins[0] ? C.p1 : C.panel2, 8);
+      rect(W / 2 + 150 - 16 - i * 24, 16, 16, 16, i < wins[1] ? C.p2 : C.panel2, 8);
+    }
+    if (Mini.state === "play" && countdown > 0) text("Valmiina…", CX, CY - ringR - 4, 22, C.text, "center", 800);
+    if (msg) Mini.banner(msg.text, msg.color, TOP + 50);
+  },
+});
+</script>
+</body>
+</html>

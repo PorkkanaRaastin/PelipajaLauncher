@@ -19,6 +19,17 @@
     </symbol>
   </svg>
 
+  <!-- KÄYNNISTYS: uusimman version tarkistus ja lataus -->
+  <section id="bootScreen" class="boot">
+    <div class="boot-card">
+      <div class="boot-mark"><svg><use href="#logo-pad"/></svg></div>
+      <h1>Pelipaja</h1>
+      <p id="bootText">Tarkistetaan päivityksiä…</p>
+      <div class="boot-bar"><i id="bootBar"></i></div>
+      <span class="boot-ver" id="bootVer"></span>
+    </div>
+  </section>
+
   <!-- KIRJAUTUMINEN: näkyy, kunnes käyttäjä on kirjautunut -->
   <section id="auth" class="auth">
     <div class="auth-art">
@@ -109,6 +120,7 @@
     <nav class="nav">
       <button class="nav-btn active" data-view="home">Etusivu</button>
       <button class="nav-btn" data-view="library">Kirjasto</button>
+      <button class="nav-btn" data-view="minigames">Minipelit</button>
       <button class="nav-btn" data-view="settings">Asetukset</button>
     </nav>
 
@@ -167,6 +179,16 @@
         <input id="search" type="search" placeholder="Hae peliä…" />
       </header>
       <div id="grid" class="grid"></div>
+    </section>
+
+    <!-- MINIPELIT: pienet pelit yksin tai kaverin kanssa samalla näppäimistöllä -->
+    <section id="view-minigames" class="view">
+      <header class="view-head"><h1>Minipelit</h1></header>
+      <p class="mini-lead">Pikaiset pelit tauoille. Kaksinpeleissä toinen pelaa WASD-näppäimillä ja toinen nuolilla.</p>
+      <h2 class="mini-head">Yksin</h2>
+      <div id="miniSolo" class="mini-grid"></div>
+      <h2 class="mini-head">Kaksin samalla koneella</h2>
+      <div id="miniDuo" class="mini-grid"></div>
     </section>
 
     <!-- ASETUKSET -->

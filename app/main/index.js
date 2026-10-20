@@ -120,6 +120,7 @@ const validId = (id) => typeof id === "string" && GAME_ID.test(id);
 handle("app-info", () => ({ version: APP_VERSION, dev: !app.isPackaged }));
 handle("update-status", () => updater.getStatus());
 handle("update-check", () => updater.check());
+handle("update-startup", () => updater.startup());
 handle("update-restart", () => {
   if (games.hasRunning()) return { ok: false, error: "Sulje käynnissä olevat pelit ensin." };
   if (updater.getStatus().state !== "ready") return { ok: false, error: "Päivitys ei ole valmis." };

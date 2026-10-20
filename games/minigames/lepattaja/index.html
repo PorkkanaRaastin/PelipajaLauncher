@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>Lepattaja</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// Lepattaja: pidä lintu ilmassa ja lennä putkien välistä
+const { W, H, C, pressed, mouse, beep, text, rect, circle, submitScore, best, over, shake } = Mini;
+const GROUND = H - 70, GAP = 170, PIPE_W = 80, SPEED = 230;
+let bird, pipes, score, spawnT, groundX, clouds, dead;
+
+function addPipe(x) {
+  const gy = Mini.rand(130, GROUND - 130);
+  pipes.push({ x, gy, passed: false });
+}
+
+Mini.run({
+  id: "lepattaja",
+  title: "Lepattaja",
+  description: "Lennä putkien välistä. Jokainen putki on piste.",
+  players: 1,
+  controls: [[null, ["Välilyönti"], "tai W / ↑ / hiiri: siivenisku"]],
+  reset() {
+    bird = { x: 240, y: H / 2 - 40, vy: 0, rot: 0, flap: 0 };
+    pipes = [];
+    score = 0; spawnT = 0; groundX = 0; dead = false;
+    addPipe(W + 100);
+    clouds = Array.from({ length: 6 }, (_, i) => ({ x: i * 180 + Mini.rand(0, 80), y: Mini.rand(60, 260), s: Mini.rand(0.6, 1.3) }));
+  },
+  coverSetup() {
+    pipes = [{ x: 420, gy: 260 }, { x: 760, gy: 340 }];
+    bird.y = 250; bird.rot = -0.3;
+  },
+  update(dt) {
+    if (pressed("Space", "KeyW", "ArrowUp") || mouse.clicked) {
+      bird.vy = -420;
+      bird.flap = 0.15;
+      beep(620, 0.05, "triangle", 0.05, 180);
+    }
+    bird.vy = Math.min(bird.vy + 1300 * dt, 700);
+    bird.y += bird.vy * dt;
+    bird.rot = Math.max(-0.5, Math.min(1.2, bird.vy / 600));
+    bird.flap = Math.max(0, bird.flap - dt);
+    groundX = (groundX + SPEED * dt) % 40;
+    for (const c of clouds) { c.x -= 30 * c.s * dt; if (c.x < -140) c.x = W + 40; }
+
+    spawnT += dt;
+    const every = Math.max(1.15, 1.6 - score * 0.012);
+    if (spawnT > every) { spawnT = 0; addPipe(W + 40); }
+    for (const p of pipes) {
+      p.x -= SPEED * (1 + score * 0.006) * dt;
+      if (!p.passed && p.x + PIPE_W < bird.x) {
+        p.passed = true;
+        score++;
+        beep(880, 0.07, "square", 0.04);
+      }
+      // törmäys (lintu ympyränä)
+      const r = 15;
+      const inX = bird.x + r > p.x && bird.x - r < p.x + PIPE_W;
+      if (inX && (bird.y - r < p.gy - GAP / 2 || bird.y + r > p.gy + GAP / 2)) return die();
+    }
+    pipes = pipes.filter((p) => p.x > -PIPE_W - 10);
+    if (bird.y + 15 > GROUND) return die();
+    if (bird.y < 0) { bird.y = 0; bird.vy = 0; }
+  },
+  draw(ctx) {
+    // taivas
+    const g = ctx.createLinearGradient(0, 0, 0, GROUND);
+    g.addColorStop(0, "#131a24");
+    g.addColorStop(1, "#1b2a2a");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, GROUND);
+    for (const c of clouds) {
+      ctx.globalAlpha = 0.07;
+      circle(c.x, c.y, 34 * c.s, C.text); circle(c.x + 34 * c.s, c.y + 6, 26 * c.s, C.text); circle(c.x - 30 * c.s, c.y + 8, 22 * c.s, C.text);
+      ctx.globalAlpha = 1;
+    }
+    for (const p of pipes) {
+      const top = p.gy - GAP / 2, bot = p.gy + GAP / 2;
+      rect(p.x, 0, PIPE_W, top, C.accentDark);
+      rect(p.x + 8, 0, 14, top, "rgba(255,255,255,0.08)");
+      rect(p.x - 6, top - 26, PIPE_W + 12, 26, C.accent, 5);
+      rect(p.x, bot, PIPE_W, GROUND - bot, C.accentDark);
+      rect(p.x + 8, bot, 14, GROUND - bot, "rgba(255,255,255,0.08)");
+      rect(p.x - 6, bot, PIPE_W + 12, 26, C.accent, 5);
+    }
+    // maa
+    rect(0, GROUND, W, H - GROUND, C.panel);
+    rect(0, GROUND, W, 6, C.line);
+    for (let x = -groundX; x < W; x += 40) rect(x, GROUND + 18, 20, 4, C.panel2);
+    // lintu
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(bird.rot);
+    circle(0, 0, 17, C.p2);
+    rect(-14, bird.flap > 0 ? -12 : 0, 16, 10, "#d39a16", 4);
+    circle(7, -5, 5, C.text);
+    circle(8, -5, 2.5, C.bg);
+    ctx.fillStyle = C.danger;
+    ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(25, 4); ctx.lineTo(14, 8); ctx.fill();
+    ctx.restore();
+    text(String(score), W / 2, 70, 56, C.text, "center", 800);
+    text(`Ennätys ${best()}`, W - 24, 26, 15, C.muted, "right", 600);
+  },
+});
+
+function die() {
+  if (dead) return;
+  dead = true;
+  shake(10, 0.3);
+  const isBest = submitScore(score);
+  over({ title: "Pläts!", color: C.danger, lines: [`Putkia: ${score}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+}
+</script>
+</body>
+</html>

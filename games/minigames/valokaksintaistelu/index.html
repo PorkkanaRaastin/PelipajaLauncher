@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>Valokaksintaistelu</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// Valokaksintaistelu: valopyörät jättävät seinän perässään. Se, joka törmää ensin, häviää erän.
+const { W, H, C, pressed, beep, text, rect, over, shake } = Mini;
+const CELL = 12, TOP = 48, COLS = Math.floor(W / CELL), ROWS = Math.floor((H - TOP) / CELL);
+const WIN = 5, STEP = 0.05;
+let grid, bikes, stepT, countdown, wins, roundMsg, roundT;
+
+function newRound() {
+  grid = new Uint8Array(COLS * ROWS);
+  bikes = [
+    { x: 12, y: Math.floor(ROWS / 2), dx: 1, dy: 0, q: [], color: C.p1, id: 1, alive: true },
+    { x: COLS - 13, y: Math.floor(ROWS / 2), dx: -1, dy: 0, q: [], color: C.p2, id: 2, alive: true },
+  ];
+  for (const b of bikes) grid[b.y * COLS + b.x] = b.id;
+  stepT = 0; countdown = 2.4; roundMsg = null;
+}
+function turn(b, dx, dy) {
+  const last = b.q.length ? b.q[b.q.length - 1] : { dx: b.dx, dy: b.dy };
+  if ((last.dx === -dx && last.dy === -dy) || (last.dx === dx && last.dy === dy)) return;
+  if (b.q.length < 2) b.q.push({ dx, dy });
+}
+
+Mini.run({
+  id: "valokaksintaistelu",
+  title: "Valokaksintaistelu",
+  description: "Valopyörät jättävät seinän perään. Viisi erävoittoa voittaa.",
+  players: 2,
+  controls: [
+    ["Pelaaja 1", ["W", "A", "S", "D"], "käänny", C.p1],
+    ["Pelaaja 2", ["↑", "←", "↓", "→"], "käänny", C.p2],
+  ],
+  reset() {
+    wins = [0, 0];
+    newRound();
+  },
+  coverSetup() {
+    countdown = 0;
+    const path1 = [[12, 22], [30, 22], [30, 8], [55, 8], [55, 30], [40, 30]];
+    const path2 = [[67, 22], [62, 22], [62, 38], [20, 38], [20, 28]];
+    for (const [path, id] of [[path1, 1], [path2, 2]])
+      for (let i = 1; i < path.length; i++) {
+        let [x, y] = path[i - 1]; const [tx, ty] = path[i];
+        while (x !== tx || y !== ty) { x += Math.sign(tx - x); y += Math.sign(ty - y); grid[y * COLS + x] = id; }
+      }
+    bikes[0].x = 40; bikes[0].y = 30; bikes[0].dx = -1;
+    bikes[1].x = 20; bikes[1].y = 28; bikes[1].dx = 0; bikes[1].dy = -1;
+    wins = [2, 2];
+  },
+  update(dt) {
+    const [a, b] = bikes;
+    if (pressed("KeyW")) turn(a, 0, -1);
+    if (pressed("KeyS")) turn(a, 0, 1);
+    if (pressed("KeyA")) turn(a, -1, 0);
+    if (pressed("KeyD")) turn(a, 1, 0);
+    if (pressed("ArrowUp")) turn(b, 0, -1);
+    if (pressed("ArrowDown")) turn(b, 0, 1);
+    if (pressed("ArrowLeft")) turn(b, -1, 0);
+    if (pressed("ArrowRight")) turn(b, 1, 0);
+
+    if (roundMsg) {
+      roundT -= dt;
+      if (roundT <= 0) newRound();
+      return;
+    }
+    if (countdown > 0) {
+      const before = Math.ceil(countdown);
+      countdown -= dt;
+      if (Math.ceil(countdown) !== before && countdown > 0) beep(440, 0.08, "square", 0.04);
+      if (countdown <= 0) beep(880, 0.12, "square", 0.05);
+      return;
+    }
+    stepT += dt;
+    while (stepT >= STEP) {
+      stepT -= STEP;
+      for (const k of bikes) {
+        if (k.q.length) { const d = k.q.shift(); k.dx = d.dx; k.dy = d.dy; }
+        k.nx = k.x + k.dx; k.ny = k.y + k.dy;
+      }
+      for (const k of bikes) {
+        const out = k.nx < 0 || k.ny < 0 || k.nx >= COLS || k.ny >= ROWS;
+        if (out || grid[k.ny * COLS + k.nx]) k.alive = false;
+      }
+      if (a.nx === b.nx && a.ny === b.ny) a.alive = b.alive = false; // nokkakolari
+      for (const k of bikes) if (k.alive) { k.x = k.nx; k.y = k.ny; grid[k.y * COLS + k.x] = k.id; }
+      if (!a.alive || !b.alive) return endRound(a.alive, b.alive);
+    }
+  },
+  draw(ctx) {
+    rect(0, 0, W, TOP, C.panel);
+    Mini.grid(CELL * 4, "rgba(255,255,255,0.03)");
+    for (let y = 0; y < ROWS; y++)
+      for (let x = 0; x < COLS; x++) {
+        const v = grid[y * COLS + x];
+        if (v) rect(x * CELL + 1, TOP + y * CELL + 1, CELL - 2, CELL - 2, v === 1 ? "rgba(63,191,95,0.75)" : "rgba(240,180,41,0.75)", 2);
+      }
+    for (const k of bikes) {
+      ctx.shadowColor = k.color; ctx.shadowBlur = 14;
+      rect(k.x * CELL - 2, TOP + k.y * CELL - 2, CELL + 4, CELL + 4, k.alive ? C.text : C.danger, 3);
+      ctx.shadowBlur = 0;
+    }
+    text("PELAAJA 1", 24, 24, 14, C.p1, "left", 800);
+    text("PELAAJA 2", W - 24, 24, 14, C.p2, "right", 800);
+    for (let i = 0; i < WIN; i++) {
+      rect(W / 2 - 160 + i * 26, 16, 18, 16, i < wins[0] ? C.p1 : C.panel2, 4);
+      rect(W / 2 + 160 - 18 - i * 26, 16, 18, 16, i < wins[1] ? C.p2 : C.panel2, 4);
+    }
+    if (Mini.state === "play" && countdown > 0) text(String(Math.ceil(countdown)), W / 2, H / 2, 90, C.text, "center", 800);
+    if (roundMsg) Mini.banner(roundMsg.text, roundMsg.color);
+  },
+});
+
+function endRound(aAlive, bAlive) {
+  shake(10, 0.3);
+  beep(160, 0.3, "sawtooth", 0.05, -80);
+  if (aAlive === bAlive) roundMsg = { text: "Tasapeli!", color: C.text };
+  else {
+    const w = aAlive ? 0 : 1;
+    wins[w]++;
+    roundMsg = { text: `Pelaaja ${w + 1} voitti erän`, color: w ? C.p2 : C.p1 };
+    if (wins[w] >= WIN) {
+      over({ title: `Pelaaja ${w + 1} voitti!`, color: w ? C.p2 : C.p1, lines: [`Erät ${wins[0]} – ${wins[1]}`] });
+      return;
+    }
+  }
+  roundT = 1.6;
+}
+</script>
+</body>
+</html>

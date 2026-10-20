@@ -170,6 +170,166 @@
         "Kisa, aika-ajo ja ura",
         "Uutta: uran tilanne tallentuu"
       ]
+    },
+    {
+      "id": "mini-matopeli",
+      "name": "Matopeli",
+      "type": "html",
+      "category": "minipeli",
+      "players": 1,
+      "path": "minigames/matopeli/index.html",
+      "cover": "minigames/matopeli/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "1 pelaaja"
+      ],
+      "description": "Syö omenoita ja kasva pitkäksi. Älä törmää seinään tai omaan häntääsi.",
+      "controls": "WASD / nuolet"
+    },
+    {
+      "id": "mini-tiiliskivi",
+      "name": "Tiiliskivi",
+      "type": "html",
+      "category": "minipeli",
+      "players": 1,
+      "path": "minigames/tiiliskivi/index.html",
+      "cover": "minigames/tiiliskivi/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "1 pelaaja"
+      ],
+      "description": "Kimmota pallo mailalla ja riko kaikki tiilet. Jokainen taso on edellistä nopeampi.",
+      "controls": "A D / ← → / hiiri"
+    },
+    {
+      "id": "mini-lepattaja",
+      "name": "Lepattaja",
+      "type": "html",
+      "category": "minipeli",
+      "players": 1,
+      "path": "minigames/lepattaja/index.html",
+      "cover": "minigames/lepattaja/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "1 pelaaja"
+      ],
+      "description": "Pidä lintu ilmassa ja lennä putkien välistä. Kuinka pitkälle pääset?",
+      "controls": "Välilyönti"
+    },
+    {
+      "id": "mini-vaistely",
+      "name": "Väistely",
+      "type": "html",
+      "category": "minipeli",
+      "players": 1,
+      "path": "minigames/vaistely/index.html",
+      "cover": "minigames/vaistely/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "1 pelaaja"
+      ],
+      "description": "Laatikoita sataa taivaalta yhä tiheämmin. Väistä, syöksähdä ja kerää kolikot.",
+      "controls": "A D / ← →, Välilyönti"
+    },
+    {
+      "id": "mini-2048",
+      "name": "2048",
+      "type": "html",
+      "category": "minipeli",
+      "players": 1,
+      "path": "minigames/2048/index.html",
+      "cover": "minigames/2048/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "1 pelaaja"
+      ],
+      "description": "Liu'uta laattoja ja yhdistä samat numerot. Saatko 2048-laatan?",
+      "controls": "WASD / nuolet"
+    },
+    {
+      "id": "mini-pong",
+      "name": "Pong",
+      "type": "html",
+      "category": "minipeli",
+      "players": 2,
+      "path": "minigames/pong/index.html",
+      "cover": "minigames/pong/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "2 pelaajaa"
+      ],
+      "description": "Klassikko kahdelle samalla näppäimistöllä. Ensimmäinen seitsemään voittaa.",
+      "controls": "W S  vs  ↑ ↓"
+    },
+    {
+      "id": "mini-valokaksintaistelu",
+      "name": "Valokaksintaistelu",
+      "type": "html",
+      "category": "minipeli",
+      "players": 2,
+      "path": "minigames/valokaksintaistelu/index.html",
+      "cover": "minigames/valokaksintaistelu/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "2 pelaajaa"
+      ],
+      "description": "Valopyörät jättävät seinän perään. Ahdista kaveri nurkkaan ennen kuin hän ahdistaa sinut.",
+      "controls": "WASD  vs  nuolet"
+    },
+    {
+      "id": "mini-tankit",
+      "name": "Tankit",
+      "type": "html",
+      "category": "minipeli",
+      "players": 2,
+      "path": "minigames/tankit/index.html",
+      "cover": "minigames/tankit/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "2 pelaajaa"
+      ],
+      "description": "Ammukset kimpoavat seinistä kerran. Viisi osumaa voittaa.",
+      "controls": "WASD + Välilyönti  vs  nuolet + Enter"
+    },
+    {
+      "id": "mini-ilmakiekko",
+      "name": "Ilmakiekko",
+      "type": "html",
+      "category": "minipeli",
+      "players": 2,
+      "path": "minigames/ilmakiekko/index.html",
+      "cover": "minigames/ilmakiekko/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "2 pelaajaa"
+      ],
+      "description": "Lyö kiekko kaverin maaliin. Kumpikin pysyy omalla puolellaan.",
+      "controls": "WASD  vs  nuolet"
+    },
+    {
+      "id": "mini-sumo",
+      "name": "Sumo",
+      "type": "html",
+      "category": "minipeli",
+      "players": 2,
+      "path": "minigames/sumo/index.html",
+      "cover": "minigames/sumo/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "2 pelaajaa"
+      ],
+      "description": "Tönäise kaveri ulos kehästä. Kehä pienenee erän aikana.",
+      "controls": "WASD + Välilyönti  vs  nuolet + Enter"
     }
   ]
 }

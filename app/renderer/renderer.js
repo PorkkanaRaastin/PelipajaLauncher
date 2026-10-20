@@ -3,6 +3,8 @@ const api = window.launcher;
 const $ = (id) => document.getElementById(id);
 
 let games = [];
+const mainGames = () => games.filter((g) => g.category !== "minipeli");
+const miniGames = () => games.filter((g) => g.category === "minipeli");
 let stats = {};
 let runningIds = [];
 let selectedId = null;
@@ -73,7 +75,7 @@ function selectGame(id) {
 function renderSidebar() {
   const ul = $("sideGames");
   ul.replaceChildren();
-  for (const g of games) {
+  for (const g of mainGames()) {
     const li = document.createElement("li");
     const btn = document.createElement("button");
     if (g.id === selectedId) btn.classList.add("selected");
@@ -147,7 +149,7 @@ function renderGrid() {
   const q = $("search").value.trim().toLowerCase();
   const grid = $("grid");
   grid.replaceChildren();
-  const list = games.filter((g) => !q || g.name.toLowerCase().includes(q) || (g.tags || []).join(" ").toLowerCase().includes(q));
+  const list = mainGames().filter((g) => !q || g.name.toLowerCase().includes(q) || (g.tags || []).join(" ").toLowerCase().includes(q));
   for (const g of list) {
     const card = document.createElement("button");
     card.className = "card";
@@ -173,11 +175,56 @@ function renderGrid() {
   }
 }
 
+// ---------- Minipelit ----------
+function renderMinigames() {
+  for (const [players, el] of [[1, $("miniSolo")], [2, $("miniDuo")]]) {
+    el.replaceChildren();
+    for (const g of miniGames().filter((x) => x.players === players)) {
+      const card = document.createElement("button");
+      card.className = "mini-card";
+      const running = runningIds.includes(g.id);
+      card.classList.toggle("running", running);
+      const art = document.createElement("div");
+      art.className = "mini-art";
+      art.append(cover(g));
+      const badge = document.createElement("span");
+      badge.className = "mini-badge";
+      badge.textContent = players === 2 ? "2 pelaajaa" : "1 pelaaja";
+      art.append(badge);
+      const body = document.createElement("div");
+      body.className = "mini-body";
+      const name = document.createElement("b");
+      name.textContent = g.name;
+      const desc = document.createElement("p");
+      desc.textContent = g.description || "";
+      const foot = document.createElement("div");
+      foot.className = "mini-foot";
+      const ctl = document.createElement("span");
+      ctl.className = "mini-controls";
+      ctl.textContent = g.controls || "";
+      const play = document.createElement("span");
+      play.className = "mini-play";
+      play.textContent = running ? "Käynnissä" : "Pelaa";
+      foot.append(ctl, play);
+      body.append(name, desc, foot);
+      card.append(art, body);
+      card.addEventListener("click", async () => {
+        if (runningIds.includes(g.id)) return api.stop(g.id);
+        const res = await api.launch(g.id);
+        if (!res.ok) toast(res.error);
+      });
+      el.append(card);
+    }
+  }
+}
+
 function renderAll() {
-  if (!games.find((g) => g.id === selectedId)) selectedId = games[0] ? games[0].id : null;
+  const main = mainGames();
+  if (!main.find((g) => g.id === selectedId)) selectedId = main[0] ? main[0].id : null;
   renderSidebar();
   renderHero();
   renderGrid();
+  renderMinigames();
 }
 
 // ---------- Tapahtumat ----------
@@ -197,7 +244,7 @@ $("openFolder").addEventListener("click", () => api.openGamesFolder());
 $("openFolder2").addEventListener("click", () => api.openGamesFolder());
 $("optMinimize").addEventListener("change", (e) => api.setSettings({ minimizeOnLaunch: e.target.checked }));
 
-api.onRunningChanged((ids) => { runningIds = ids; renderSidebar(); renderHero(); });
+api.onRunningChanged((ids) => { runningIds = ids; renderSidebar(); renderHero(); renderMinigames(); });
 api.onStatsChanged((s) => { stats = s; renderHero(); renderGrid(); });
 
 // ---------- Käynnistys kirjautumisen jälkeen ----------
@@ -407,12 +454,54 @@ $("updateCheckBtn").addEventListener("click", async () => {
 });
 api.onUpdateStatus(renderUpdate);
 
+// ---------- Käynnistysnäkymä: uusin versio ladataan ennen launcheria ----------
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function bootShow(s) {
+  if (!s) return;
+  const bar = $("bootBar");
+  const wrap = bar.parentElement;
+  const pct = Math.round((s.progress || 0) * 100);
+  const msg = {
+    checking: "Tarkistetaan päivityksiä…",
+    downloading: `Ladataan Pelipaja ${s.version}… ${pct} %`,
+    installing: `Asennetaan Pelipaja ${s.version}…`,
+    ready: `Pelipaja ${s.version} asennettu`,
+    restarting: `Käynnistetään Pelipaja ${s.version}…`,
+    uptodate: "Pelipaja on ajan tasalla",
+    manual: `Pelipaja ${s.version} vaatii uuden latauksen. Jatketaan nykyisellä versiolla.`,
+    error: "Päivityspalvelimeen ei saatu yhteyttä. Jatketaan ilman päivitystä.",
+    dev: "Kehitysversio: ei päivityksiä",
+  }[s.state];
+  if (msg) $("bootText").textContent = msg;
+  wrap.classList.toggle("indeterminate", s.state === "checking");
+  bar.style.width = ["downloading"].includes(s.state) ? pct + "%" : ["installing", "ready", "restarting", "uptodate", "dev", "manual", "error"].includes(s.state) ? "100%" : "0%";
+}
+async function bootUpdate() {
+  const started = Date.now();
+  const off = (s) => bootShow(s);
+  api.onUpdateStatus(off);
+  let s;
+  try {
+    s = await api.update.startup();
+  } catch {
+    s = { state: "error" };
+  }
+  bootShow(s);
+  if (s.state === "restarting") return false; // Pelipaja käynnistyy uudelleen uudella versiolla
+  await sleep(Math.max(0, 1100 - (Date.now() - started)) + (s.state === "error" || s.state === "manual" ? 1200 : 350));
+  $("bootScreen").classList.add("out");
+  setTimeout(() => ($("bootScreen").hidden = true), 400);
+  return true;
+}
+
 (async function boot() {
   try {
     const info = await api.appInfo();
     devMode = !!info.dev;
     $("appVersion").textContent = info.version;
+    $("bootVer").textContent = "Versio " + info.version;
   } catch {}
+  if (!(await bootUpdate())) return;
   api.update.status().then(renderUpdate, () => {});
   document.querySelectorAll(".dev-only").forEach((el) => (el.hidden = !devMode));
   const st = await api.auth.status();

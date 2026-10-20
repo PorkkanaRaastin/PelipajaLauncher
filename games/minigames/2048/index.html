@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fi">
+<head><meta charset="utf-8"><title>2048</title></head>
+<body>
+<script src="../_mini.js"></script>
+<script>
+// 2048: yhdistä samat numerot liu'uttamalla
+const { W, H, C, pressed, beep, text, rect, submitScore, best, over } = Mini;
+const N = 4, SIZE = 100, GAP = 12;
+const BW = N * SIZE + (N + 1) * GAP;
+const BX = (W - BW) / 2, BY = 92;
+const COLORS = { 2: "#27303b", 4: "#2e3946", 8: "#2a8c43", 16: "#3fbf5f", 32: "#2fb9a0", 64: "#4aa3ff", 128: "#f0b429", 256: "#f0883e", 512: "#e5534b", 1024: "#c94fd8", 2048: "#eef1f5" };
+
+let cells, score, won;
+let id = 0;
+
+function empty() {
+  const out = [];
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (!cells[y][x]) out.push({ x, y });
+  return out;
+}
+function spawn() {
+  const e = empty();
+  if (!e.length) return;
+  const p = e[Math.floor(Math.random() * e.length)];
+  cells[p.y][p.x] = { v: Math.random() < 0.9 ? 2 : 4, id: ++id, born: 0, px: p.x, py: p.y, pop: 0 };
+}
+function canMove() {
+  if (empty().length) return true;
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++) {
+      const v = cells[y][x].v;
+      if ((x < N - 1 && cells[y][x + 1].v === v) || (y < N - 1 && cells[y + 1][x].v === v)) return true;
+    }
+  return false;
+}
+function move(dx, dy) {
+  let moved = false, gained = 0;
+  const order = [0, 1, 2, 3];
+  const xs = dx > 0 ? [...order].reverse() : order;
+  const ys = dy > 0 ? [...order].reverse() : order;
+  const merged = new Set();
+  for (const y of ys)
+    for (const x of xs) {
+      const t = cells[y][x];
+      if (!t) continue;
+      let cx = x, cy = y;
+      for (;;) {
+        const nx = cx + dx, ny = cy + dy;
+        if (nx < 0 || ny < 0 || nx >= N || ny >= N) break;
+        const o = cells[ny][nx];
+        if (!o) { cells[ny][nx] = t; cells[cy][cx] = null; cx = nx; cy = ny; moved = true; continue; }
+        if (o.v === t.v && !merged.has(o.id)) {
+          o.v *= 2; o.pop = 0.15; gained += o.v; merged.add(o.id);
+          cells[cy][cx] = null; moved = true;
+          t.mergeInto = { x: nx, y: ny };
+        }
+        break;
+      }
+    }
+  if (moved) {
+    score += gained;
+    if (gained) beep(300 + Math.log2(gained) * 60, 0.06, "triangle", 0.05);
+    else beep(200, 0.03, "sine", 0.03);
+    spawn();
+    if (!won && cells.flat().some((c) => c && c.v >= 2048)) {
+      won = true;
+      beep(1046, 0.3, "triangle", 0.06, 500);
+    }
+    if (!canMove()) {
+      const isBest = submitScore(score);
+      over({ title: "Ei enää siirtoja", color: C.p2, lines: [`Pisteet: ${score}`, `Suurin laatta: ${Math.max(...cells.flat().map((c) => c.v))}`, isBest ? "Uusi ennätys!" : `Ennätys: ${best()}`] });
+    }
+  }
+}
+
+Mini.run({
+  id: "2048",
+  title: "2048",
+  description: "Liu'uta laattoja. Samat numerot yhdistyvät. Tavoite: 2048.",
+  players: 1,
+  controls: [[null, ["W", "A", "S", "D"], "tai nuolet: liu'uta"]],
+  reset() {
+    cells = Array.from({ length: N }, () => Array(N).fill(null));
+    score = 0; won = false;
+    spawn(); spawn();
+  },
+  coverSetup() {
+    const vals = [[2, 4, 8, 16], [256, 128, 64, 32], [512, 1024, 2048, 4], [0, 2, 8, 2]];
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) cells[y][x] = vals[y][x] ? { v: vals[y][x], id: ++id, px: x, py: y, pop: 0, born: 1 } : null;
+  },
+  update(dt) {
+    if (pressed("KeyW", "ArrowUp")) move(0, -1);
+    else if (pressed("KeyS", "ArrowDown")) move(0, 1);
+    else if (pressed("KeyA", "ArrowLeft")) move(-1, 0);
+    else if (pressed("KeyD", "ArrowRight")) move(1, 0);
+    for (let y = 0; y < N; y++)
+      for (let x = 0; x < N; x++) {
+        const c = cells[y][x];
+        if (!c) continue;
+        c.px += (x - c.px) * Math.min(1, dt * 22);
+        c.py += (y - c.py) * Math.min(1, dt * 22);
+        c.born = Math.min(1, c.born + dt * 7);
+        c.pop = Math.max(0, c.pop - dt);
+      }
+  },
+  draw(ctx) {
+    Mini.grid();
+    text("2048", BX, 52, 40, C.text, "left", 800);
+    rect(BX + BW - 250, 26, 116, 52, C.panel, 10);
+    text("PISTEET", BX + BW - 192, 42, 11, C.muted, "center", 800);
+    text(String(score), BX + BW - 192, 62, 20, C.text, "center", 800);
+    rect(BX + BW - 124, 26, 124, 52, C.panel, 10);
+    text("ENNÄTYS", BX + BW - 62, 42, 11, C.muted, "center", 800);
+    text(String(Math.max(best(), score)), BX + BW - 62, 62, 20, C.accent, "center", 800);
+    rect(BX, BY, BW, BW, C.panel, 14);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) rect(BX + GAP + x * (SIZE + GAP), BY + GAP + y * (SIZE + GAP), SIZE, SIZE, C.panel2, 10);
+    for (let y = 0; y < N; y++)
+      for (let x = 0; x < N; x++) {
+        const c = cells[y][x];
+        if (!c) continue;
+        const s = (0.5 + c.born * 0.5) * (1 + c.pop * 0.8);
+        const cx = BX + GAP + c.px * (SIZE + GAP) + SIZE / 2;
+        const cy = BY + GAP + c.py * (SIZE + GAP) + SIZE / 2;
+        const sz = SIZE * s;
+        rect(cx - sz / 2, cy - sz / 2, sz, sz, COLORS[c.v] || "#eef1f5", 10);
+        const fs = c.v < 100 ? 44 : c.v < 1000 ? 38 : 30;
+        text(String(c.v), cx, cy + 2, fs * s, c.v >= 2048 ? C.bg : c.v <= 4 ? C.muted : C.text, "center", 800);
+      }
+    if (won) text("2048 saavutettu! Jatka vielä isompaan.", W / 2, BY + BW + 24, 16, C.accent, "center", 700);
+  },
+});
+</script>
+</body>
+</html>

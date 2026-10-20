@@ -9,6 +9,7 @@ const fs = require("fs");
 const GAME_ID = /^[a-z0-9][a-z0-9_-]{0,47}$/;
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right", "top-center"];
 const TYPES = ["html", "url"];
+const CATEGORIES = ["peli", "minipeli"];
 const IMAGE = /\.(png|jpe?g|webp|svg|gif)$/i;
 
 function isInside(root, target) {
@@ -39,6 +40,10 @@ function checkGame(raw, gamesDir) {
     endButton: CORNERS.includes(raw.endButton) ? raw.endButton : "top-left",
     fullscreen: raw.fullscreen === true,
     color: /^#[0-9a-f]{3,8}$/i.test(raw.color || "") ? raw.color : null,
+    // "peli" näkyy etusivulla ja kirjastossa, "minipeli" Minipelit-välilehdellä
+    category: CATEGORIES.includes(raw.category) ? raw.category : "peli",
+    players: raw.players === 2 ? 2 : 1,
+    controls: text(raw.controls, 60),
   };
 
   if (type === "html") {

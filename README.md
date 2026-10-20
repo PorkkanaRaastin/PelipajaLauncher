@@ -32,7 +32,8 @@ pelipaja/
 │  ├─ renderer/        launcherin käyttöliittymä (index.html, style.css, renderer.js)
 │  └─ assets/          kuvake
 ├─ games/              pelit ja games.json-pelilista
-│  └─ _shared/           pelien yhteiset kirjastot (three.js, PeerJS), toimii ilman nettiä
+│  ├─ _shared/           pelien yhteiset kirjastot (three.js, PeerJS), toimii ilman nettiä
+│  └─ minigames/         Minipelit-välilehden 10 peliä ja niiden yhteinen pohja (_mini.js)
 ├─ scripts/
 │  ├─ check.js         tarkistus: npm test
 │  ├─ make-update.js   allekirjoitetun päivityspaketin teko (GitHub Actions)
@@ -64,8 +65,9 @@ Pelipaja päivittää itsensä GitHubista. Uuden version julkaisu:
 3. GitHub Actions (`.github/workflows/julkaisu.yml`) tarkistaa projektin, rakentaa Pelipajan ja
    julkaisee sen kohtaan **Releases**: `Pelipaja-Windows.zip`, allekirjoitettu
    `pelipaja-<versio>.update` ja `latest.json`.
-4. Pelaajien Pelipaja huomaa uuden version käynnistyessään (ja tunnin välein), lataa sen ja
-   näyttää **Käynnistä uudelleen** -napin.
+4. Pelaajien Pelipaja näyttää joka käynnistyksellä latausnäkymän, joka tarkistaa uusimman version.
+   Jos uusi löytyy, se ladataan ja Pelipaja käynnistyy heti uudella versiolla. Käytön aikana
+   tarkistetaan tunnin välein, ja uudesta versiosta tulee sivupalkkiin **Käynnistä uudelleen** -nappi.
 
 Jos versionumero ei muutu, mitään ei julkaista (pelkkä tarkistus ajetaan).
 
@@ -110,6 +112,16 @@ Miten päivitys toimii:
 | `type`      | `html` = peli games-kansiossa, `url` = nettipeli (`path` on `https://`-osoite) |
 | `endButton` | Save & End -napin paikka: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center` |
 | `color`     | laatan väri, jos kansikuvaa ei ole (esim. `"#4a7bd0"`)                   |
+| `category`  | `peli` (oletus) = etusivu ja kirjasto, `minipeli` = Minipelit-välilehti     |
+| `players`   | minipeleille: `1` = Yksin, `2` = Kaksin samalla koneella                 |
+| `controls`  | minipelikortissa näkyvä lyhyt ohje, esim. `"WASD  vs  nuolet"`           |
+
+### Minipelit
+
+Minipelit käyttävät yhteistä pohjaa `games/minigames/_mini.js`, joka hoitaa aloitusruudun,
+tauon (Esc), uuden pelin (R), äänet (M), ennätykset ja Save & End -tuen. Uusi minipeli:
+kopioi jonkin minipelin kansio, muokkaa `Mini.run({...})`-kohtaa ja lisää peli games.jsoniin
+(`"category": "minipeli"`). Kansikuvan saa avaamalla pelin osoitteella `index.html#cover`.
 
 Kehitysversiossa (`npm start`) launcherissa on **+ Lisää peli** -nappi, joka avaa games-kansion.
 Valmiissa versiossa uudet pelit tulevat päivitysten mukana.

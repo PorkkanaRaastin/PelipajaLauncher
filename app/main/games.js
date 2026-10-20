@@ -37,6 +37,9 @@ function publicGames() {
     tags: g.tags,
     updates: g.updates,
     color: g.color,
+    category: g.category,
+    players: g.players,
+    controls: g.controls,
     coverUrl: g.coverPath && fs.existsSync(g.coverPath) ? pathToFileURL(g.coverPath).href : null,
   }));
 }
