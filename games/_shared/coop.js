@@ -568,7 +568,8 @@
     if (cfg.saves && C.slot) writeSlot({ level, seed: C.seed, data: C.data });
     if (C.mode === "host") {
       net.ev = [];
-      send({ t: "start", seed: C.seed, level, data: C.data });
+      net.run++;
+      send({ t: "start", seed: C.seed, level, data: C.data, r: net.run });
     }
     startLocal();
   }
@@ -706,7 +707,7 @@
   }, 50);
 
   // ---------- nettipeli ----------
-  const net = { peer: null, conn: null, connected: false, remote: blankInput(), ev: [], lastRx: 0, sendT: 0, inT: 0, lastSent: "", ping: 0, pingT: 0 };
+  const net = { peer: null, conn: null, fast: null, hostId: "", connected: false, remote: blankInput(), ev: [], lastRx: 0, sendT: 0, inT: 0, lastSent: "", ping: 0, pingT: 0, q: 0, lastQ: 0, inQ: 0, lastInQ: 0, run: 0 };
   function send(o) {
     if (net.conn && net.conn.open) {
       try {
@@ -714,11 +715,46 @@
       } catch {}
     }
   }
+  // Nopea kanava: tilannekuvat ja näppäimet kulkevat järjestämättömässä kanavassa (reliable:false = ordered:false),
+  // jottei yksi kadonnut paketti pysäytä kaikkia seuraavia. Vanhentuneet viestit hylätään järjestysnumerolla.
+  function sendFast(o) {
+    const f = net.fast;
+    if (f && f.open) {
+      const dc = f.dataChannel;
+      if (dc && dc.bufferedAmount > 64000) return; // yhteys ruuhkautunut: ei kasata jonoa
+      try {
+        f.send(o);
+      } catch {}
+    } else send(o);
+  }
+  function onFast(d, role) {
+    if (!d || typeof d !== "object") return;
+    net.lastRx = performance.now();
+    if (role === "host" && d.t === "in") {
+      if (d.q && d.q <= net.lastInQ) return;
+      if (d.q) net.lastInQ = d.q;
+      net.remote = { x: +d.x || 0, y: +d.y || 0, a: !!d.a, b: !!d.b, c: !!d.c, ac: d.ac | 0, bc: d.bc | 0, cc: d.cc | 0 };
+      if (d.p != null) net.ping = d.p;
+    } else if (role === "client" && d.t === "s") {
+      if (d.r !== net.run || d.q <= net.lastQ) return;
+      net.lastQ = d.q;
+      if (C.phase === "play" || C.phase === "pause") {
+        game.apply(d.s, !snapOk);
+        snapOk = true;
+        for (const e of d.ev || []) playEvent(e[0], e[1]);
+      }
+    }
+  }
   function netCleanup() {
-    const c = net.conn, p = net.peer;
+    const c = net.conn, f = net.fast, p = net.peer;
     net.conn = null;
+    net.fast = null;
     net.peer = null;
     net.connected = false;
+    net.lastQ = net.lastInQ = 0;
+    try {
+      f && f.close();
+    } catch {}
     try {
       c && c.close();
     } catch {}
@@ -787,6 +823,17 @@
     });
     peer.on("connection", (conn) => {
       if (net.peer !== peer) return;
+      if (conn.label === "co-fast") {
+        try {
+          net.fast && net.fast.close();
+        } catch {}
+        net.fast = conn;
+        conn.on("data", (d) => {
+          if (net.fast === conn) onFast(d, "host");
+        });
+        conn.on("error", () => {});
+        return;
+      }
       if (net.conn && net.conn.open) {
         conn.on("open", () => {
           conn.send({ t: "full" });
@@ -832,7 +879,8 @@
     net.peer = peer;
     peer.on("open", () => {
       if (net.peer !== peer) return;
-      const conn = peer.connect(PREFIX + cfg.id + "-" + code, { reliable: true, serialization: "json" });
+      net.hostId = PREFIX + cfg.id + "-" + code;
+      const conn = peer.connect(net.hostId, { reliable: true, serialization: "json" });
       net.conn = conn;
       bind(conn, "client");
       setTimeout(() => {
@@ -890,8 +938,7 @@
           tone(1320, 0.09, "square", 0.07);
           break;
         case "in":
-          net.remote = { x: +d.x || 0, y: +d.y || 0, a: !!d.a, b: !!d.b, c: !!d.c, ac: d.ac | 0, bc: d.bc | 0, cc: d.cc | 0 };
-          if (d.p != null) net.ping = d.p;
+          onFast(d, "host");
           break;
         case "ping":
           send({ t: "pong", ts: d.ts });
@@ -912,6 +959,14 @@
           net.connected = true;
           C.mode = "client";
           C.me = 1;
+          try {
+            const f = net.peer.connect(net.hostId, { label: "co-fast", reliable: false, serialization: "json" });
+            net.fast = f;
+            f.on("data", (x) => {
+              if (net.fast === f) onFast(x, "client");
+            });
+            f.on("error", () => {});
+          } catch {}
           status("Connected! Waiting for your friend to start…");
           tone(1320, 0.09, "square", 0.07);
           break;
@@ -922,6 +977,8 @@
           status("The game already has two players.", true);
           break;
         case "start":
+          net.run = d.r;
+          net.lastQ = 0;
           C.seed = d.seed;
           C.level = d.level;
           C.data = d.data || null;
@@ -930,11 +987,10 @@
           snapOk = false;
           break;
         case "s":
-          if (C.phase === "play" || C.phase === "pause") {
-            game.apply(d.s, !snapOk);
-            snapOk = true;
-            for (const e of d.ev || []) playEvent(e[0], e[1]);
-          }
+          onFast(d, "client");
+          break;
+        case "ev":
+          if (C.phase !== "menu") for (const e of d.ev || []) playEvent(e[0], e[1]);
           break;
         case "end":
           if (C.phase === "menu") return;
@@ -973,7 +1029,7 @@
     const sig = [inp.x.toFixed(2), inp.y.toFixed(2), inp.a, inp.b, inp.c, inp.ac, inp.bc, inp.cc].join(",");
     net.inT -= dt;
     if (sig !== net.lastSent || net.inT <= 0) {
-      send({ t: "in", x: inp.x, y: inp.y, a: inp.a, b: inp.b, c: inp.c, ac: inp.ac, bc: inp.bc, cc: inp.cc, p: net.ping });
+      sendFast({ t: "in", q: ++net.inQ, x: inp.x, y: inp.y, a: inp.a, b: inp.b, c: inp.c, ac: inp.ac, bc: inp.bc, cc: inp.cc, p: net.ping });
       net.lastSent = sig;
       net.inT = 0.1;
     }
@@ -986,8 +1042,11 @@
   // tilannekuva kaverille 20 kertaa sekunnissa
   setInterval(() => {
     if (C.mode === "host" && net.connected && (C.phase === "play" || C.phase === "pause")) {
-      send({ t: "s", s: game.snapshot(), ev: net.ev });
-      net.ev = [];
+      if (net.ev.length) {
+        send({ t: "ev", ev: net.ev });
+        net.ev = [];
+      }
+      sendFast({ t: "s", q: ++net.q, r: net.run, s: game.snapshot() });
     }
   }, 50);
   // sydämenlyönti

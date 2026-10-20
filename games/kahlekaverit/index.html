@@ -1149,13 +1149,20 @@ function updateHud(){
 
 // ================= nettipeli =================
 // Isäntä pyörittää koko pelin. Kaveri lähettää näppäimensä ja saa pelitilanteen 20 kertaa sekunnissa.
-const NET_VER='kk-net-3',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const net={peer:null,conn:null,code:'',remote:{x:0,y:0,g:false},lastIn:0,sendT:0,inT:0,lastSent:'',ping:0,pingT:0,ev:[],connected:false,snapOk:false};
+const NET_VER='kk-net-4',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const net={peer:null,conn:null,fast:null,hostId:'',code:'',remote:{x:0,y:0,g:false},lastIn:0,sendT:0,inT:0,lastSent:'',ping:0,pingT:0,ev:[],connected:false,snapOk:false,q:0,lastQ:0,inQ:0,lastInQ:0,off:null};
+// Nopea kanava: pelitilanne ja näppäimet kulkevat järjestämättömässä kanavassa (reliable:false = ordered:false),
+// jottei yksi kadonnut paketti pysäytä kaikkia seuraavia. Vanhentuneet viestit hylätään järjestysnumerolla.
+function sendFast(o){const f=net.fast;if(f&&f.open){const dc=f.dataChannel;if(dc&&dc.bufferedAmount>64000)return;try{f.send(o)}catch(e){}}else netSend(o)}
+// Kaverin koneella liike piirretään pienellä viiveellä kahden tilannekuvan välistä (tasainen, vaikka paketit tulisivat epätasaisesti)
+const INTERP_DELAY=80;
+function pushBuf(b,ts,x,y){const B=b.buf||(b.buf=[]);const L=B[B.length-1];if(L&&ts<=L[0])return;if(L&&ts-L[0]>160)B.push([ts-50,L[1],L[2]]);B.push([ts,x,y]);if(B.length>10)B.splice(0,B.length-10)}
+function interpTo(b,rt){const B=b.buf;if(!B||!B.length)return;if(rt<=B[0][0]){b.x=B[0][1];b.y=B[0][2];return}for(let i=B.length-1;i>=0;i--){if(B[i][0]<=rt){const a=B[i],c=B[i+1];if(!c){b.x=a[1];b.y=a[2];return}const t=(rt-a[0])/(c[0]-a[0]);b.x=a[1]+(c[1]-a[1])*t;b.y=a[2]+(c[2]-a[2])*t;return}}}
 G.mode='local';
 const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
 function netEv(e){if(G.mode==='host'&&net.connected&&G.phase==='play')net.ev.push(e)}
 function netSend(o){if(net.conn&&net.conn.open){try{net.conn.send(o)}catch(e){}}}
-function netCleanup(){const c=net.conn,pr=net.peer;net.conn=null;net.peer=null;net.connected=false;try{c&&c.close()}catch(e){}try{pr&&pr.destroy()}catch(e){}G.mode='local'}
+function netCleanup(){const c=net.conn,f=net.fast,pr=net.peer;net.conn=null;net.fast=null;net.peer=null;net.connected=false;net.lastQ=0;net.lastInQ=0;net.off=null;try{f&&f.close()}catch(e){}try{c&&c.close()}catch(e){}try{pr&&pr.destroy()}catch(e){}G.mode='local'}
 function hasNet(){return typeof window.Peer==='function'&&typeof window.RTCPeerConnection==='function'}
 function netStatus(t,bad){const el=$('netStatus');el.textContent=t;el.classList.toggle('bad',!!bad)}
 function netErrText(err){
@@ -1179,6 +1186,7 @@ function hostGame(){
   peer.on('open',()=>{if(net.peer!==peer)return;net.code=code;$('codeLbl').textContent=code;$('codeWrap').hidden=false;$('copyBtn').textContent='Copy code';netStatus('Send the code to your friend. Waiting for them to join…')});
   peer.on('connection',conn=>{
     if(net.peer!==peer)return;
+    if(conn.label==='kk-fast'){if(net.fast)try{net.fast.close()}catch(e){}net.fast=conn;conn.on('data',d=>{if(net.fast===conn)onFast(d,'host')});conn.on('error',()=>{});return}
     if(net.conn&&net.conn.open){conn.on('open',()=>{conn.send({t:'full'});setTimeout(()=>conn.close(),400)});return}
     net.conn=conn;bindConn(conn,'host');
   });
@@ -1198,7 +1206,8 @@ function joinGame(){
   const peer=new Peer({debug:0});net.peer=peer;
   peer.on('open',()=>{
     if(net.peer!==peer)return;
-    const conn=peer.connect(NET_PREFIX+code,{reliable:true,serialization:'json'});net.conn=conn;bindConn(conn,'client');
+    net.hostId=NET_PREFIX+code;
+    const conn=peer.connect(net.hostId,{reliable:true,serialization:'json'});net.conn=conn;bindConn(conn,'client');
     setTimeout(()=>{if(net.conn===conn&&!net.connected){netStatus('Couldn\'t connect. Check the code or try another network.',true);netCleanup();netButtons(true)}},15000);
   });
   peer.on('error',err=>{
@@ -1221,7 +1230,7 @@ function onNet(d,role){
       case 'hello':
         if(d.v!==NET_VER){netSend({t:'bad'});netStatus('Your friend has a different version of the game. Both of you should update.',true);return}
         net.connected=true;net.lastRx=performance.now();G.mode='host';netSend({t:'welcome'});netStatus('Masa joined! Start when you\'re both ready.');$('netStart').hidden=false;$('netStart').focus();sfxRaw.cash();break;
-      case 'in':net.remote={x:clamp(+d.x||0,-1,1),y:clamp(+d.y||0,-1,1),g:!!d.g};net.lastIn=performance.now();if(d.p!=null)net.ping=d.p;break;
+      case 'in':onFast(d,'host');break;
       case 'y':if(G.phase==='play')yell(players[1]);break;
       case 'ping':netSend({t:'pong',ts:d.ts});break;
       case 'pause':if(G.phase==='play')setPause(true,true);break;
@@ -1230,17 +1239,30 @@ function onNet(d,role){
     }
   }else{
     switch(d.t){
-      case 'welcome':net.connected=true;net.lastRx=performance.now();G.mode='client';netStatus('Connected! Waiting for Pate to start the night shift…');sfxRaw.cash();break;
+      case 'welcome':net.connected=true;net.lastRx=performance.now();G.mode='client';
+        try{const f=net.peer.connect(net.hostId,{label:'kk-fast',reliable:false,serialization:'json'});net.fast=f;f.on('data',d=>{if(net.fast===f)onFast(d,'client')});f.on('error',()=>{})}catch(e){}netStatus('Connected! Waiting for Pate to start the night shift…');sfxRaw.cash();break;
       case 'bad':netStatus('Game versions don\'t match. Both of you should update.',true);break;
       case 'full':netStatus('The game already has two players.',true);break;
       case 'start':clientStart(d);break;
-      case 's':if(G.phase==='play'||G.phase==='pause')applySnap(d);break;
+      case 's':onFast(d,'client');break;
+      case 'ev':if(G.phase==='play'||G.phase==='pause'||G.phase==='end')for(const e of d.ev||[])applyEv(e);break;
       case 'end':clientEnd(d);break;
       case 'pong':net.ping=Math.round(performance.now()-d.ts);break;
       case 'pause':if(G.phase==='play')setPause(true,true);break;
       case 'resume':if(G.phase==='pause')setPause(false,true);break;
       case 'menu':netLost('Pate went back to the main menu.');break;
     }
+  }
+}
+function onFast(d,role){
+  if(!d||typeof d!=='object')return;
+  net.lastRx=performance.now();
+  if(role==='host'&&d.t==='in'){
+    if(d.q&&d.q<=net.lastInQ)return;if(d.q)net.lastInQ=d.q;
+    net.remote={x:clamp(+d.x||0,-1,1),y:clamp(+d.y||0,-1,1),g:!!d.g};net.lastIn=performance.now();if(d.p!=null)net.ping=d.p;
+  }else if(role==='client'&&d.t==='s'){
+    if(d.dy!==G.day||d.q<=net.lastQ)return;net.lastQ=d.q;
+    if(G.phase==='play'||G.phase==='pause')applySnap(d);
   }
 }
 function netLost(msg){
@@ -1255,8 +1277,8 @@ function sendSnap(){
   const P=players.map(p=>[r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),r2(p.fx),r2(p.fy),r2(p.knocked),r2(p.revive),p.hold?(p.hold.furn?10000+p.hold.id:p.hold.id):-1,r2(p.yellT),p.bubble]);
   const F=furn.map(f=>[r1(f.x),r1(f.y),f.holders]);
   const I=items.map(it=>[it.id,r1(it.x),r1(it.y),r2(it.a),Math.round(it.val),it.holders,r2(it.hitT)]);
-  netSend({t:'s',tm:r2(G.time),b:G.bank,h:r2(G.heave),l:r2(G.leaveT),P,I,F,M:[r1(mon.x),r1(mon.y),r2(mon.face),mon.state,r2(mon.stun)],ev:net.ev});
-  net.ev=[];
+  if(net.ev.length){netSend({t:'ev',ev:net.ev});net.ev=[]}
+  sendFast({t:'s',q:++net.q,ts:Math.round(performance.now()),dy:G.day,tm:r2(G.time),b:G.bank,h:r2(G.heave),l:r2(G.leaveT),P,I,F,M:[r1(mon.x),r1(mon.y),r2(mon.face),mon.state,r2(mon.stun)]});
 }
 function clientStart(d){
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
@@ -1279,23 +1301,25 @@ function applyEv(e){
   }
 }
 function applySnap(d){
+  const now=performance.now(),o=now-d.ts;
+  if(net.off==null||!net.snapOk||o<net.off)net.off=o;else net.off+=(o-net.off)*0.01;
+  const ts=d.ts,first=!net.snapOk;
   G.time=d.tm;G.bank=d.b;G.heave=d.h;G.leaveT=d.l;
   const byId=new Map(items.map(i=>[i.id,i])),alive=new Set();
-  for(const a of d.I){const it=byId.get(a[0]);if(!it)continue;alive.add(a[0]);it.tx=a[1];it.ty=a[2];it.a=a[3];it.val=a[4];it.holders=a[5];it.hitT=a[6];if(!net.snapOk){it.x=a[1];it.y=a[2]}}
+  for(const a of d.I){const it=byId.get(a[0]);if(!it)continue;alive.add(a[0]);if(first){it.buf=null;it.x=a[1];it.y=a[2]}pushBuf(it,ts,a[1],a[2]);it.a=a[3];it.val=a[4];it.holders=a[5];it.hitT=a[6]}
   let gone=false;for(const it of items)if(!alive.has(it.id)){it.dead=true;gone=true;if(it.mesh){world.remove(it.mesh);it.mesh.traverse(o=>{if(o.geometry)o.geometry.dispose()})}}
   if(gone)items=items.filter(i=>!i.dead);
-  d.P.forEach((a,i)=>{const p=players[i];p.tx=a[0];p.ty=a[1];p.vx=a[2];p.vy=a[3];p.fx=a[4];p.fy=a[5];p.knocked=a[6];p.revive=a[7];p.hold=a[8]>=10000?furn[a[8]-10000]||null:a[8]>=0?byId.get(a[8])||null:null;p.yellT=a[9];if(a[10])p.bubble=a[10];if(!net.snapOk){p.x=a[0];p.y=a[1]}});
-  if(d.F)d.F.forEach((a,i)=>{const f=furn[i];if(!f)return;f.tx=a[0];f.ty=a[1];f.holders=a[2];if(!net.snapOk){f.x=a[0];f.y=a[1]}});
-  mon.tx=d.M[0];mon.ty=d.M[1];mon.face=d.M[2];mon.state=d.M[3];mon.stun=d.M[4];if(!net.snapOk){mon.x=d.M[0];mon.y=d.M[1]}
+  d.P.forEach((a,i)=>{const p=players[i];if(first){p.buf=null;p.x=a[0];p.y=a[1]}pushBuf(p,ts,a[0],a[1]);p.vx=a[2];p.vy=a[3];p.fx=a[4];p.fy=a[5];p.knocked=a[6];p.revive=a[7];p.hold=a[8]>=10000?furn[a[8]-10000]||null:a[8]>=0?byId.get(a[8])||null:null;p.yellT=a[9];if(a[10])p.bubble=a[10]});
+  if(d.F)d.F.forEach((a,i)=>{const f=furn[i];if(!f)return;if(first){f.buf=null;f.x=a[0];f.y=a[1]}pushBuf(f,ts,a[0],a[1]);f.holders=a[2]});
+  if(first){mon.buf=null;mon.x=d.M[0];mon.y=d.M[1]}pushBuf(mon,ts,d.M[0],d.M[1]);mon.face=d.M[2];mon.state=d.M[3];mon.stun=d.M[4];
   for(const e of d.ev||[])applyEv(e);
   net.snapOk=true;
 }
 function clientFrame(dt){
-  const k=Math.min(1,16*dt);
-  for(const b of players.concat(items,furn,[mon]))if(b.tx!=null){b.x+=(b.tx-b.x)*k;b.y+=(b.ty-b.y)*k}
+  if(net.off!=null){const rt=performance.now()-net.off-INTERP_DELAY;for(const b of players.concat(items,furn,[mon]))interpTo(b,rt)}
   mon.brush+=dt*14;
   const inp=readInput(1),sig=[inp.x.toFixed(2),inp.y.toFixed(2),inp.g].join(',');
-  net.inT-=dt;if(sig!==net.lastSent||net.inT<=0){netSend({t:'in',x:inp.x,y:inp.y,g:inp.g,p:net.ping});net.lastSent=sig;net.inT=.1}
+  net.inT-=dt;if(sig!==net.lastSent||net.inT<=0){sendFast({t:'in',q:++net.inQ,x:inp.x,y:inp.y,g:inp.g,p:net.ping});net.lastSent=sig;net.inT=.1}
   net.pingT-=dt;if(net.pingT<=0){net.pingT=2;netSend({t:'ping',ts:performance.now()})}
   if(humG){const dd=Math.min(...players.map(p=>Math.hypot(p.x-mon.x,p.y-mon.y)));const v=muted?0:clamp(1-dd/700,0,1)*(mon.state==='chase'?.32:.16);humG.gain.setTargetAtTime(v,AC.currentTime,.1)}
 }
@@ -1323,6 +1347,8 @@ $('copyBtn').onclick=()=>{const c=net.code,b=$('copyBtn');const done=()=>{b.text
 function selectCode(){const r=document.createRange();r.selectNodeContents($('codeLbl'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copyBtn').textContent='Selected, press Ctrl+C'}
 $('netStart').onclick=()=>{initAudio();if(AC&&AC.state==='suspended')AC.resume();$('net').hidden=true;G.day=1;newDay()};
 
+// automaattitestejä varten (vain osoitteella #test)
+if(location.hash==='#test')window.__k={get players(){return players},get net(){return net},get items(){return items},get G(){return G}};
 // ================= pääsilmukka =================
 function simTick(dt){
   acc+=dt;let n=0;while(acc>=STEP&&n<12){step(STEP);acc-=STEP;n++}if(n>=12)acc=0;
