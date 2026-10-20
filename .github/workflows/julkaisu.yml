@@ -1,0 +1,82 @@
+# Pelipajan julkaisu
+#
+# Aina kun main-haaraan tulee muutos, tarkistetaan projekti (npm test).
+# Jos package.json-tiedoston versionumero on uusi, tehdään GitHubiin uusi julkaisu (Release):
+#   - Pelipaja-Windows.zip       koko Pelipaja ladattavaksi
+#   - pelipaja-<versio>.update   allekirjoitettu päivityspaketti, jonka Pelipaja lataa itse
+#   - latest.json                tieto uusimmasta versiosta
+#
+# Allekirjoitusavain on salaisuutena: Settings → Secrets and variables → Actions → PELIPAJA_SIGNING_KEY
+name: Julkaise Pelipaja
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: julkaisu
+  cancel-in-progress: false
+
+jobs:
+  julkaisu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Asenna riippuvuudet
+        run: npm ci
+
+      - name: Tarkista projekti
+        run: npm test
+
+      - name: Onko versio uusi?
+        id: versio
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=$(node -p "require('./package.json').version")
+          echo "numero=$VER" >> "$GITHUB_OUTPUT"
+          if gh release view "v$VER" > /dev/null 2>&1; then
+            echo "uusi=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Versio $VER on jo julkaistu. Nosta versionumeroa package.json-tiedostossa, niin uusi versio julkaistaan."
+          else
+            echo "uusi=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Rakenna Pelipaja.exe
+        if: steps.versio.outputs.uusi == 'true'
+        run: npx electron-builder --win dir --x64 --publish never
+
+      - name: Tee allekirjoitettu päivityspaketti
+        if: steps.versio.outputs.uusi == 'true'
+        env:
+          PELIPAJA_SIGNING_KEY: ${{ secrets.PELIPAJA_SIGNING_KEY }}
+        run: node scripts/make-update.js dist/win-unpacked/resources/app dist/release
+
+      - name: Pakkaa Pelipaja-Windows.zip
+        if: steps.versio.outputs.uusi == 'true'
+        run: |
+          mkdir -p dist/zip
+          cp -r dist/win-unpacked dist/zip/Pelipaja
+          cp scripts/LUE-MINUT.txt "dist/zip/Pelipaja/LUE MINUT.txt"
+          cd dist/zip && zip -qr -9 ../release/Pelipaja-Windows.zip Pelipaja
+
+      - name: Julkaise
+        if: steps.versio.outputs.uusi == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ steps.versio.outputs.numero }}
+        run: |
+          gh release create "v$VER" dist/release/* \
+            --title "Pelipaja $VER" \
+            --notes "Lataa **Pelipaja-Windows.zip**, pura se ja käynnistä Pelipaja.exe. Jos sinulla on jo Pelipaja 1.2 tai uudempi, se päivittyy itsestään." \
+            --latest
