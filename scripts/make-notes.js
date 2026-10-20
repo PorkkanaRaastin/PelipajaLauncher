@@ -23,6 +23,11 @@ const sh = (c) => {
   }
 };
 
+// GitHub Actions hakee oletuksena vain viimeisimmän commitin. Haetaan koko historia ja tagit,
+// jotta "edellisen julkaisun jälkeen" voidaan laskea.
+if (sh("git rev-parse --is-shallow-repository") === "true") sh("git fetch --quiet --unshallow --tags");
+else if (!sh("git tag --list v*")) sh("git fetch --quiet --tags");
+
 const version = JSON.parse(fs.readFileSync(path.join(appDir, "package.json"), "utf8")).version;
 const prev = sh("git tag --list \"v*\" --sort=-v:refname").split("\n").filter(Boolean)[0] || "";
 const raw = sh(`git log ${prev ? prev + "..HEAD" : "-n 20"} --no-merges --format=%B%x1e`);

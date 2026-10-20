@@ -16,6 +16,15 @@ if (!appDir || !outDir) {
   console.error("Käyttö: node scripts/make-update.js <sovelluskansio> <tulostekansio>");
   process.exit(1);
 }
+// "What's new" -tiedot: jos julkaisu.yml ei ajanut make-notes.js:ää erikseen (vanha workflow),
+// kootaan ne tässä, jotta whats-new.json tulee varmasti allekirjoitettuun pakettiin.
+if (!fs.existsSync(path.join(appDir, "whats-new.json"))) {
+  try {
+    require("child_process").execFileSync(process.execPath, [path.join(__dirname, "make-notes.js"), appDir], { stdio: "inherit" });
+  } catch (err) {
+    console.error("make-notes.js epäonnistui:", err.message);
+  }
+}
 const keyPem = process.env.PELIPAJA_SIGNING_KEY;
 if (!keyPem) {
   console.error("PELIPAJA_SIGNING_KEY puuttuu (GitHubin salaisuus).");

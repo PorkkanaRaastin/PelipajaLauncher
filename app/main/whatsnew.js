@@ -1,4 +1,4 @@
-// Pelipaja – "Mitä uutta" -ikkuna ja UUSI-merkit
+// Pelipaja – "What's new" -ikkuna ja NEW-merkit
 //
 // Julkaisun mukana tulee whats-new.json (scripts/make-notes.js kokoaa sen commit-viesteistä).
 // Kun Pelipaja käynnistyy ensimmäistä kertaa uudella versiolla, käyttöliittymä näyttää
@@ -12,6 +12,15 @@ const { readSealed, writeSealed } = require("./storage");
 
 let result;
 
+function builtinVersion() {
+  try {
+    if (!app.isPackaged) return null;
+    return JSON.parse(fs.readFileSync(path.join(process.resourcesPath, "app", "package.json"), "utf8")).version;
+  } catch {
+    return null;
+  }
+}
+
 // Lasketaan kerran käynnistyksessä
 function compute() {
   if (result !== undefined) return result;
@@ -19,7 +28,9 @@ function compute() {
   const file = path.join(app.getPath("userData"), "launcher-state.dat");
   const st = readSealed(file, null);
   // Ensimmäinen kerta tällä ominaisuudella: verrataan exen mukana tulleeseen versioon
-  const last = (st && st.lastVersion) || process.env.PELIPAJA_BUILTIN_VERSION || APP_VERSION;
+  // Ensimmäinen kerta tällä ominaisuudella: verrataan exen mukana tulleeseen versioon.
+  // Vanhojen exejen boot.js ei aseta PELIPAJA_BUILTIN_VERSION-muuttujaa, joten luetaan se suoraan.
+  const last = (st && st.lastVersion) || process.env.PELIPAJA_BUILTIN_VERSION || builtinVersion() || APP_VERSION;
   try {
     writeSealed(file, { lastVersion: APP_VERSION });
   } catch {}
