@@ -94,6 +94,38 @@ button:disabled{opacity:.45!important;cursor:default}
 .stats{display:grid;grid-template-columns:1fr auto;gap:4px 18px;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
 .stats span:nth-child(even){text-align:right}
 .big{font-family:var(--f-display);font-size:30px}
+/* ---------- saavutukset ---------- */
+.achbtn{display:inline-flex;align-items:center;gap:8px}
+.achbtn svg{width:22px;height:22px}
+.box.wide{width:min(940px,100%)}
+.achhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.achpct{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:220px}
+.achpct .big{font-size:40px;line-height:.9}
+.achbar{width:100%;height:12px;background:rgba(42,26,11,.2);border:2px solid var(--card-ink)}
+.achbar i{display:block;height:100%;background:linear-gradient(90deg,#c98a1a,#ffd36a);width:0;transition:width .4s}
+.achfilter{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;max-height:min(52vh,560px);overflow:auto;padding:4px 6px 4px 2px}
+.ach{display:flex;gap:11px;align-items:flex-start;padding:10px 11px;background:rgba(246,236,214,.55);border:2px solid rgba(42,26,11,.25);box-shadow:0 2px 0 rgba(42,26,11,.25)}
+.ach.done{background:#f6ecd6;border-color:var(--card-ink)}
+.ach svg{width:46px;height:46px;flex:none}
+.ach div{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.ach b{font-family:var(--f-display);font-weight:400;font-size:16px;line-height:1.05}
+.ach span{font-size:13.5px;font-weight:600;line-height:1.3}
+.ach:not(.done) b,.ach:not(.done) span{opacity:.62}
+.ach small{font-size:12px;font-weight:700;opacity:.7}
+.ach .pb{height:6px;background:rgba(42,26,11,.18);margin-top:4px}
+.ach .pb i{display:block;height:100%;background:var(--card-ink)}
+.achempty{padding:18px 4px;font-weight:700;opacity:.7}
+#achPops{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));top:calc(70px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:10px;z-index:40;pointer-events:none}
+.achpop{display:flex;gap:12px;align-items:center;width:min(340px,80vw);background:var(--card);color:var(--card-ink);padding:10px 14px 10px 10px;box-shadow:0 8px 24px rgba(0,0,0,.5);border:3px solid var(--card-ink);transform:rotate(-1deg);animation:achIn .45s cubic-bezier(.2,1.4,.4,1) both}
+.achpop.out{animation:achOut .35s ease-in both}
+@keyframes achIn{from{transform:translateX(120%) rotate(3deg)}to{transform:translateX(0) rotate(-1deg)}}
+@keyframes achOut{from{opacity:1;transform:translateX(0) rotate(-1deg)}to{opacity:0;transform:translateX(60%) rotate(3deg)}}
+.achpop svg{width:58px;height:58px;flex:none;filter:drop-shadow(0 0 10px rgba(255,211,106,.8))}
+.achpop div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.achpop em{font-style:normal;font-family:var(--f-marker);font-size:14px;color:#a3241c}
+.achpop b{font-family:var(--f-display);font-weight:400;font-size:19px;line-height:1.05}
+.achpop span{font-size:13px;font-weight:600;line-height:1.25}
 @media (max-width:620px){.controls{grid-template-columns:1fr}.box{padding:34px 20px 22px}.pcard{min-width:0}.pcard .k{display:none}#top{gap:8px}.quota{min-width:150px}}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
@@ -113,6 +145,12 @@ button:disabled{opacity:.45!important;cursor:default}
   <div id="hint"></div>
 </div>
 <div id="toast"></div>
+<div id="achPops" aria-live="polite"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="kkGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".45" stop-color="#ffc83a"/><stop offset="1" stop-color="#b8740c"/></linearGradient>
+  <linearGradient id="kkSilver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9d1db"/><stop offset="1" stop-color="#7d8794"/></linearGradient>
+  <linearGradient id="kkBronze" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd2a0"/><stop offset=".5" stop-color="#d0843f"/><stop offset="1" stop-color="#7c4317"/></linearGradient>
+</defs></svg>
 
 <div class="overlay" id="menu">
   <div class="box">
@@ -147,6 +185,7 @@ button:disabled{opacity:.45!important;cursor:default}
       <span class="small" id="bestLbl"></span>
     </div>
     <div class="row"><button class="ghost" id="netBtn">Play online</button><span class="small">Your friend on their own computer with a join code</span></div>
+    <div class="row"><button class="ghost achbtn" id="achBtn"></button></div>
     <span class="small">Gamepads work too: stick moves, A grabs, B shouts. Esc = pause, M = sound, G = graphics.</span>
   </div>
 </div>
@@ -192,6 +231,24 @@ button:disabled{opacity:.45!important;cursor:default}
   </div>
 </div>
 
+<div class="overlay" id="achv" hidden style="z-index:30">
+  <div class="box wide">
+    <div class="achhead">
+      <div><div class="marker">Movers Ltd · employee record</div><h2>Achievements</h2></div>
+      <div class="achpct"><span class="big" id="achPct">0 %</span><span class="small" id="achCount">0 / 50 unlocked</span><div class="achbar"><i id="achBar"></i></div></div>
+    </div>
+    <div class="achfilter">
+      <div class="seg" role="group" aria-label="Filter achievements">
+        <button type="button" data-af="all" aria-pressed="true">All</button>
+        <button type="button" data-af="done" aria-pressed="false">Unlocked</button>
+        <button type="button" data-af="todo" aria-pressed="false">Locked</button>
+      </div>
+      <button class="go small" id="achClose" style="margin-left:auto">Close</button>
+    </div>
+    <div class="achgrid" id="achGrid"></div>
+  </div>
+</div>
+
 <div class="overlay" id="pause" hidden>
   <div class="box">
     <div class="marker">Paused</div>
@@ -201,6 +258,7 @@ button:disabled{opacity:.45!important;cursor:default}
         <div class="row">
       <button class="go" id="resumeBtn">Resume</button>
       <button class="ghost" id="quitBtn">Main menu</button>
+      <button class="ghost achbtn" id="achBtn2"></button>
     </div>
   </div>
 </div>
@@ -729,11 +787,12 @@ function setupDay(seed,netItems){
 function newDay(){
   setupDay();
   G.time=DAY_TIME;G.quota=1200+(G.day-1)*800;G.bank=0;G.leaveT=0;G.heave=0;
-  G.stats={broken:0,slurp:0,eaten:0,delivered:0,lost:0};
+  G.stats={broken:0,slurp:0,eaten:0,delivered:0,lost:0};G.chased=false;G.furnD=0;G.furnFlag=0;
   cam.x=-120;cam.y=FRONT_Y;cam.d=800;
   $('dayLbl').textContent='Night '+G.day;$('quota').textContent='/ '+euro(G.quota);
   G.phase='play';showHud(true);last=performance.now();hudCache='';
   toast('NIGHT '+G.day+'<small>Quota '+euro(G.quota)+' · 3 minutes</small>',2400,true);
+  ach('night',{day:G.day});
   if(G.mode==='host'){net.ev=[];netSend({t:'start',day:G.day,seed:G.seed,quota:G.quota,items:items.map(it=>[it.id,it.t,r1(it.x),r1(it.y),it.val,r2(it.a)]),mon:[r1(mon.x),r1(mon.y)]})}
 }
 function release(p){if(p.hold){p.hold.holders=Math.max(0,p.hold.holders-1);p.hold=null}}
@@ -766,19 +825,20 @@ function moveFurn(f,dt){
   if(f.holders<2){f.vx=f.vy=0;return}
   f.vx*=Math.exp(-3*dt);f.vy*=Math.exp(-3*dt);
   const sp=Math.hypot(f.vx,f.vy);if(sp>160){f.vx*=160/sp;f.vy*=160/sp}
-  const dx=f.vx*dt,dy=f.vy*dt;
+  const dx=f.vx*dt,dy=f.vy*dt,ox0=f.x,oy0=f.y;
   f.x+=dx;if(furnBlocked(f)){f.x-=dx;f.vx=0}
   f.y+=dy;if(furnBlocked(f)){f.y-=dy;f.vy=0}
+  const md=Math.hypot(f.x-ox0,f.y-oy0);if(md>0){G.furnD=(G.furnD||0)+md;if(!G.furnFlag&&G.furnD>60){G.furnFlag=1;ach('furn')}}
   if((dx||dy)&&Math.random()<dt*6){burst(f.x+f.w/2,f.y+f.h/2,'#8a7a66',1,40,2,true);if(Math.random()<.25)sfx.scrape()}
 }
 function effMass(it){if(it.furn)return it.holders>=2?(G.heave>0?5:10):60;const ty=TYPES[it.t];let m=ty.m;if(ty.heavy&&it.holders<2&&G.heave<=0)m*=10;if(G.heave>0&&it.holders>=2)m*=.5;return m}
 function carryF(p){if(!p.hold)return 1;const it=p.hold;return clamp(1.6/(1+effMass(it)*.35/Math.max(1,it.holders)),.12,1)}
 function yell(p){
   if(!p||p.knocked>0)return;
-  p.yellT=1.1;p.bubble=pick(SHOUTS);sfx.yell(p.i);
+  p.yellT=1.1;p.bubble=pick(SHOUTS);sfx.yell(p.i);ach('yell');
   const now=performance.now()/1000;p.yellAt=now;
   const o=players[1-p.i];
-  if(p.hold&&o.hold===p.hold&&now-o.yellAt<.8){G.heave=5;p.bubble=o.bubble='HEAVE-HO!';o.yellT=1.1;sfx.heave();toast('HEAVE-HO!<small>Double strength for 5 seconds</small>',1400);shake(6)}
+  if(p.hold&&o.hold===p.hold&&now-o.yellAt<.8){G.heave=5;ach('heave');p.bubble=o.bubble='HEAVE-HO!';o.yellT=1.1;sfx.heave();toast('HEAVE-HO!<small>Double strength for 5 seconds</small>',1400);shake(6)}
   noise(p.x,p.y,700);
 }
 function noise(x,y,loud){
@@ -787,7 +847,7 @@ function noise(x,y,loud){
 }
 function damage(it,imp,mult){
   if(it.dead)return;
-  if(it.t==='duck'){if(imp>90&&it.hitT<=0){sfx.squeak();addText(it.x,it.y,'SQUEAK','#ffe14d',15,1,30);it.hitT=.3}return}
+  if(it.t==='duck'){if(imp>90&&it.hitT<=0){sfx.squeak();ach('squeak');addText(it.x,it.y,'SQUEAK','#ffe14d',15,1,30);it.hitT=.3}return}
   if(imp<140)return;
   const loss=Math.max(5,Math.round((imp-140)*TYPES[it.t].fr*it.max/700*(mult||1)));
   it.val-=loss;it.hitT=.35;G.stats.lost+=loss;it.av+=(Math.random()-.5)*imp*.03;
@@ -798,7 +858,7 @@ function damage(it,imp,mult){
   if(it.val<=it.max*.1)breakItem(it);
 }
 function breakItem(it){
-  it.dead=true;G.stats.broken++;
+  it.dead=true;G.stats.broken++;ach('break');
   for(const p of players)if(p.hold===it)p.hold=null;
   addText(it.x,it.y,'BROKEN!','#ff4d5e',26,1.4,70);
   burst(it.x,it.y,'#e9e2d0',26,220,20);burst(it.x,it.y,'#c9925a',14,180,20);
@@ -806,7 +866,7 @@ function breakItem(it){
 }
 function knock(p){
   if(p.knocked>0)return;
-  release(p);p.knocked=7;p.revive=0;G.stats.slurp++;
+  release(p);p.knocked=7;p.revive=0;G.stats.slurp++;ach('slurp');
   addText(p.x,p.y,'SLURP!','#efe0b0',28,1.4,80);sfx.slurp();shake(10);
   mon.stun=2.4;mon.state='patrol';mon.goal=null;
   if(players.every(q=>q.knocked>0))endDay(false,'slurp');
@@ -818,7 +878,7 @@ function step(dt){
     if(p.knocked>0){
       release(p);
       const o=players[1-p.i];
-      if(o.knocked<=0&&Math.hypot(o.x-p.x,o.y-p.y)<80){p.revive+=dt;if(p.revive>1.2){p.knocked=0;addText(p.x,p.y,'UP!','#86e08a',20);sfx.grab()}}
+      if(o.knocked<=0&&Math.hypot(o.x-p.x,o.y-p.y)<80){p.revive+=dt;if(p.revive>1.2){p.knocked=0;addText(p.x,p.y,'UP!','#86e08a',20);sfx.grab();ach('revive')}}
       else p.revive=Math.max(0,p.revive-dt);
       p.knocked-=dt;if(p.knocked<=0){p.knocked=0;addText(p.x,p.y,'Phew…','#fff',16)}
       p.vx*=Math.exp(-4*dt);p.vy*=Math.exp(-4*dt);
@@ -870,7 +930,7 @@ function step(dt){
   for(const it of items){if(it.dead)continue;
     const d=Math.hypot(it.x-mon.x,it.y-mon.y);
     if(d<it.r+mon.r){
-      if(!it.holders&&TYPES[it.t].s==='s'&&mon.state!=='chase'&&mon.stun<=0){it.dead=true;G.stats.eaten++;addText(it.x,it.y,'YUM!','#efe0b0',22,1,40);sfx.nam();mon.stun=1}
+      if(!it.holders&&TYPES[it.t].s==='s'&&mon.state!=='chase'&&mon.stun<=0){it.dead=true;G.stats.eaten++;ach('eat');addText(it.x,it.y,'YUM!','#efe0b0',22,1,40);sfx.nam();mon.stun=1}
       else{const rel=circleCircle(mon,it,20,effMass(it),.4);if(rel>0)damage(it,rel*.5)}
     }
   }
@@ -879,9 +939,9 @@ function step(dt){
     if(it.dead)continue;
     if(it.x>ZONE.x&&it.x<ZONE.x+ZONE.w&&it.y>ZONE.y&&it.y<ZONE.y+ZONE.h){
       it.dead=true;for(const p of players)if(p.hold===it)p.hold=null;
-      G.bank+=it.val;G.stats.delivered++;
+      G.bank+=it.val;G.stats.delivered++;ach('deliver',{t:it.t,v:Math.round(it.val),m:Math.round(it.max)});
       addText(it.x,it.y,'+'+euro(it.val),'#86e08a',24,1.4,70);burst(it.x,it.y,'#86e08a',14,140,30);sfx.cash();
-      if(G.bank>=G.quota&&G.bank-it.val<G.quota){toast('QUOTA MET!<small>Both get in the van to leave, or keep collecting</small>',2800);sfx.win()}
+      if(G.bank>=G.quota&&G.bank-it.val<G.quota){ach('quota',{left:Math.round(G.time*10)/10});toast('QUOTA MET!<small>Both get in the van to leave, or keep collecting</small>',2800);sfx.win()}
     }
   }
   if(items.some(i=>i.dead)){for(const it of items)if(it.dead&&it.mesh){world.remove(it.mesh);it.mesh.traverse(o=>{if(o.geometry)o.geometry.dispose()})}items=items.filter(i=>!i.dead)}
@@ -914,8 +974,8 @@ function updMonster(dt){
   if(m.stun>0){m.stun-=dt;m.vx*=Math.exp(-5*dt);m.vy*=Math.exp(-5*dt);m.x+=m.vx*dt;m.y+=m.vy*dt;return}
   let seen=null,bd=1e9;
   for(const p of players){if(p.knocked>0||p.x<8)continue;const d=Math.hypot(p.x-m.x,p.y-m.y);if(d<300&&d<bd&&los(m,p)){seen=p;bd=d}}
-  if(seen){if(m.state!=='chase'){sfx.alarm();addText(m.x,m.y,'!','#ff4d5e',38,.9,70)}m.state='chase';m.goal={x:seen.x,y:seen.y};m.lost=2.5}
-  else if(m.state==='chase'){m.lost-=dt;if(m.lost<=0){m.state='patrol';m.goal=null;addText(m.x,m.y,'?','#efe0b0',32,.9,70)}}
+  if(seen){if(m.state!=='chase'){G.chased=true;sfx.alarm();addText(m.x,m.y,'!','#ff4d5e',38,.9,70)}m.state='chase';m.goal={x:seen.x,y:seen.y};m.lost=2.5}
+  else if(m.state==='chase'){m.lost-=dt;if(m.lost<=0){m.state='patrol';m.goal=null;if(players.every(q=>q.knocked<=0))ach('escape');addText(m.x,m.y,'?','#efe0b0',32,.9,70)}}
   else if(m.state==='investigate'){m.timer-=dt;if(m.timer<=0||(m.goal&&Math.hypot(m.goal.x-m.x,m.goal.y-m.y)<40)){m.state='patrol';m.goal=null}}
   if(!m.goal||(m.state==='patrol'&&Math.hypot(m.goal.x-m.x,m.goal.y-m.y)<50))m.goal=randomRoomPoint();
   const sp={chase:150+G.day*12,investigate:115,patrol:70}[m.state];
@@ -958,6 +1018,8 @@ function endDay(ok,why){
   G.phase='end';
   if(humG)humG.gain.setTargetAtTime(0,AC.currentTime,.05);
   const bonus=ok&&why==='early'?Math.round(G.time)*5:0;
+  ach('furnDist',{m:Math.round((G.furnD||0)/50)});
+  ach('end',{ok,why,day:G.day,bank:G.bank,quota:G.quota,left:Math.round(G.time),lost:G.stats.lost,chased:!!G.chased,items:items.filter(i=>!i.dead).length});
   const s=G.stats;
   $('resKicker').textContent='Night '+G.day;
   const rows=[['Loaded into the van',euro(G.bank)],['Quota',euro(G.quota)],['Items delivered',s.delivered],['Lost to bumps',euro(s.lost)],['Broken',s.broken],['Eaten by Ilkka',s.eaten],['Times vacuumed',s.slurp]];
@@ -1149,7 +1211,7 @@ function updateHud(){
 
 // ================= nettipeli =================
 // Isäntä pyörittää koko pelin. Kaveri lähettää näppäimensä ja saa pelitilanteen 20 kertaa sekunnissa.
-const NET_VER='kk-net-4',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const NET_VER='kk-net-5',NET_PREFIX='rr-kahlekaverit-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const net={peer:null,conn:null,fast:null,hostId:'',code:'',remote:{x:0,y:0,g:false},lastIn:0,sendT:0,inT:0,lastSent:'',ping:0,pingT:0,ev:[],connected:false,snapOk:false,q:0,lastQ:0,inQ:0,lastInQ:0,off:null};
 // Nopea kanava: pelitilanne ja näppäimet kulkevat järjestämättömässä kanavassa (reliable:false = ordered:false),
 // jottei yksi kadonnut paketti pysäytä kaikkia seuraavia. Vanhentuneet viestit hylätään järjestysnumerolla.
@@ -1246,6 +1308,7 @@ function onNet(d,role){
       case 'start':clientStart(d);break;
       case 's':onFast(d,'client');break;
       case 'ev':if(G.phase==='play'||G.phase==='pause'||G.phase==='end')for(const e of d.ev||[])applyEv(e);break;
+      case 'ae':if(typeof d.n==='string')achApply(d.n,Object.assign({},d.d||{},{mode:'client'}));break;
       case 'end':clientEnd(d);break;
       case 'pong':net.ping=Math.round(performance.now()-d.ts);break;
       case 'pause':if(G.phase==='play')setPause(true,true);break;
@@ -1347,8 +1410,183 @@ $('copyBtn').onclick=()=>{const c=net.code,b=$('copyBtn');const done=()=>{b.text
 function selectCode(){const r=document.createRange();r.selectNodeContents($('codeLbl'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copyBtn').textContent='Selected, press Ctrl+C'}
 $('netStart').onclick=()=>{initAudio();if(AC&&AC.state==='suspended')AC.resume();$('net').hidden=true;G.day=1;newDay()};
 
+// ================= saavutukset =================
+// 50 saavutusta. Tallennetaan pelin omaan tallennukseen, jonka Pelipaja pitää käyttäjäkohtaisena.
+// Pelilogiikka (yksin samalla koneella tai isäntä) kutsuu ach(nimi, tiedot). Nettipelissä isäntä
+// välittää samat tapahtumat kaverille, jolloin myös kaveri saa saavutukset omalle käyttäjälleen.
+const ACHS=[
+  {id:'del1',n:'First Box',d:'Deliver your first item to the van.',t:1,s:'del',g:1},
+  {id:'del50',n:'Getting the Hang of It',d:'Deliver 50 items.',t:1,s:'del',g:50},
+  {id:'del250',n:'Professional Movers',d:'Deliver 250 items.',t:2,s:'del',g:250},
+  {id:'del1000',n:'Moving Legends',d:'Deliver 1,000 items.',t:3,s:'del',g:1000},
+  {id:'cash10k',n:'First Paycheck',d:'Load €10,000 worth of items in total.',t:1,s:'cash',g:10000},
+  {id:'cash100k',n:'Moving Millionaires',d:'Load €100,000 worth of items in total.',t:3,s:'cash',g:100000},
+  {id:'big',n:'Big Ticket',d:'Deliver a single item worth €2,000 or more.',t:2},
+  {id:'mint',n:'Not a Scratch',d:'Deliver an item worth over €500 at full value.',t:1},
+  {id:'gloves',n:'White Gloves',d:'Deliver a heavy item at full value.',t:2},
+  {id:'types',n:'Collectors',d:'Deliver every type of item at least once.',t:3,s:'types',g:20},
+  {id:'piano',n:'Piano Movers',d:'Deliver the piano.',t:1},
+  {id:'statue',n:'Art Handlers',d:'Deliver the marble statue.',t:1},
+  {id:'aquarium',n:'Fish Are Friends',d:'Deliver the aquarium.',t:1},
+  {id:'clock',n:'Time Flies',d:'Deliver the grandfather clock.',t:1},
+  {id:'fridge',n:'Cold Hands',d:'Deliver the fridge.',t:1},
+  {id:'arcade',n:'Insert Coin',d:'Deliver the arcade machine.',t:1},
+  {id:'heavy',n:'Heavy Lifters',d:'Deliver every kind of heavy item.',t:2,s:'heavyT',g:6},
+  {id:'duck',n:'Duck Rescue',d:'Deliver the rubber duck.',t:1},
+  {id:'gnomes',n:'Gnome Liberation Front',d:'Deliver 10 garden gnomes.',t:2,s:'gnome',g:10},
+  {id:'squeak',n:'Squeak Squeak',d:'Make the rubber duck squeak 20 times.',t:1,s:'squeak',g:20},
+  {id:'heave1',n:'HEAVE-HO!',d:'Shout together while carrying the same item.',t:1},
+  {id:'heave25',n:'Lungs of Steel',d:'Trigger HEAVE-HO 25 times.',t:2,s:'heave',g:25},
+  {id:'yell100',n:'Loudmouths',d:'Shout 100 times.',t:1,s:'yell',g:100},
+  {id:'furn',n:'Interior Designers',d:'Push a piece of furniture out of the way.',t:1},
+  {id:'furnFar',n:'Feng Shui Masters',d:'Push furniture 100 metres in total.',t:2,s:'furn',g:100},
+  {id:'revive',n:'Wake Up!',d:'Revive your partner after Ilkka vacuumed them.',t:1},
+  {id:'revive10',n:'Paramedics',d:'Revive your partner 10 times.',t:2,s:'revive',g:10},
+  {id:'night1',n:'Night Shift',d:'Clear your first night.',t:1,s:'nights',g:1},
+  {id:'nights10',n:'Night Owls',d:'Clear 10 nights in total.',t:2,s:'nights',g:10},
+  {id:'nights40',n:'Graveyard Shift',d:'Clear 40 nights in total.',t:3,s:'nights',g:40},
+  {id:'run3',n:'Hat Trick',d:'Clear night 3 in one run.',t:1},
+  {id:'run5',n:'Five Nights at the Mansion',d:'Clear night 5 in one run.',t:2},
+  {id:'run10',n:'Unstoppable Duo',d:'Clear night 10 in one run.',t:3},
+  {id:'early60',n:'Early Birds',d:'Drive off with 60 seconds or more to spare.',t:2},
+  {id:'early120',n:'Speedrunners',d:'Drive off with 2 minutes or more to spare.',t:3},
+  {id:'double',n:'Overachievers',d:'Load twice the quota in one night.',t:2},
+  {id:'photo',n:'Photo Finish',d:'Meet the quota with less than 5 seconds left.',t:2},
+  {id:'careful',n:'Careful Hands',d:'Clear a night without losing a single euro to bumps.',t:2},
+  {id:'ghosts',n:'Stealth Movers',d:'Clear a night without Ilkka ever chasing you.',t:2},
+  {id:'sweep',n:'Clean Sweep',d:'Clear a night with nothing left inside the mansion.',t:3},
+  {id:'break1',n:'Oops…',d:'Break an item.',t:1},
+  {id:'break50',n:'Bull in a China Shop',d:'Break 50 items in total.',t:2,s:'broken',g:50},
+  {id:'eat1',n:'Ilkka Is Hungry',d:'Let Ilkka eat an item.',t:1},
+  {id:'eat25',n:'Feeding Time',d:'Let Ilkka eat 25 items in total.',t:2,s:'eaten',g:25},
+  {id:'slurp1',n:'Vacuumed',d:'Get slurped up by Ilkka.',t:1},
+  {id:'dust',n:'Dust Bunnies',d:'Lose a night because you both got vacuumed.',t:1},
+  {id:'escape',n:'Escape Artists',d:'Shake off Ilkka after it starts chasing you.',t:1},
+  {id:'fail',n:'Better Luck Tomorrow',d:'Fall short of the quota.',t:1},
+  {id:'couch',n:'Couch Co-op',d:'Play a night on one computer.',t:1},
+  {id:'online',n:'Remote Workers',d:'Clear a night online.',t:2},
+];
+const ACH_KEY='kk_ach_v1';
+const AS=(()=>{try{const a=JSON.parse(localStorage.getItem(ACH_KEY));if(a&&a.u&&a.s)return a}catch(e){}return{u:{},s:{}}})();
+const achSave=()=>{try{localStorage.setItem(ACH_KEY,JSON.stringify(AS))}catch(e){}};
+const achVal=(k)=>Array.isArray(AS.s[k])?AS.s[k].length:(AS.s[k]||0);
+const achAdd=(k,v)=>{AS.s[k]=Math.min(1e9,(AS.s[k]||0)+(v==null?1:v))};
+const achSet=(k,v)=>{const a=Array.isArray(AS.s[k])?AS.s[k]:(AS.s[k]=[]);if(!a.includes(v))a.push(v)};
+function trophySvg(tier,locked){
+  const f=locked?'rgba(42,26,11,.22)':'url(#'+(tier===3?'kkGold':tier===2?'kkSilver':'kkBronze')+')';
+  const st=locked?'rgba(42,26,11,.35)':'#5a3608';
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M19 13H9c0 10 5 15 11 16M45 13h10c0 10-5 15-11 16" fill="none" stroke="${f}" stroke-width="5" stroke-linecap="round"/>`+
+    `<path d="M18 7h28v12c0 10-6 17-14 18-8-1-14-8-14-18z" fill="${f}" stroke="${st}" stroke-width="2"/>`+
+    `<rect x="28.5" y="36" width="7" height="9" fill="${f}" stroke="${st}" stroke-width="1.5"/>`+
+    `<rect x="20" y="45" width="24" height="7" rx="1.5" fill="${f}" stroke="${st}" stroke-width="2"/><rect x="16" y="52" width="32" height="6" rx="1.5" fill="${locked?'rgba(42,26,11,.3)':'#6b3f12'}"/>`+
+    (locked?`<rect x="26" y="20" width="12" height="10" rx="2" fill="rgba(42,26,11,.45)"/><path d="M28.5 20v-3a3.5 3.5 0 0 1 7 0v3" fill="none" stroke="rgba(42,26,11,.45)" stroke-width="2.5"/>`
+      :`<path d="M32 13l2.4 5 5.4.7-4 3.7 1.1 5.3L32 25l-4.9 2.7 1.1-5.3-4-3.7 5.4-.7z" fill="#fff8d8" opacity=".9"/><path d="M23 11v6c0 5 2 9 5 12" stroke="#fff" stroke-opacity=".55" stroke-width="2.5" fill="none" stroke-linecap="round"/>`)+
+    `</svg>`;
+}
+// ilmoitus pelin sisällä: pokaali ja saavutuksen nimi oikeassa yläkulmassa
+const achQueue=[];let achShowing=0;
+function achPop(a){achQueue.push(a);achNext()}
+function achNext(){
+  if(achShowing>=3||!achQueue.length)return;
+  const a=achQueue.shift();achShowing++;
+  const el=document.createElement('div');el.className='achpop';
+  el.innerHTML=trophySvg(a.t,false)+'<div><em>Achievement unlocked!</em><b></b><span></span></div>';
+  el.querySelector('b').textContent=a.n;el.querySelector('span').textContent=a.d;
+  $('achPops').appendChild(el);
+  try{[784,988,1318,1568].forEach((f,i)=>tone(f,.16,'triangle',.07,null,i*.08))}catch(e){}
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>{el.remove();achShowing--;achNext()},350)},4600);
+}
+function unlock(id){
+  if(AS.u[id])return;
+  const a=ACHS.find(x=>x.id===id);if(!a)return;
+  AS.u[id]=Date.now();achSave();achPop(a);achLabel();
+}
+function achCounters(){for(const a of ACHS)if(a.s&&!AS.u[a.id]&&achVal(a.s)>=a.g)unlock(a.id)}
+// pelin tapahtumat -> saavutukset
+function achApply(n,d){
+  d=d||{};
+  switch(n){
+    case 'deliver':{
+      const ty=TYPES[d.t];if(!ty)break;
+      achAdd('del');achAdd('cash',Math.max(0,d.v|0));achSet('types',d.t);
+      if(ty.heavy)achSet('heavyT',d.t);
+      if(d.t==='gnome')achAdd('gnome');
+      if(['piano','statue','aquarium','clock','fridge','arcade','duck'].includes(d.t))unlock(d.t);
+      if(d.v>=2000)unlock('big');
+      const full=d.v>=d.m;
+      if(full&&d.v>500)unlock('mint');
+      if(full&&ty.heavy)unlock('gloves');
+      break}
+    case 'squeak':achAdd('squeak');break;
+    case 'heave':achAdd('heave');unlock('heave1');break;
+    case 'yell':achAdd('yell');break;
+    case 'furn':unlock('furn');break;
+    case 'furnDist':achAdd('furn',Math.max(0,+d.m||0));break;
+    case 'revive':achAdd('revive');unlock('revive');break;
+    case 'break':achAdd('broken');unlock('break1');break;
+    case 'eat':achAdd('eaten');unlock('eat1');break;
+    case 'slurp':unlock('slurp1');break;
+    case 'escape':unlock('escape');break;
+    case 'night':if(d.mode==='local')unlock('couch');break;
+    case 'quota':if(d.left<5)unlock('photo');break;
+    case 'end':
+      if(d.ok){
+        achAdd('nights');
+        if(d.day>=3)unlock('run3');if(d.day>=5)unlock('run5');if(d.day>=10)unlock('run10');
+        if(d.why==='early'&&d.left>=60)unlock('early60');
+        if(d.why==='early'&&d.left>=120)unlock('early120');
+        if(d.bank>=d.quota*2)unlock('double');
+        if(!d.lost)unlock('careful');
+        if(!d.chased)unlock('ghosts');
+        if(!d.items)unlock('sweep');
+        if(d.mode!=='local')unlock('online');
+      }else if(d.why==='slurp')unlock('dust');
+      else unlock('fail');
+      break;
+  }
+  achCounters();achSave();
+}
+function ach(n,d){
+  if(G.mode==='client')return;
+  if(G.mode==='host'&&net.connected)netSend({t:'ae',n,d:d||{}});
+  achApply(n,Object.assign({mode:G.mode||'local'},d||{}));
+}
+// saavutusnäkymä: prosentit, pokaalit ja suodatus
+let achFilter='all';
+function achLabel(){
+  const n=ACHS.filter(a=>AS.u[a.id]).length,pct=Math.round(n/ACHS.length*100);
+  const html=trophySvg(3,false)+'<span>Achievements · '+n+' / '+ACHS.length+' ('+pct+' %)</span>';
+  $('achBtn').innerHTML=html;$('achBtn2').innerHTML=html;
+}
+function achRender(){
+  const n=ACHS.filter(a=>AS.u[a.id]).length,pct=Math.round(n/ACHS.length*100);
+  $('achPct').textContent=pct+' %';$('achCount').textContent=n+' / '+ACHS.length+' unlocked';$('achBar').style.width=pct+'%';
+  document.querySelectorAll('[data-af]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.af===achFilter)));
+  const g=$('achGrid');g.innerHTML='';
+  const list=ACHS.filter(a=>achFilter==='all'||(achFilter==='done')===!!AS.u[a.id]);
+  for(const a of list){
+    const done=!!AS.u[a.id],el=document.createElement('div');
+    el.className='ach'+(done?' done':'');
+    el.innerHTML=trophySvg(a.t,!done)+'<div><b></b><span></span><small></small></div>';
+    el.querySelector('b').textContent=a.n;el.querySelector('span').textContent=a.d;
+    const sm=el.querySelector('small');
+    if(done)sm.textContent=(a.t===3?'Gold':a.t===2?'Silver':'Bronze')+' · '+new Date(AS.u[a.id]).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    else if(a.s&&a.g>1){const v=Math.min(a.g,Math.floor(achVal(a.s)));sm.textContent=v.toLocaleString('en-GB')+' / '+a.g.toLocaleString('en-GB');const pb=document.createElement('div');pb.className='pb';pb.innerHTML='<i style="width:'+(v/a.g*100)+'%"></i>';el.querySelector('div').appendChild(pb)}
+    else sm.textContent=a.t===3?'Gold':a.t===2?'Silver':'Bronze';
+    g.appendChild(el);
+  }
+  if(!list.length){const e=document.createElement('div');e.className='achempty';e.textContent=achFilter==='done'?'No achievements yet. Go move some furniture!':'Everything unlocked. Legendary movers!';g.appendChild(e)}
+}
+let achFrom=null;
+function openAch(){achFrom=['menu','pause'].find(id=>!$(id).hidden)||null;achRender();$('achv').hidden=false;$('achClose').focus()}
+function closeAch(){$('achv').hidden=true;const b=achFrom==='pause'?$('achBtn2'):$('achBtn');if(b)b.focus()}
+$('achBtn').onclick=openAch;$('achBtn2').onclick=openAch;$('achClose').onclick=closeAch;
+document.querySelectorAll('[data-af]').forEach(b=>b.onclick=()=>{achFilter=b.dataset.af;achRender()});
+addEventListener('keydown',e=>{if(e.code==='Escape'&&!$('achv').hidden){e.stopImmediatePropagation();e.preventDefault();closeAch()}},true);
+achLabel();
+
 // automaattitestejä varten (vain osoitteella #test)
-if(location.hash==='#test')window.__k={get players(){return players},get net(){return net},get items(){return items},get G(){return G}};
+if(location.hash==='#test')window.__k={get players(){return players},get net(){return net},get items(){return items},get G(){return G},get mon(){return mon},AS,ACHS,ach,achApply,unlock,step,TYPES};
 // ================= pääsilmukka =================
 function simTick(dt){
   acc+=dt;let n=0;while(acc>=STEP&&n<12){step(STEP);acc-=STEP;n++}if(n>=12)acc=0;

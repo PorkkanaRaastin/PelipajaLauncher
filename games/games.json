@@ -26,7 +26,7 @@
       "type": "html",
       "path": "kahlekaverit/index.html",
       "cover": "kahlekaverit/cover.jpg",
-      "version": "0.5",
+      "version": "0.6",
       "endButton": "top-left",
       "tags": [
         "Co-op",
@@ -35,11 +35,9 @@
       ],
       "description": "Pate and Masa are chained together. Carry the fragile stuff from the mansion to the van before morning, lift the big things together, and don't wake up Ilkka the robot vacuum.",
       "updates": [
-        "New: move furniture out of the way together",
-        "Fixed: furniture no longer blocks doorways",
-        "Online play with a join code, each on your own computer",
-        "3D view and 20 different items",
-        "Big items need two carriers"
+        "50 achievements with bronze, silver and gold trophies",
+        "Achievements screen with progress and filters, plus in-game notifications",
+        "Smoother online play for the joining player"
       ]
     },
     {
