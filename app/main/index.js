@@ -7,6 +7,7 @@
 //   stats.js     peliajat ja käynnistykset
 //   settings.js  asetukset
 //   storage.js   salattu tallennus koneelle
+//   updater.js   automaattiset päivitykset GitHubista (update-verify.js tarkistaa allekirjoituksen)
 const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
@@ -18,9 +19,10 @@ const accounts = require("./accounts");
 const games = require("./games");
 const stats = require("./stats");
 const settings = require("./settings");
+const updater = require("./updater");
 const { createCloud, CloudError } = require("./cloud");
 const CLOUD = require("./cloud-config");
-const { RENDERER_DIR, PRELOAD_DIR, GAMES_DIR, ICON } = require("./paths");
+const { RENDERER_DIR, PRELOAD_DIR, GAMES_DIR, ICON, APP_VERSION } = require("./paths");
 const { GAME_ID } = require("./catalog");
 
 app.setName("Pelipaja");
@@ -58,6 +60,7 @@ async function start() {
     console.error("Pilvipalvelun käynnistys epäonnistui:", err);
   }
   createLauncher();
+  updater.start();
 }
 
 function createLauncher() {
@@ -114,7 +117,20 @@ function authHandle(channel, fn) {
 const signedIn = () => !!state.session;
 const validId = (id) => typeof id === "string" && GAME_ID.test(id);
 
-handle("app-info", () => ({ version: app.getVersion(), dev: !app.isPackaged }));
+handle("app-info", () => ({ version: APP_VERSION, dev: !app.isPackaged }));
+handle("update-status", () => updater.getStatus());
+handle("update-check", () => updater.check());
+handle("update-restart", () => {
+  if (games.hasRunning()) return { ok: false, error: "Sulje käynnissä olevat pelit ensin." };
+  if (updater.getStatus().state !== "ready") return { ok: false, error: "Päivitys ei ole valmis." };
+  stats.flushStats().catch(() => {}).finally(() => {
+    app.relaunch();
+    app.quit();
+  });
+  return { ok: true };
+});
+// Uuden Pelipaja-version lataussivu (kun exe itse pitää vaihtaa)
+handle("update-open-page", () => shell.openExternal("https://github.com/PorkkanaRaastin/PelipajaLauncher/releases/latest"));
 handle("get-games", () => (signedIn() ? games.publicGames() : []));
 handle("get-stats", () => (signedIn() ? stats.readStats() : {}));
 handle("get-running", () => games.runningIds());

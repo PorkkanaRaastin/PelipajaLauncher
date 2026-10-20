@@ -369,10 +369,51 @@ $("stepPassword").addEventListener("submit", async (e) => {
   startApp(res.user);
 });
 
+// ---------- Päivitykset ----------
+const UPDATE_TEXT = {
+  ready: (s) => [`Päivitys ${s.version} on valmis`, "Uusi versio otetaan käyttöön, kun Pelipaja käynnistyy uudelleen.", "Käynnistä uudelleen"],
+  manual: (s) => [`Pelipaja ${s.version} on julkaistu`, "Tämä päivitys vaatii uuden Pelipaja-latauksen.", "Avaa lataussivu"],
+};
+function renderUpdate(s) {
+  if (!s) return;
+  const card = $("updateCard");
+  const t = UPDATE_TEXT[s.state];
+  card.hidden = !t;
+  if (t) {
+    const [title, text, btn] = t(s);
+    $("updateTitle").textContent = title;
+    $("updateText").textContent = text;
+    $("updateBtn").textContent = btn;
+    $("updateBtn").dataset.action = s.state;
+  }
+  const info = {
+    idle: "Päivitykset tulevat automaattisesti GitHubista.",
+    uptodate: "Sinulla on uusin versio.",
+    downloading: `Ladataan päivitystä ${s.version}…`,
+    ready: `Päivitys ${s.version} on valmis. Käynnistä Pelipaja uudelleen.`,
+    manual: `Versio ${s.version} vaatii uuden latauksen.`,
+    error: "Päivitysten tarkistus ei onnistunut (ei nettiä?). Yritetään myöhemmin uudelleen.",
+  }[s.state];
+  if (info) $("updateInfo").textContent = devMode && s.state === "idle" ? "Kehitysversio ei päivity automaattisesti." : info;
+}
+$("updateBtn").addEventListener("click", async () => {
+  if ($("updateBtn").dataset.action === "manual") return api.update.openPage();
+  const res = await api.update.restart();
+  if (!res.ok) toast(res.error);
+});
+$("updateCheckBtn").addEventListener("click", async () => {
+  $("updateInfo").textContent = "Tarkistetaan…";
+  renderUpdate(await api.update.check());
+});
+api.onUpdateStatus(renderUpdate);
+
 (async function boot() {
   try {
-    devMode = !!(await api.appInfo()).dev;
+    const info = await api.appInfo();
+    devMode = !!info.dev;
+    $("appVersion").textContent = info.version;
   } catch {}
+  api.update.status().then(renderUpdate, () => {});
   document.querySelectorAll(".dev-only").forEach((el) => (el.hidden = !devMode));
   const st = await api.auth.status();
   if (st.user) startApp(st.user);

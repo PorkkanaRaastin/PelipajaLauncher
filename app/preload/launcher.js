@@ -26,6 +26,13 @@ contextBridge.exposeInMainWorld("launcher", {
     login: invoke("auth-login"),
     logout: invoke("auth-logout"),
   },
+  update: {
+    status: invoke("update-status"),
+    check: invoke("update-check"),
+    restart: invoke("update-restart"),
+    openPage: invoke("update-open-page"),
+  },
+  onUpdateStatus: listen("update-status"),
   onRunningChanged: listen("running-changed"),
   onStatsChanged: listen("stats-changed"),
 });

@@ -1,0 +1,22 @@
+PELIPAJA
+========
+
+Käynnistys: tuplaklikkaa "Pelipaja.exe". Mitään ei tarvitse asentaa.
+Vinkki: klikkaa exeä hiiren oikealla -> Lähetä -> Työpöytä (pikakuvake).
+
+Jos Windows näyttää "Windows suojasi tietokoneesi" -ilmoituksen,
+valitse "Lisätietoja" ja "Suorita silti" (vain omalla koneella).
+
+Tilit ovat pilvessä: samalla käyttäjänimellä/sähköpostilla ja salasanalla
+pääset sisään millä tahansa koneella, ja peliajat kulkevat mukana.
+
+Tilin luonti: käyttäjänimi + sähköposti -> sähköpostiin tulee 6-numeroinen
+koodi (katso myös roskaposti) -> salasana.
+
+Tilisi, peliaikasi ja tallennuksesi ovat pilvessä ja kansiossa
+%APPDATA%\pelipaja, joten ne säilyvät, vaikka lataisit Pelipajan uudelleen.
+
+Päivitykset: Pelipaja tarkistaa käynnistyessään, onko GitHubissa uudempi
+versio, ja lataa sen itse. Kun päivitys on valmis, sivupalkkiin tulee
+"Käynnistä uudelleen" -nappi. Päivitykset on allekirjoitettu, joten
+Pelipaja asentaa vain Rasmuksen julkaisemia versioita.

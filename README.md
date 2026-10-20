@@ -8,7 +8,9 @@ Tehty Electronilla (HTML, CSS ja JavaScript).
 
 ```
 pelipaja/
+├─ .github/workflows/  julkaisu GitHubiin (julkaisu.yml)
 ├─ app/
+│  ├─ boot.js          käynnistys: valitsee uusimman ehjän version (exen oma tai päivitys)
 │  ├─ main/            pääprosessi (Node.js)
 │  │  ├─ index.js        käynnistys, launcher-ikkuna ja IPC-kanavat
 │  │  ├─ security.js     ikkunoiden, sivujen ja IPC:n suojaukset
@@ -20,6 +22,8 @@ pelipaja/
 │  │  ├─ stats.js        peliajat ja käynnistykset
 │  │  ├─ settings.js     asetukset
 │  │  ├─ storage.js      salattu tallennus koneelle
+│  │  ├─ updater.js      automaattiset päivitykset GitHubista
+│  │  ├─ update-verify.js päivitysten allekirjoituksen ja tiedostojen tarkistus
 │  │  ├─ paths.js        sovelluksen kansiot
 │  │  └─ state.js        yhteinen tila (kirjautunut käyttäjä jne.)
 │  ├─ preload/
@@ -29,7 +33,10 @@ pelipaja/
 │  └─ assets/          kuvake
 ├─ games/              pelit ja games.json-pelilista
 │  └─ _shared/           pelien yhteiset kirjastot (three.js, PeerJS), toimii ilman nettiä
-├─ scripts/check.js    tarkistus: npm test
+├─ scripts/
+│  ├─ check.js         tarkistus: npm test
+│  ├─ make-update.js   allekirjoitetun päivityspaketin teko (GitHub Actions)
+│  └─ LUE-MINUT.txt    ohje, joka tulee Pelipaja-Windows.zip-pakettiin
 └─ supabase/           tietokannan SQL-päivitykset
 ```
 
@@ -46,6 +53,32 @@ npm run dist
 ```
 Ajaa ensin tarkistuksen (`npm test`) ja tekee sitten kansion `dist/win-unpacked`,
 jossa on `Pelipaja.exe`.
+
+## Päivitykset ja julkaisu
+
+Pelipaja päivittää itsensä GitHubista. Uuden version julkaisu:
+
+1. Tee muutokset (esim. uusi peli) ja nosta versionumeroa `package.json`-tiedostossa,
+   esim. `"version": "1.2.0"` → `"version": "1.3.0"`.
+2. Vie muutokset GitHubiin (main-haaraan).
+3. GitHub Actions (`.github/workflows/julkaisu.yml`) tarkistaa projektin, rakentaa Pelipajan ja
+   julkaisee sen kohtaan **Releases**: `Pelipaja-Windows.zip`, allekirjoitettu
+   `pelipaja-<versio>.update` ja `latest.json`.
+4. Pelaajien Pelipaja huomaa uuden version käynnistyessään (ja tunnin välein), lataa sen ja
+   näyttää **Käynnistä uudelleen** -napin.
+
+Jos versionumero ei muutu, mitään ei julkaista (pelkkä tarkistus ajetaan).
+
+Miten päivitys toimii:
+- Exe pysyy samana. Ladattu versio tallentuu kansioon `%APPDATA%/pelipaja/updates/<versio>`,
+  ja `app/boot.js` käynnistää sen. Asennusohjelmaa tai järjestelmänvalvojan oikeuksia ei tarvita.
+- Paketti on allekirjoitettu Ed25519-avaimella. Yksityinen avain on vain GitHubin salaisuutena
+  `PELIPAJA_SIGNING_KEY`, ja julkinen avain on tiedostossa `app/main/update-verify.js`.
+  Pelipaja asentaa vain paketin, jonka allekirjoitus täsmää.
+- Asennetun päivityksen jokainen tiedosto tarkistetaan joka käynnistyksellä. Jos jotain on
+  muokattu, päivitys hylätään ja Pelipaja käynnistyy exen omalla versiolla.
+- Jos Electron-versio vaihtuu (`package.json` → `electron`), tarvitaan uusi exe. Silloin
+  Pelipaja näyttää napin, joka avaa lataussivun.
 
 ## Uuden pelin lisääminen
 
@@ -69,6 +102,7 @@ jossa on `Pelipaja.exe`.
 ```
 
 3. Aja `npm test`. Se kertoo, jos jokin on vialla.
+4. Nosta versionumeroa ja vie GitHubiin, niin peli tulee kaikille päivityksenä.
 
 | Kenttä      | Mitä                                                                     |
 |-------------|--------------------------------------------------------------------------|
@@ -78,8 +112,7 @@ jossa on `Pelipaja.exe`.
 | `color`     | laatan väri, jos kansikuvaa ei ole (esim. `"#4a7bd0"`)                   |
 
 Kehitysversiossa (`npm start`) launcherissa on **+ Lisää peli** -nappi, joka avaa games-kansion.
-Valmiissa versiossa pelit ovat lukittuina sovelluspaketin sisällä, joten uudet pelit tulevat
-uuden version mukana.
+Valmiissa versiossa uudet pelit tulevat päivitysten mukana.
 
 ## Save & End Game
 
@@ -117,6 +150,8 @@ Valmis `Pelipaja.exe`:
   (Jos Pelipaja joskus saa koodiallekirjoituksen, exeen voi lisätä myös app.asar-tarkistuksen,
   jolloin muokattu sovellus ei käynnistyisi.)
 - Kehittäjätyökalut on poistettu käytöstä valmiissa versiossa.
+- Päivitykset on allekirjoitettu, ja asennettu päivitys tarkistetaan joka käynnistyksellä
+  (ks. Päivitykset ja julkaisu).
 - Käyttöliittymällä ja peleillä ei ole pääsyä Nodeen tai tiedostoihin. Ne toimivat
   hiekkalaatikossa ja saavat ladata vain Pelipajan omia tiedostoja.
 - Ikkunat eivät voi avata uusia ikkunoita tai siirtyä muille sivuille. Pelit pysyvät omassa kansiossaan.

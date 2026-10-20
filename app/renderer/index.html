@@ -117,6 +117,12 @@
 
     <button id="openFolder" class="side-folder dev-only" hidden>+ Lisää peli</button>
 
+    <div class="update-card" id="updateCard" hidden>
+      <b id="updateTitle"></b>
+      <span id="updateText"></span>
+      <button id="updateBtn" type="button"></button>
+    </div>
+
     <div class="user-chip">
       <div class="avatar" id="userAvatar">?</div>
       <div class="user-text"><b id="userName">–</b><span id="userEmail"></span></div>
@@ -172,6 +178,13 @@
           <span id="accInfo"></span>
         </div>
         <button id="logoutBtn2" class="ghost-btn">Kirjaudu ulos</button>
+      </div>
+      <div class="setting">
+        <div>
+          <b>Pelipaja <span id="appVersion">–</span></b>
+          <span id="updateInfo">Päivitykset tulevat automaattisesti GitHubista.</span>
+        </div>
+        <button id="updateCheckBtn" class="ghost-btn">Tarkista päivitykset</button>
       </div>
       <label class="setting">
         <input type="checkbox" id="optMinimize" />
