@@ -73,6 +73,25 @@ ipcRenderer.on("rr-saving", () => {
   }
 });
 
+// Pelipajan päivitys ladattu taustalla: pieni ilmoitus peliin (ei keskeytä peliä)
+ipcRenderer.on("rr-update-ready", (_e, version) => {
+  if (document.getElementById("rr-upd-note")) return;
+  const n = document.createElement("div");
+  n.id = "rr-upd-note";
+  n.setAttribute("style", "position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:300px;padding:10px 14px;border-radius:10px;" +
+    "background:rgba(10,12,16,.88);color:#eef1f5;border:1px solid rgba(63,191,95,.6);font:500 13px/1.35 'Segoe UI',system-ui,sans-serif;" +
+    "box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;transition:opacity .4s");
+  const b = document.createElement("b");
+  b.textContent = `Pelipaja ${String(version || "").slice(0, 20)} is ready`;
+  b.style.display = "block";
+  const t = document.createElement("span");
+  t.textContent = "You'll be asked to update when you close the game.";
+  n.append(b, t);
+  (document.body || document.documentElement).appendChild(n);
+  setTimeout(() => (n.style.opacity = "0"), 8000);
+  setTimeout(() => n.remove(), 8600);
+});
+
 if (document.readyState === "loading") {
   window.addEventListener("DOMContentLoaded", addButton);
 } else {

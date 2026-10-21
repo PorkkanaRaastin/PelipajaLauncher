@@ -401,3 +401,5 @@ body:not(.locked) .auth { display: none; }
 .upd-row { display: flex; gap: 10px; margin-top: 16px; }
 .upd-row .auth-btn { flex: 1; margin: 0; }
 .upd-row .ghost-btn { padding: 0 20px; }
+
+.hist-checked{display:block;margin-top:4px;color:var(--muted,#8b94a3);font-size:12px}

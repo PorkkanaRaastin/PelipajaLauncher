@@ -64,20 +64,44 @@ function openBundle(buf) {
   return { manifest, manifestText: raw.manifest, sig: raw.sig, data };
 }
 
+// Windowsissa virustorjunta tai hakemisto pitää usein uusia tiedostoja hetken auki, jolloin
+// kansion siirto/poisto epäonnistuu (EPERM/EBUSY). Yritetään uudelleen pienin tauoin.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function retry(fn, tries = 8) {
+  for (let i = 0; ; i++) {
+    try {
+      return fn();
+    } catch (err) {
+      if (i >= tries - 1 || !/EPERM|EBUSY|EACCES|ENOTEMPTY|EEXIST/.test(err.code || err.message)) throw err;
+      await sleep(150 * (i + 1));
+    }
+  }
+}
+
 // Asentaa paketin kansioon updates/<versio>. Ensin väliaikaiseen kansioon, sitten vaihto.
-function installBundle(buf, updatesDir) {
+// Jos vaihto ei onnistu, tiedostot kopioidaan suoraan paikalleen (käynnistys tarkistaa ne joka tapauksessa).
+async function installBundle(buf, updatesDir) {
   const b = openBundle(buf);
   const target = path.join(updatesDir, b.manifest.version);
-  const tmp = target + ".tmp-" + process.pid;
-  fs.rmSync(tmp, { recursive: true, force: true });
+  const tmp = target + ".tmp-" + process.pid + "-" + Date.now();
+  fs.mkdirSync(updatesDir, { recursive: true });
   for (const [p, b64] of Object.entries(b.data)) {
     const f = path.join(tmp, ...p.split("/"));
     fs.mkdirSync(path.dirname(f), { recursive: true });
     fs.writeFileSync(f, Buffer.from(b64, "base64"));
   }
   fs.writeFileSync(path.join(tmp, "pelipaja-manifest.json"), JSON.stringify({ manifest: b.manifestText, sig: b.sig }));
-  fs.rmSync(target, { recursive: true, force: true });
-  fs.renameSync(tmp, target);
+  try {
+    await retry(() => fs.rmSync(target, { recursive: true, force: true }));
+    await retry(() => fs.renameSync(tmp, target));
+  } catch (err) {
+    // varasuunnitelma: kopioidaan päälle, manifesti viimeisenä
+    const mf = path.join(target, "pelipaja-manifest.json");
+    try { fs.rmSync(mf, { force: true }); } catch {}
+    await retry(() => fs.cpSync(tmp, target, { recursive: true, force: true, filter: (src) => path.basename(src) !== "pelipaja-manifest.json" || path.dirname(src) !== tmp }));
+    await retry(() => fs.copyFileSync(path.join(tmp, "pelipaja-manifest.json"), mf));
+    try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {}
+  }
   try {
     fs.rmSync(path.join(updatesDir, b.manifest.version + ".bad"), { force: true });
   } catch {}
@@ -119,17 +143,28 @@ function bestInstalled(updatesDir, ownVersion, electronVersion) {
   return null;
 }
 
-// Poistaa vanhat versiot, jättää uusimmat kaksi
-function cleanup(updatesDir, keep = 2) {
+// Poistaa vanhat versiot, jättää uusimmat kaksi. Käynnissä olevaa versiota (keepAlso) ei poisteta.
+// Epäonnistunut poisto ei haittaa: yritetään uudelleen seuraavalla kerralla.
+function cleanup(updatesDir, keep = 2, keepAlso = []) {
   let names = [];
   try {
     names = fs.readdirSync(updatesDir);
   } catch {
     return;
   }
+  const rm = (n) => {
+    try {
+      fs.rmSync(path.join(updatesDir, n), { recursive: true, force: true });
+    } catch {}
+  };
   const versions = names.filter((n) => VERSION.test(n)).sort((a, b) => compareVersions(b, a));
-  for (const v of versions.slice(keep)) fs.rmSync(path.join(updatesDir, v), { recursive: true, force: true });
-  for (const n of names.filter((n) => n.includes(".tmp-"))) fs.rmSync(path.join(updatesDir, n), { recursive: true, force: true });
+  for (const v of versions.slice(keep)) if (!keepAlso.includes(v)) rm(v);
+  // keskeneräiset asennukset (vanhemmat kuin 10 min, ettei poisteta juuri käynnissä olevaa)
+  for (const n of names.filter((n) => n.includes(".tmp-"))) {
+    try {
+      if (Date.now() - fs.statSync(path.join(updatesDir, n)).mtimeMs > 10 * 60 * 1000) rm(n);
+    } catch {}
+  }
 }
 
 module.exports = { compareVersions, electronMajor, readManifest, openBundle, installBundle, verifyInstalled, bestInstalled, cleanup, sha256, SAFE_PATH };

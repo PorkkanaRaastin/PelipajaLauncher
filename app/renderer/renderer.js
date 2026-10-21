@@ -557,11 +557,22 @@ function renderHistStatus() {
     idle: devMode ? "Development build: no automatic updates." : "Pelipaja checks for updates every 10 seconds.",
   }[s.state];
   if (info) $("histInfo").textContent = info;
+  renderChecked();
   const btn = $("histUpdateBtn");
   btn.hidden = !(s.state === "ready" || s.state === "manual");
   btn.textContent = s.state === "manual" ? "Open download page" : "Update now";
   btn.dataset.action = s.state;
 }
+// "Last checked 4 s ago" – näyttää, että taustatarkistus on käynnissä
+function renderChecked() {
+  const el = $("histChecked");
+  const s = updStatus;
+  if (!s || !s.checkedAt) { el.textContent = ""; return; }
+  const sec = Math.max(0, Math.round((Date.now() - s.checkedAt) / 1000));
+  const ago = sec < 2 ? "just now" : sec < 90 ? sec + " s ago" : Math.round(sec / 60) + " min ago";
+  el.textContent = `Last checked ${ago}` + (s.latest ? ` · newest on GitHub: ${s.latest}` : "");
+}
+setInterval(() => { if ($("view-updates").classList.contains("active")) renderChecked(); }, 1000);
 $("histUpdateBtn").addEventListener("click", () => doUpdateNow($("histUpdateBtn").dataset.action));
 $("histRefresh").addEventListener("click", () => loadHistory(true));
 let histLoading = false;
