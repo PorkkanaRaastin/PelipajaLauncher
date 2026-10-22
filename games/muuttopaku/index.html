@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Muuttopaku</title>
+<title>Northline Movers</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:#0e0f11;color:#e6e8eb;font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;user-select:none}
@@ -49,7 +49,8 @@ canvas{display:block}
 #map{width:min(420px,44vh);height:min(420px,44vh);display:block;border-radius:3px}
 #mapw.big{right:50%;bottom:50%;transform:translate(50%,50%)}
 #mapw.big #map{width:min(900px,86vh);height:min(900px,86vh)}
-.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,9,11,.62)}
+.overlay{position:fixed;inset:0;display:flex;background:rgba(8,9,11,.62);overflow-y:auto;padding:16px}
+.overlay>*{margin:auto}
 .btn{font:600 13px Inter,"Segoe UI",system-ui,sans-serif;border:0;border-radius:4px;padding:8px 16px;cursor:pointer;background:#e9a23b;color:#191409}
 .btn:hover{background:#f3b052}
 .btn:disabled{background:#3a3d42;color:#7d848e;cursor:default}
@@ -66,6 +67,15 @@ canvas{display:block}
 #start .actions{display:flex;gap:10px;align-items:center;margin-top:26px}
 #saveInfo{margin-left:auto;font-size:12px;color:#868d97}
 #loading{font-size:12px;color:#868d97;margin-top:12px}
+.netrow{display:flex;gap:8px;align-items:center;margin-top:22px;flex-wrap:wrap}
+#joinCode{font:600 16px ui-monospace,Consolas,monospace;letter-spacing:.18em;width:110px;padding:7px 10px;background:#0f1114;border:1px solid rgba(255,255,255,.18);border-radius:4px;color:#fff;text-transform:uppercase;user-select:text}
+#codeWrap{display:flex;gap:10px;align-items:center;margin-top:14px}
+#codeLbl{font:700 24px ui-monospace,Consolas,monospace;letter-spacing:.2em;color:#e9a23b;user-select:text}
+#netStatus{margin-top:12px;font-size:13px;color:#cfd4da;min-height:18px}
+#netStatus.bad{color:#e5766b}
+#bNetStart{margin-top:12px}
+.nethelp{font-size:12px;color:#868d97;margin:14px 0 0;line-height:1.5}
+#netInfo{grid-column:1/3;margin-top:2px;color:#7fc48a}
 .win{width:min(940px,95vw);max-height:88vh;display:flex;flex-direction:column;background:#15171b;border:1px solid rgba(255,255,255,.09);border-radius:6px;overflow:hidden}
 .win header{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.07);background:#1a1d22}
 .win header b{font-size:14px}
@@ -112,7 +122,7 @@ canvas{display:block}
 <body>
 
 <div id="hud" class="hidden">
-  <div id="status" class="panel"><div><span id="clock" class="num">08:00</span><span id="day" class="lbl">Day 1</span></div><div id="cash" class="num">€0</div><div id="rating"></div><div class="lbl" style="text-align:right">Northline Moving</div></div>
+  <div id="status" class="panel"><div><span id="clock" class="num">08:00</span><span id="day" class="lbl">Day 1</span></div><div id="cash" class="num">€0</div><div id="rating"></div><div class="lbl" style="text-align:right">Northline Moving</div><div id="netInfo" class="lbl hidden"></div></div>
   <div id="jobp" class="panel hidden"></div>
 </div>
 <div id="dot" class="hidden"></div>
@@ -125,8 +135,8 @@ canvas{display:block}
 
 <div id="start" class="overlay">
   <div class="card panel">
-    <h1>Muuttopaku</h1>
-    <div class="sub">Northline Moving &middot; removals and deliveries</div>
+    <h1>Northline Movers</h1>
+    <div class="sub">Removals and deliveries &middot; play solo or online with a friend</div>
     <div class="cols">
       <div><span>Move</span><span>W A S D</span></div><div><span>Throttle / brake</span><span>W / S</span></div>
       <div><span>Run</span><span>Shift</span></div><div><span>Reverse</span><span>Hold S when stopped</span></div>
@@ -137,7 +147,14 @@ canvas{display:block}
       <div><span>Map size</span><span>M</span></div><div><span>Garage / refuel</span><span>G (stopped)</span></div>
       <div><span>Settings</span><span>Esc</span></div><div><span>Dispatch tablet</span><span>J (stopped)</span></div>
     </div>
-    <div class="actions"><button class="btn" id="bStart">Start shift</button><button class="btn ghost hidden" id="bNew">New game</button><span id="saveInfo"></span></div>
+    <div class="actions" id="mainActs"><button class="btn" id="bStart">Start shift</button><button class="btn ghost" id="bOnline">Online co-op</button><button class="btn ghost hidden" id="bNew">New game</button><span id="saveInfo"></span></div>
+    <div id="netBox" class="hidden">
+      <div class="netrow"><button class="btn" id="bHost">Host a game</button><span class="lbl">or join</span><input id="joinCode" maxlength="5" placeholder="CODE" autocomplete="off" spellcheck="false"><button class="btn ghost" id="bJoin">Join</button><span style="flex:1"></span><button class="btn ghost" id="bNetBack">Back</button></div>
+      <div id="codeWrap" class="hidden"><span class="lbl">Your code</span><b id="codeLbl"></b><button class="btn ghost sm" id="bCopy">Copy</button></div>
+      <div id="netStatus"></div>
+      <button class="btn hidden" id="bNetStart">Start shift together</button>
+      <p class="nethelp">The host's company, money and vans are used. Both of you carry furniture, share the hand truck and ride in the same van: one drives, the other takes the passenger seat.</p>
+    </div>
     <div id="loading"></div>
   </div>
 </div>
@@ -161,7 +178,7 @@ canvas{display:block}
 </div></div>
 
 <div id="pause" class="overlay hidden"><div class="card panel">
-  <h2>Paused</h2>
+  <h2 id="pauseTitle">Paused</h2><p id="pauseNote" style="margin:4px 0 0;color:#868d97;font-size:12.5px"></p>
   <div class="set">
     <span>Music</span><input type="range" id="sMusic" min="0" max="1" step="0.05">
     <span>Effects</span><input type="range" id="sSfx" min="0" max="1" step="0.05">
@@ -169,11 +186,13 @@ canvas{display:block}
     <span>Graphics</span><div class="seg" id="sQual"><button class="btn ghost sm" data-v="high">High</button><button class="btn ghost sm" data-v="low">Low</button></div>
     <span>Mirrors</span><div class="seg" id="sMir"><button class="btn ghost sm" data-v="1">On</button><button class="btn ghost sm" data-v="0">Off</button></div>
   </div>
-  <button class="btn" id="bResume">Resume</button>
+  <div style="display:flex;gap:8px"><button class="btn" id="bResume">Resume</button><button class="btn ghost hidden" id="bLeave">Leave online session</button></div>
 </div></div>
 
 <script src="../_shared/three.min.js"></script>
 <script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
+<script src="../_shared/peerjs.min.js"></script>
+<script>window.Peer||document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"><\/script>')</script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -186,6 +205,10 @@ const SET=Object.assign({music:.45,sfx:.8,quality:'high',mirrors:true,station:0}
 function saveSet(){try{localStorage.setItem('muuttopaku.settings',JSON.stringify(SET));}catch(e){}}
 const MC={},VCM={},GEO={};
 let lightsOn=null,VAN=null;
+const NET={role:'solo',peer:null,conn:null,fast:null,code:'',hostId:'',connected:false,q:0,lastQ:0,inQ:0,lastInQ:0,off:null,ping:0,pingT:0,lastRx:0,snapT:0,inT:0,metaT:0,metaDirty:false,pend:{c:0,b:0,s:0},pendT:0,remoteThr:false,enterT:0};
+const ME=()=>NET.role==='guest'?1:0;
+const OTHER={x:0,z:0,y:0,yaw:0,pitch:0,mode:'off',seat:-1,buf:[],av:null,px:0,pz:0,phase:0};
+let mySeat=0,vanBuf=[];
 
 /* ================= renderer / scene ================= */
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
@@ -637,7 +660,7 @@ let BIZ={marketing:0,dispatch:0,insurance:false,hd:false};
 const vs=()=>FLEET.own[FLEET.active];
 function perf(){const s=VEH[FLEET.active],u=vs().up;return{accel:s.accel*(1+.18*u.engine),vmax:s.vmax+2.5*u.engine,brake:s.brake*(1+.2*u.brakes),steer:s.steer*(1+.08*u.tires),latThr:4.2+.7*u.tires,susp:1-.25*u.susp,straps:1-.25*u.straps,cap:s.fuelCap*(u.tank?1.5:1),cons:s.cons};}
 const lookOf=st=>({paint:PAINTS[st.paint][1],stripe:STRIPES[st.stripe][1],rims:RIMS[st.rims][1],ex:st.ex});
-function save(){try{localStorage.setItem('muuttopaku.v3',JSON.stringify({cash,jobsDone,history,gameT,day,jobSeq,rating,earned,FLEET,BIZ}));}catch(e){}}
+function save(){if(NET.role==='guest')return;try{localStorage.setItem('muuttopaku.v3',JSON.stringify({cash,jobsDone,history,gameT,day,jobSeq,rating,earned,FLEET,BIZ}));}catch(e){}}
 function loadSave(){try{let s=JSON.parse(localStorage.getItem('muuttopaku.v3')||'null');
     if(!s){const o=JSON.parse(localStorage.getItem('muuttopaku.v2')||'null');if(o)s={cash:o.cash,jobsDone:o.jobsDone,history:o.history,day:o.day,jobSeq:o.jobSeq};}
     if(!s)return false;cash=+s.cash||0;jobsDone=s.jobsDone||0;history=s.history||[];day=s.day||1;jobSeq=s.jobSeq||1041;rating=s.rating||3;earned=s.earned||0;
@@ -647,7 +670,7 @@ function loadSave(){try{let s=JSON.parse(localStorage.getItem('muuttopaku.v3')||
 const hadSave=loadSave();
 
 /* ================= player van ================= */
-const V={x:-96,z:-60,yaw:PI,v:0,steer:0,doors:0,doorT:0,cargo:[],pitch:0,roll:0,acc:0,lat:0};
+const V={x:-96,z:-60,yaw:PI,v:0,steer:0,doors:0,doorT:0,cargo:[],pitch:0,roll:0,acc:0,lat:0,seat:[-1,-1]};
 const headLight=new THREE.SpotLight(0xfff4dc,0,55,.48,.55,1.3),hlT=new THREE.Object3D();
 const RT={};const mcam=new THREE.PerspectiveCamera(30,.69,.25,170);mcam.rotation.order='YXZ';const rcam=new THREE.PerspectiveCamera(80,1.6,.1,60);rcam.rotation.order='YXZ';
 function makeRTs(){const hi=SET.quality==='high';for(const k of['L','R','B'])if(RT[k])RT[k].dispose();
@@ -672,7 +695,7 @@ function updateCars(dt){
     const want=Math.atan2(dx,dz);let dh=want-c.h;while(dh>PI)dh-=2*PI;while(dh<-PI)dh+=2*PI;
     c.h+=clamp(dh,-1,1)*Math.min(1,dt*2.2*Math.max(.5,c.v/6));
     let tgt=Math.abs(dh)>.35?4.5:c.vmax;const fx=Math.sin(c.h),fz=Math.cos(c.h);let blocked=false;
-    const obs=vo.slice();if(mode==='foot')obs.push([P.x,P.z]);for(const o of CARS)if(o!==c&&Math.sin(o.h)*fx+Math.cos(o.h)*fz>.3)obs.push([o.x,o.z]);
+    const obs=vo.slice();if(mode==='foot')obs.push([P.x,P.z]);if(NET.connected&&OTHER.mode==='foot')obs.push([OTHER.x,OTHER.z]);for(const o of CARS)if(o!==c&&Math.sin(o.h)*fx+Math.cos(o.h)*fz>.3)obs.push([o.x,o.z]);
     for(const[ox,oz]of obs){const rx=ox-c.x,rz=oz-c.z,al=rx*fx+rz*fz,lt=Math.abs(rx*fz-rz*fx);if(al>0&&al<11&&lt<2.0){const lim=Math.max(0,(al-5)*1.3);if(lim<tgt)tgt=lim;if(al<6)blocked=true;}}
     if(c.v<tgt)c.v=Math.min(tgt,c.v+2.2*dt);else c.v=Math.max(tgt,c.v-7*dt);
     if(c.v<.2&&blocked){c.wait+=dt;if(c.wait>7){const t=c.a;c.a=c.b;c.b=t;c.wp=laneEnd(c.a,c.b);c.phase='run';c.wait=0;}}else c.wait=0;
@@ -752,11 +775,12 @@ function buildItem(k){
     case'piano':{const pm=MP(0x1a1414,{shininess:60,specular:0x444444});P_(w,h,d,pm,0,h/2,0);P_(w,.06,.3,pm,0,.72,d/2+.15);P_(w-.12,.02,.14,MP(0xf2f0ea),0,.76,d/2+.2);P_(w-.12,.012,.05,MP(0x111111),0,.775,d/2+.16);for(const x of[-1,1])P_(.06,.7,.06,pm,x*(w/2-.08),.35,d/2+.26);break;}
   }
   return mergeStatic(g,0);}
-let ITEMS=[],held=null;
+let ITEMS=[],itemSeq=1;
+const heldBy=pi=>ITEMS.find(i=>i.state==='carried'&&i.by===pi)||null,dollyBy=pi=>dolly.state==='held'&&dolly.by===pi;
 function makeDolly(hd){const g=new THREE.Group();const red=M(hd?0x2f6fd0:0xb8322a),blk=M(0x1c1d20);
   box(.5,.025,.28,metalMat,0,.0125,-.14,g);for(const s of[-1,1]){box(.03,1.25,.03,red,s*.22,.64,0,g);const w=cyl(.13,.13,.07,blk,s*.27,.13,.09,g,12);w.rotation.z=PI/2;}
   for(const y of[.35,.75,1.1])box(.44,.025,.025,red,0,y,0,g);box(.5,.03,.03,red,0,1.27,.06,g);if(hd){for(const s of[-1,1]){const w=cyl(.1,.1,.06,blk,s*.27,.36,.16,g,12);w.rotation.z=PI/2;}}return mergeStatic(g,0);}
-const dolly={state:'van',x:0,z:0,y:0,yaw:0,load:null,mesh:makeDolly(BIZ.hd)};
+const dolly={state:'van',by:-1,x:0,z:0,y:0,yaw:0,load:null,mesh:makeDolly(BIZ.hd)};
 const carry=new THREE.Group();carry.userData.dyn=true;scene.add(carry);
 function setLoose(it,x,z,yaw,y){it.state='loose';it.x=x;it.z=z;it.y=y;it.yaw=yaw;scene.add(it.mesh);it.mesh.position.set(x,y,z);it.mesh.rotation.set(0,yaw,0);}
 function packVan(list){const Pk=VAN.d.pack,maxH=VAN.d.bh-.15;let z=Pk.Zf,x=Pk.X0,rd=0;const out=[],stacks=[];
@@ -770,9 +794,13 @@ function tripsFor(keys){let rest=keys.map(k=>({T:IT[k]})).sort((a,b)=>b.T.size[0
 function layoutCargo(){const pos=packVan(V.cargo)||[];V.cargo.forEach((it,i)=>{const p=pos[i]||{x:0,z:VAN.d.zr+1,y:0,rot:0};VAN.g.add(it.mesh);it.mesh.position.set(p.x,VAN.d.fl+p.y,p.z);it.mesh.rotation.set(0,p.rot,0);});}
 function placeDollyMesh(){const m=dolly.mesh;m.rotation.set(0,0,0);
   if(dolly.state==='van'){VAN.g.add(m);m.position.set(...VAN.d.dolly);m.rotation.y=-PI/2;}
-  else if(dolly.state==='held'){carry.add(m);m.position.set(0,0,-1.0);m.rotation.x=.45;}
+  else if(dolly.state==='held'){(dolly.by===ME()||!OTHER.av?carry:OTHER.av.g).add(m);m.position.set(0,0,-1.0);m.rotation.x=.45;}
   else{scene.add(m);m.position.set(dolly.x,dolly.y,dolly.z);m.rotation.y=dolly.yaw;}
   if(dolly.load){m.add(dolly.load.mesh);const[,,d]=dolly.load.T.size;dolly.load.mesh.position.set(0,.03,-d/2-.01);dolly.load.mesh.rotation.set(0,0,0);}}
+function placeItemMesh(it){const m=it.mesh;
+  if(it.state==='loose'||it.state==='placed'){scene.add(m);m.position.set(it.x,it.y,it.z);m.rotation.set(0,it.yaw,0);}
+  else if(it.state==='carried'){(it.by===ME()||!OTHER.av?carry:OTHER.av.carry).add(m);const[,h,d]=it.T.size;m.position.set(0,clamp(1.05-h/2,.12,.72),-.42-d/2);m.rotation.set(0,0,0);}}
+function refreshItems(){for(const it of ITEMS)placeItemMesh(it);layoutCargo();placeDollyMesh();}
 function rebuildDolly(){const old=dolly.mesh;if(old.parent)old.parent.remove(old);dolly.mesh=makeDolly(BIZ.hd);dolly.mesh.userData.dyn=true;placeDollyMesh();}
 function buildVan(){if(VAN)scene.remove(VAN.g);VAN=makeVan(VEH[FLEET.active],lookOf(vs()),false);VAN.g.userData.dyn=true;scene.add(VAN.g);
   VAN.g.add(headLight);VAN.g.add(hlT);headLight.position.set(0,1.0,VAN.d.zf);hlT.position.set(0,0,VAN.d.zf+16);headLight.target=hlT;
@@ -825,16 +853,16 @@ function makeOffer(){
   const notes=[];if(keys.some(k=>IT[k].frag>=.85))notes.push('Fragile items');if(nH)notes.push('Hand truck needed');if(a.N>1||zoneFloor)notes.push('Stairs');if(keys.includes('piano'))notes.push('Piano: heavy-duty hand truck required');
   return{id:++jobSeq,client:pick(INITIALS)+'. '+pick(CLIENTS),from:a,to:b,keys,pay,due,len,mass,kind,prem,zoneFloor,needHD:keys.includes('piano'),notes:notes.join(' · ')||'Standard move'};}
 function itemSummary(keys){const c={};keys.forEach(k=>c[k]=(c[k]||0)+1);return Object.entries(c).map(([k,n])=>n>1?n+'× '+IT[k].name.toLowerCase():IT[k].name.toLowerCase()).join(', ');}
-function fillOffers(){while(offers.length<4+BIZ.dispatch)offers.push(makeOffer());}
-function clearItems(){for(const it of ITEMS)if(it.mesh.parent)it.mesh.parent.remove(it.mesh);V.cargo=V.cargo.filter(it=>!ITEMS.includes(it));if(ITEMS.includes(held))held=null;if(dolly.load&&ITEMS.includes(dolly.load))dolly.load=null;ITEMS=[];layoutCargo();placeDollyMesh();}
+function fillOffers(){while(offers.length<4+BIZ.dispatch)offers.push(makeOffer());NET.metaDirty=true;}
+function clearItems(){for(const it of ITEMS)if(it.mesh.parent)it.mesh.parent.remove(it.mesh);V.cargo=V.cargo.filter(it=>!ITEMS.includes(it));if(dolly.load&&ITEMS.includes(dolly.load))dolly.load=null;ITEMS=[];layoutCargo();placeDollyMesh();}
 function roomRects(h){const I=h.I,lx2=h.px!==undefined?h.px-.4:I.x2-.3;const r=[{x1:I.x1+.3,x2:lx2,z1:I.z1+.3,z2:I.z2-.3}];if(h.px!==undefined)r.push({x1:h.px+.4,x2:I.x2-.3,z1:I.z1+.3,z2:I.z2-.3});return r;}
 function blockedRects(h,k){const b=(h.decor[k]||[]).slice();if(h.SW)b.push({x1:h.SW.x1-.1,x2:h.SW.x2+.55,z1:h.SW.z1-.7,z2:h.SW.z2+.7});if(k===0)b.push({x1:h.dx-1.0,x2:h.dx+1.0,z1:h.hd-2.4,z2:h.hd});if(h.px!==undefined)b.push({x1:h.px-.9,x2:h.px+.9,z1:-.9,z2:.9});return b;}
 function zoneRect(h,k){const I=h.I;let r={x1:I.x1+.3,x2:(h.px!==undefined?h.px-.05:I.x2)-.3,z1:I.z1+.3,z2:I.z2-.3};
   if(h.SW){const a={x1:h.SW.x2+.5,x2:r.x2,z1:r.z1,z2:r.z2},b={x1:r.x1,x2:r.x2,z1:h.SW.z2+.6,z2:r.z2};const ar=q=>Math.max(0,q.x2-q.x1)*Math.max(0,q.z2-q.z1);r=ar(a)>=ar(b)?a:b;}
   if(k===0)r.z2=Math.min(r.z2,h.hd-2.3);for(const d of h.decor[k]||[])if(overlaps(d,r))r.x2=Math.min(r.x2,d.x1-.2);return r;}
-function acceptOffer(i){
-  if(job)return;const o=offers[i];if(o.needHD&&!BIZ.hd){toast('This job needs the heavy-duty hand truck from the garage.');return;}
-  offers.splice(i,1);job=Object.assign(o,{start:gameT,zone:zoneRect(o.to,o.zoneFloor)});clearItems();
+function acceptOffer(id,pi=ME()){
+  if(job)return;const idx=offers.findIndex(o=>o.id===id);if(idx<0)return;const o=offers[idx];if(o.needHD&&!BIZ.hd){say(pi,'This job needs the heavy-duty hand truck from the garage.');return;}
+  offers.splice(idx,1);job=Object.assign(o,{start:gameT,zone:zoneRect(o.to,o.zoneFloor)});clearItems();
   const h=o.from,placed=h.floors.map(()=>[]);
   const sorted=o.keys.slice().sort((a,b)=>IT[b].size[0]*IT[b].size[2]-IT[a].size[0]*IT[a].size[2]);
   for(const k of sorted){const T=IT[k];let fl=0;if(h.N>1&&!DOWNSTAIRS.has(k)){fl=UPSTAIRS.has(k)&&Math.random()<.75?1+Math.floor(Math.random()*(h.N-1)):Math.floor(Math.random()*h.N);}
@@ -842,10 +870,10 @@ function acceptOffer(i){
       for(let t=0;t<90;t++){const L=pick(rooms),rot=Math.random()<.5?0:PI/2,hx=(rot?T.size[2]:T.size[0])/2+.08,hz=(rot?T.size[0]:T.size[2])/2+.08;if(L.x2-L.x1<2*hx||L.z2-L.z1<2*hz)continue;
         const x=R(L.x1+hx,L.x2-hx),z=R(L.z1+hz,L.z2-hz),r={x1:x-hx,x2:x+hx,z1:z-hz,z2:z+hz};if(blk.some(b=>overlaps(b,r))||placed[f].some(p=>overlaps(p,r)))continue;best={x,z,rot,r,f};break;}}
     if(!best){const L=roomRects(h)[0];best={x:(L.x1+L.x2)/2+R(-.3,.3),z:(L.z1+L.z2)/2+R(-.3,.3),rot:0,r:{x1:0,x2:0,z1:0,z2:0},f:0};}
-    placed[best.f].push(best.r);const it={k,T,mesh:buildItem(k),cond:100,state:'loose',home:h,floor:best.f};it.mesh.userData.dyn=true;
+    placed[best.f].push(best.r);const it={id:itemSeq++,k,T,mesh:buildItem(k),cond:100,state:'loose',by:-1,home:h,floor:best.f};it.mesh.userData.dyn=true;
     const wp=h.toW(best.x,best.z);setLoose(it,wp[0],wp[1],h.a+best.rot,h.floors[best.f].y);ITEMS.push(it);}
-  fillOffers();closeModal();showZone(job.to,job.zoneFloor,job.zone);SFX.click();toast('Job '+o.id+' accepted. Pick up at '+h.addr+'.');save();updateJobPanel(true);}
-function cancelJob(){if(!job)return;cash-=150;rating=Math.max(1,rating-.2);history.unshift({id:job.id,client:job.client,res:'Cancelled',amt:-150});clearItems();job=null;showZone(null);renderTerm();save();updateJobPanel(true);toast('Job cancelled. Cancellation fee €150.');}
+  fillOffers();if(pi===ME())closeModal();showZone(job.to,job.zoneFloor,job.zone);SFX.click();sayAll('Job '+o.id+' accepted. Pick up at '+h.addr+'.');NET.metaDirty=true;save();updateJobPanel(true);}
+function cancelJob(){if(!job)return;cash-=150;rating=Math.max(1,rating-.2);history.unshift({id:job.id,client:job.client,res:'Cancelled',amt:-150});clearItems();job=null;showZone(null);NET.metaDirty=true;if(modal==='term')renderTerm();save();updateJobPanel(true);sayAll('Job cancelled. Cancellation fee €150.');}
 function inZone(x,z,y){if(!job)return false;const h=job.to;if(Math.abs(y-h.floors[job.zoneFloor].y)>.5)return false;const[lx,lz]=h.toL(x,z),L=job.zone;return bldAt(x,z)&&bldAt(x,z)[0]===h&&lx>L.x1&&lx<L.x2&&lz>L.z1&&lz<L.z2;}
 function jobTarget(){if(!job)return null;if(V.cargo.some(i=>ITEMS.includes(i)))return job.to;return ITEMS.some(i=>i.state==='loose'&&i.home===job.from)?job.from:job.to;}
 function completeJob(){
@@ -858,7 +886,7 @@ function completeJob(){
   $('rTitle').textContent='Job '+job.id+' completed';$('rSub').textContent=job.client+' · '+job.from.addr+' → '+job.to.addr;
   $('rTable').innerHTML=`<tr><td>Agreed price</td><td>${eur(base)}</td></tr><tr><td>Damage claims (avg. condition ${Math.round(avg)}%)${BIZ.insurance?', insured':''}</td><td>${claims?'−'+eur(claims):'€0'}</td></tr>`+
     (insFee?`<tr><td>Insurance premium</td><td>−${eur(insFee)}</td></tr>`:'')+`<tr><td>Late delivery${lateMin?' ('+lateMin+' min)':''}</td><td>${latePen?'−'+eur(latePen):'€0'}</td></tr><tr><td>Company rating</td><td>${old.toFixed(1)} → ${rating.toFixed(1)}</td></tr><tr class="tot"><td>Paid to company</td><td>${eur(total)}</td></tr>`;
-  job=null;showZone(null);SFX.cash();save();updateJobPanel(true);openModal('report');}
+  job=null;showZone(null);sfxAll('cash');NET.metaDirty=true;netEv(['report',$('rTitle').textContent,$('rSub').textContent,$('rTable').innerHTML]);save();updateJobPanel(true);openModal('report');}
 
 const zone=new THREE.Group();zone.userData.dyn=true;scene.add(zone);zone.visible=false;
 function showZone(h,k,L){zone.visible=!!h;if(!h)return;while(zone.children.length)zone.remove(zone.children[0]);const tm=M(0xe2b23a),y=h.floors[k].y+.004;
@@ -867,48 +895,75 @@ function showZone(h,k,L){zone.visible=!!h;if(!h)return;while(zone.children.lengt
 
 /* ================= interaction ================= */
 const fwd2=()=>[-Math.sin(P.yaw),-Math.cos(P.yaw)];
-const rearPt=()=>vanWorld(...VAN.d.rear),driverPt=()=>vanWorld(...VAN.d.door);
+const rearPt=()=>vanWorld(...VAN.d.rear),driverPt=()=>vanWorld(...VAN.d.door),passPt=()=>vanWorld(-VAN.d.door[0],VAN.d.door[1]);
 function inGarage(){const[lx,lz]=GARAGE.toL(V.x,V.z);return Math.abs(lx)<2.8&&lz>-GARAGE.hd+1.2&&lz<GARAGE.hd-.2;}
 const atPump=()=>V.x>41&&V.x<63&&V.z>1&&V.z<11;
 function lookItem(maxD=2.3){const[fx,fz]=fwd2();let best=null,bs=0;for(const it of ITEMS){if(it.state!=='loose'||Math.abs(it.y-P.y)>1)continue;const dx=it.x-P.x,dz=it.z-P.z,d=Math.hypot(dx,dz);if(d>maxD+Math.max(it.T.size[0],it.T.size[2])/2)continue;const dot=(dx*fx+dz*fz)/(d||1);if(dot<.7)continue;const s=dot-d*.15;if(!best||s>bs){best=it;bs=s;}}return best;}
 function frontPt(dist){const[fx,fz]=fwd2();return[P.x+fx*dist,P.z+fz*dist];}
 const lname=it=>it.T.name.toLowerCase();
+function say(pi,msg){if(pi===ME())toast(msg);else netEv(['toast',msg]);}
+function sayAll(msg){toast(msg);netEv(['toast',msg]);}
+function sfxAll(n,a){if(SFX[n])SFX[n](...(a||[]));netEv(['sfx',n,a||[]]);}
+function doAct(c){if(NET.role==='guest'){if(NET.connected)netSend({t:'act',c});}else applyAct(ME(),c);}
+function markPlaced(it){it.state='placed';it.by=-1;if(ITEMS.every(i=>i.state==='placed'))setTimeout(()=>{if(job)completeJob();},450);}
+// all shared-state changes go through here (runs on the host, or locally in solo)
+function applyAct(pi,c){
+  const it=c.id!=null?ITEMS.find(i=>i.id===c.id):null,mine=heldBy(pi),dl=dollyBy(pi),src=mine||(dl?dolly.load:null);
+  const putDown=(x,z,y,yaw)=>{if(src===dolly.load)dolly.load=null;src.state='loose';src.by=-1;src.x=x;src.z=z;src.y=y;src.yaw=yaw;src.home=null;};
+  switch(c.a){
+    case'door':V.doors=V.doors?0:1;sfxAll(V.doors?'doorOpen':'doorClose');break;
+    case'pick':if(it&&it.state==='loose'&&!mine&&!dl&&!heavy(it)){it.state='carried';it.by=pi;it.home=null;sfxAll('pick');}break;
+    case'todolly':if(it&&it.state==='loose'&&dl&&!dolly.load){if(it.k==='piano'&&!BIZ.hd){say(pi,'The piano needs the heavy-duty hand truck.');break;}it.state='dolly';it.by=-1;it.home=null;dolly.load=it;sfxAll('load');}break;
+    case'load':if(src&&V.doors){if(!packVan([...V.cargo,src])){say(pi,'Not enough room in the van. Deliver this load first.');break;}if(src===dolly.load)dolly.load=null;src.state='van';src.by=-1;src.home=null;V.cargo.push(src);sfxAll('load');}break;
+    case'unload':if(it&&it.state==='van'&&!mine&&!(dl&&dolly.load)&&(dl||!heavy(it))){V.cargo.splice(V.cargo.indexOf(it),1);if(dl){it.state='dolly';dolly.load=it;sfxAll('load');}else{it.state='carried';it.by=pi;sfxAll('pick');}}break;
+    case'setdown':if(src){putDown(c.x,c.z,c.y,c.yaw);sfxAll('drop',[src.T.mass]);if(inZone(c.x,c.z,c.y))markPlaced(src);}break;
+    case'place':if(src&&job){putDown(c.x,c.z,c.y,c.yaw);sfxAll('drop',[src.T.mass]);markPlaced(src);}break;
+    case'dtake':if(!mine&&(dolly.state==='van'||dolly.state==='parked')){dolly.state='held';dolly.by=pi;sfxAll('pick');}break;
+    case'dstow':if(dl&&!dolly.load){dolly.state='van';dolly.by=-1;sfxAll('load');}break;
+    case'dpark':if(dl){if(dolly.load){const L=dolly.load;dolly.load=null;L.state='loose';L.by=-1;L.x=c.ix;L.z=c.iz;L.y=c.iy;L.yaw=c.yaw;L.home=null;if(inZone(c.ix,c.iz,c.iy))markPlaced(L);}dolly.state='parked';dolly.by=-1;dolly.x=c.x;dolly.z=c.z;dolly.y=c.y;dolly.yaw=c.yaw;sfxAll('drop',[10]);}break;
+    case'enter':{const st=c.seat?1:0;if(V.seat[st]!==-1&&V.seat[st]!==pi){say(pi,'That seat is taken.');if(pi!==ME())netEv(['kick']);else forceExit();break;}for(const q of[0,1])if(V.seat[q]===pi)V.seat[q]=-1;V.seat[st]=pi;
+      if(st===0){if(vs().fuel>0){if(!engineOn)sfxAll('start');engineOn=true;}else say(pi,'The tank is empty. Use the tablet (J) to call roadside assistance.');}sfxAll('doorClose');break;}
+    case'exit':for(const q of[0,1])if(V.seat[q]===pi)V.seat[q]=-1;if(V.seat[0]===-1)engineOn=false;sfxAll('doorClose');break;
+    case'dmg':damageCargo(+c.c||0);if(c.b)vs().cond=Math.max(20,vs().cond-c.b);if(c.s&&pi!==ME())SFX.crash(c.s);break;
+    case'term':termAct(pi,c.x,c.k,c.i);break;
+    case'gar':garAct(pi,c.x,c.k,c.i);break;
+    case'refuel':refuel(+c.p||FUEL_PRICE,pi);break;
+  }
+  refreshItems();updateJobPanel(true);}
+function placePos(){const fp=frontPt(dollyBy(ME())?1.5:.8),h=job.to,L=job.zone;let[lx,lz]=h.toL(fp[0],fp[1]);lx=clamp(lx,L.x1+.3,L.x2-.3);lz=clamp(lz,L.z1+.3,L.z2-.3);const w=h.toW(lx,lz);return{x:w[0],z:w[1],y:h.floors[job.zoneFloor].y,yaw:P.yaw};}
 function actions(){
   const A={};if(mode!=='foot')return A;
-  const load=held||dolly.load,dHeld=dolly.state==='held',ground=P.y<.5;
-  const rp=rearPt(),dp=driverPt(),dRear=ground?Math.hypot(P.x-rp[0],P.z-rp[1]):99,dDrv=ground?Math.hypot(P.x-dp[0],P.z-dp[1]):99;
+  const held=heldBy(ME()),dHeld=dollyBy(ME()),load=held||(dHeld?dolly.load:null),ground=P.y<.5;
+  const rp=rearPt(),dp=driverPt(),pp=passPt(),dRear=ground?Math.hypot(P.x-rp[0],P.z-rp[1]):99,dDrv=ground?Math.hypot(P.x-dp[0],P.z-dp[1]):99,dPas=ground?Math.hypot(P.x-pp[0],P.z-pp[1]):99;
   if(ground&&Math.hypot(P.x-PC_POS.x,P.z-PC_POS.z)<1.4&&!dHeld)A.e={l:'Use dispatch computer',f:openTerm};
-  else if(dDrv<1.5){if(!held&&!dHeld)A.e={l:'Get in',f:enterVan};else A.warn='Hands must be free to drive';}
+  else if(dDrv<1.5||dPas<1.5){const st=dDrv<=dPas?0:1;if(held||dHeld)A.warn='Hands must be free to get in';else if(V.seat[st]!==-1&&V.seat[st]!==ME())A.warn=st===0?'Your partner is driving':'Your partner is in that seat';else A.e={l:st===0?'Get in':'Get in, passenger seat',f:()=>enterVan(st)};}
   else if(dRear<2.2){
-    A.f={l:V.doors?'Close rear doors':'Open rear doors',f:()=>{V.doors=V.doors?0:1;V.doors?SFX.doorOpen():SFX.doorClose();}};
+    A.f={l:V.doors?'Close rear doors':'Open rear doors',f:()=>doAct({a:'door'})};
     if(V.doors){
-      if(load)A.e={l:'Load '+lname(load),f:()=>{const it=load;if(!packVan([...V.cargo,it])){toast('Not enough room in the van. Deliver this load first.');return;}if(held)held=null;else dolly.load=null;it.state='van';it.home=null;V.cargo.push(it);layoutCargo();placeDollyMesh();SFX.load();updateJobPanel(true);}};
-      else{const top=V.cargo[V.cargo.length-1],pickFrom=dHeld?top:V.cargo.slice().reverse().find(it=>!heavy(it));
-        if(pickFrom)A.e={l:'Unload '+lname(pickFrom),f:()=>{V.cargo.splice(V.cargo.indexOf(pickFrom),1);layoutCargo();if(dHeld){pickFrom.state='dolly';dolly.load=pickFrom;placeDollyMesh();SFX.load();}else takeInHands(pickFrom);updateJobPanel(true);}};
-        else if(!dHeld&&V.cargo.length)A.warn='Heavy items need the hand truck';}
-      if(dHeld&&!dolly.load)A.t={l:'Stow hand truck',f:()=>{dolly.state='van';placeDollyMesh();SFX.load();}};
-      else if(dolly.state==='van'&&!held)A.t={l:'Take hand truck',f:()=>{dolly.state='held';placeDollyMesh();SFX.pick();}};
-    }
-  }
-  if(!A.e&&load&&inZone(...frontPt(.9),P.y))A.e={l:'Place '+lname(load)+' here',f:()=>placeItem(load)};
+      if(load)A.e={l:'Load '+lname(load),f:()=>{if(!packVan([...V.cargo,load])){toast('Not enough room in the van. Deliver this load first.');return;}doAct({a:'load'});}};
+      else{const top=V.cargo[V.cargo.length-1],pf=dHeld?top:V.cargo.slice().reverse().find(it=>!heavy(it));
+        if(pf)A.e={l:'Unload '+lname(pf),f:()=>doAct({a:'unload',id:pf.id})};else if(!dHeld&&V.cargo.length)A.warn='Heavy items need the hand truck';}
+      if(dHeld&&!dolly.load)A.t={l:'Stow hand truck',f:()=>doAct({a:'dstow'})};
+      else if(dolly.state==='van'&&!held)A.t={l:'Take hand truck',f:()=>doAct({a:'dtake'})};}}
+  if(!A.e&&load&&inZone(...frontPt(.9),P.y))A.e={l:'Place '+lname(load)+' here',f:()=>doAct(Object.assign({a:'place'},placePos()))};
   if(!A.e&&!load){const it=lookItem();if(it){
-    if(dHeld){if(it.k==='piano'&&!BIZ.hd)A.warn='The piano needs the heavy-duty hand truck (garage)';else A.e={l:'Load '+lname(it)+' onto hand truck',f:()=>{it.state='dolly';dolly.load=it;placeDollyMesh();SFX.load();updateJobPanel(true);}};}
+    if(dHeld){if(it.k==='piano'&&!BIZ.hd)A.warn='The piano needs the heavy-duty hand truck (garage)';else A.e={l:'Load '+lname(it)+' onto hand truck',f:()=>doAct({a:'todolly',id:it.id})};}
     else if(heavy(it))A.warn=it.T.name+', '+it.T.mass+' kg. Use the hand truck from the van.';
-    else A.e={l:'Pick up '+lname(it)+' ('+it.T.mass+' kg)',f:()=>takeInHands(it)};}}
-  if(load)A.g={l:'Set down',f:()=>{const it=load,fp=frontPt(dHeld?1.6:.55+it.T.size[2]/2),s=pickSurface(fp[0],fp[1],P.y);if(s===null){toast('No room to set it down here.');return;}if(held)held=null;else dolly.load=null;setLoose(it,fp[0],fp[1],P.yaw,s);it.home=null;placeDollyMesh();SFX.drop(it.T.mass);if(inZone(fp[0],fp[1],s))placeItem(it,true);updateJobPanel(true);}};
-  if(!A.t){if(dHeld)A.t={l:'Park hand truck',f:()=>{if(dolly.load){const it=dolly.load;dolly.load=null;const fp=frontPt(1.6),s=pickSurface(fp[0],fp[1],P.y);setLoose(it,fp[0],fp[1],P.yaw,s===null?P.y:s);it.home=null;if(inZone(fp[0],fp[1],P.y))placeItem(it,true);}const fp=frontPt(.9);dolly.state='parked';dolly.x=fp[0];dolly.z=fp[1];dolly.y=P.y;dolly.yaw=P.yaw;placeDollyMesh();SFX.drop(10);}};
-    else if(dolly.state==='parked'&&!held&&Math.abs(dolly.y-P.y)<1&&Math.hypot(dolly.x-P.x,dolly.z-P.z)<1.8)A.t={l:'Take hand truck',f:()=>{dolly.state='held';placeDollyMesh();SFX.pick();}};}
+    else A.e={l:'Pick up '+lname(it)+' ('+it.T.mass+' kg)',f:()=>doAct({a:'pick',id:it.id})};}}
+  if(load)A.g={l:'Set down',f:()=>{const fp=frontPt(dHeld?1.6:.55+load.T.size[2]/2),s=pickSurface(fp[0],fp[1],P.y);if(s===null){toast('No room to set it down here.');return;}doAct({a:'setdown',x:fp[0],z:fp[1],y:s,yaw:P.yaw});}};
+  if(!A.t){if(dHeld)A.t={l:'Park hand truck',f:()=>{const fi=frontPt(1.6),si=pickSurface(fi[0],fi[1],P.y),fp=frontPt(.9);doAct({a:'dpark',x:fp[0],z:fp[1],y:P.y,yaw:P.yaw,ix:fi[0],iz:fi[1],iy:si===null?P.y:si});}};
+    else if(dolly.state==='parked'&&!held&&Math.abs(dolly.y-P.y)<1&&Math.hypot(dolly.x-P.x,dolly.z-P.z)<1.8)A.t={l:'Take hand truck',f:()=>doAct({a:'dtake'})};}
   return A;}
-function takeInHands(it){held=it;it.state='carried';it.home=null;carry.add(it.mesh);const[,h,d]=it.T.size;it.mesh.position.set(0,clamp(1.05-h/2,.12,.72),-.42-d/2);it.mesh.rotation.set(0,0,0);SFX.pick();updateJobPanel(true);}
-function placeItem(it,already){
-  if(!already){if(held===it)held=null;else if(dolly.load===it)dolly.load=null;const fp=frontPt(dolly.state==='held'?1.5:.8),h=job.to,L=job.zone;let[lx,lz]=h.toL(fp[0],fp[1]);lx=clamp(lx,L.x1+.3,L.x2-.3);lz=clamp(lz,L.z1+.3,L.z2-.3);const w=h.toW(lx,lz);setLoose(it,w[0],w[1],P.yaw,h.floors[job.zoneFloor].y);placeDollyMesh();SFX.drop(it.T.mass);}
-  it.state='placed';updateJobPanel(true);if(ITEMS.every(i=>i.state==='placed'))setTimeout(()=>{if(job)completeJob();},450);}
-function enterVan(){mode='van';lookYaw=0;lookPitch=-.14;$('dot').classList.add('hidden');$('drive').classList.remove('hidden');SFX.doorClose();if(vs().fuel>0){engineOn=true;SFX.start();}else toast('The tank is empty. Use the tablet (J) to call roadside assistance.');}
+function enterVan(st){mode='van';mySeat=st;NET.enterT=performance.now();lookYaw=0;lookPitch=-.14;$('dot').classList.add('hidden');$('drive').classList.remove('hidden');doAct({a:'enter',seat:st});}
+function leaveSeatUI(){mode='foot';$('dot').classList.remove('hidden');$('drive').classList.add('hidden');}
+function forceExit(){if(mode!=='van')return;const p=vanWorld((mySeat===0?1:-1)*(VAN.d.W+.52),VAN.d.zc+.6);P.x=p[0];P.z=p[1];P.y=0;camY=1.66;leaveSeatUI();}
 function exitVan(){if(Math.abs(V.v)>1){toast('Stop the van before getting out.');return;}
-  for(const side of[1,-1]){const p=vanWorld(side*(VAN.d.W+.52),VAN.d.zc+.6);const q={x:p[0],z:p[1]};const ox=q.x,oz=q.z;res(q,.3,.25,1.9);if(Math.hypot(q.x-ox,q.z-oz)<.2&&pickSurface(q.x,q.z,0)!==null){P.x=q.x;P.z=q.z;P.y=pickSurface(q.x,q.z,0);camY=P.y+1.66;P.yaw=V.yaw+PI+side*.6;P.pitch=-.1;mode='foot';V.v=0;engineOn=false;SFX.doorClose();$('dot').classList.remove('hidden');$('drive').classList.add('hidden');return;}}
+  const pref=mySeat===0?1:-1;
+  for(const side of[pref,-pref]){const p=vanWorld(side*(VAN.d.W+.52),VAN.d.zc+.6);const q={x:p[0],z:p[1]};const ox=q.x,oz=q.z;res(q,.3,.25,1.9);
+    if(Math.hypot(q.x-ox,q.z-oz)<.2&&pickSurface(q.x,q.z,0)!==null){P.x=q.x;P.z=q.z;P.y=pickSurface(q.x,q.z,0);camY=P.y+1.66;P.yaw=V.yaw+PI+side*.6;P.pitch=-.1;if(mySeat===0&&vanAuth())V.v=0;leaveSeatUI();doAct({a:'exit'});return;}}
   toast('No room to open the door.');}
-function refuel(price){const st=vs(),cap=perf().cap,need=(1-st.fuel)*cap;if(need<.5){toast('The tank is already full.');return;}const lit=Math.min(need,cash/price);if(lit<.5){toast('Not enough money for fuel.');return;}
-  st.fuel=Math.min(1,st.fuel+lit/cap);cash-=lit*price;SFX.fuel();toast(`Refuelled ${lit.toFixed(1)} L for ${eur(lit*price)}.`);if(mode==='van'&&!engineOn){engineOn=true;SFX.start();}lowFuelWarned=false;save();}
+function refuel(price,pi=ME()){const st=vs(),cap=perf().cap,need=(1-st.fuel)*cap;if(need<.5){say(pi,'The tank is already full.');return;}const lit=Math.min(need,cash/price);if(lit<.5){say(pi,'Not enough money for fuel.');return;}
+  st.fuel=Math.min(1,st.fuel+lit/cap);cash-=lit*price;sfxAll('fuel');sayAll(`Refuelled ${lit.toFixed(1)} L for ${eur(lit*price)}.`);if(V.seat[0]!==-1&&!engineOn){engineOn=true;sfxAll('start');}lowFuelWarned=false;NET.metaDirty=true;save();if(modal==='gar')renderGar();}
 let lowFuelWarned=false;
 
 /* ================= input ================= */
@@ -925,7 +980,7 @@ addEventListener('keydown',e=>{
     if(e.code==='KeyC')camMode=camMode==='cab'?'chase':'cab';
     if(e.code==='KeyR'){SET.station=(SET.station+1)%3;saveSet();toast('Radio: '+(SET.station===2?'off':STATIONS[SET.station].name));}
     if(e.code==='KeyJ'){if(Math.abs(V.v)<.5)openTerm();else toast('Stop the van to use the tablet.');}
-    if(e.code==='KeyG'&&Math.abs(V.v)<.5){if(inGarage())openGar();else if(atPump())refuel(FUEL_PRICE);}
+    if(e.code==='KeyG'&&Math.abs(V.v)<.5){if(inGarage())openGar();else if(atPump())doAct({a:'refuel',p:FUEL_PRICE});}
   }});
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
@@ -960,7 +1015,7 @@ function renderTerm(){
       h+=`<section><div class="lbl">Current job</div><div class="cur"><span class="lbl">Job</span><span>${job.id} · ${job.client} · ${job.kind}</span><span class="lbl">Pick up</span><span>${job.from.addr}</span><span class="lbl">Deliver to</span><span>${job.to.addr}, ${FLOOR_NAMES[job.zoneFloor]}, living room</span><span class="lbl">Due</span><span>${fmtT(job.due)}</span><span class="lbl">Progress</span><span>${done} of ${ITEMS.length} items delivered</span><span class="lbl">Price</span><span>${eur(job.pay)}</span></div>
         <div style="margin-top:10px"><button class="btn ghost sm" data-a="cancel">Cancel job (fee €150)</button></div></section>`;}
     h+=`<section><div class="lbl">Available jobs</div><table><tr><th>Job</th><th>Route</th><th>Load</th><th class="r">Trips</th><th class="r">Distance</th><th class="r">Due</th><th class="r">Price</th><th></th></tr>`;
-    offers.forEach((o,i)=>{const tr=tripsFor(o.keys);h+=`<tr><td>${o.id}<div class="s">${o.client}</div><div class="s">${o.kind}</div></td><td>${o.from.addr}<div class="s">to ${o.to.addr}</div><div class="s">${FLOOR_NAMES[o.zoneFloor]}</div></td><td>${o.keys.length} items, ${o.mass} kg<div class="s">${itemSummary(o.keys)}</div><div class="s">${o.notes}</div></td><td class="r num">${tr}</td><td class="r num">${(o.len/1000).toFixed(2)} km</td><td class="r num">${fmtT(o.due)}</td><td class="r num">${eur(o.pay)}</td><td class="r"><button class="btn sm" data-a="acc" data-i="${i}" ${job||(o.needHD&&!BIZ.hd)?'disabled':''}>Accept</button></td></tr>`;});
+    offers.forEach((o,i)=>{const tr=tripsFor(o.keys);h+=`<tr><td>${o.id}<div class="s">${o.client}</div><div class="s">${o.kind}</div></td><td>${o.from.addr}<div class="s">to ${o.to.addr}</div><div class="s">${FLOOR_NAMES[o.zoneFloor]}</div></td><td>${o.keys.length} items, ${o.mass} kg<div class="s">${itemSummary(o.keys)}</div><div class="s">${o.notes}</div></td><td class="r num">${tr}</td><td class="r num">${(o.len/1000).toFixed(2)} km</td><td class="r num">${fmtT(o.due)}</td><td class="r num">${eur(o.pay)}</td><td class="r"><button class="btn sm" data-a="acc" data-i="${o.id}" ${job||(o.needHD&&!BIZ.hd)?'disabled':''}>Accept</button></td></tr>`;});
     h+='</table></section><div class="s" style="color:#868d97;font-size:12px">Trips are estimated for your current vehicle. A bigger van means fewer trips.</div>';}
   else if(termTab==='biz'){
     const card=(k,name,desc,lv,levels)=>{const next=levels[lv+1];return`<div class="item"><h4>${name}</h4><p>${desc}</p><div class="row">${pips(lv,levels.length-1)}${next!==undefined?`<button class="btn sm" data-a="biz" data-k="${k}" ${cash<next?'disabled':''}>Upgrade ${eur(next)}</button>`:'<span class="owned">Maxed</span>'}</div></div>`;};
@@ -975,12 +1030,15 @@ function renderTerm(){
     h+=`<section><div class="lbl">Rating</div><div class="s" style="color:#8d949e;font-size:12.5px">Clients rate every job on item condition and punctuality. At 4.0 stars premium clients start calling, including piano moves.</div></section>`;
     if(history.length){h+=`<section><div class="lbl">Recent jobs</div><table><tr><th>Job</th><th>Client</th><th>Result</th><th class="r">Paid</th></tr>`;for(const r of history.slice(0,10))h+=`<tr><td>${r.id}</td><td>${r.client}</td><td>${r.res}</td><td class="r num">${eur(r.amt)}</td></tr>`;h+='</table></section>';}}
   $('tBody').innerHTML=h;}
-$('tBody').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const a=b.dataset.a;
-  if(a==='acc')acceptOffer(+b.dataset.i);
+$('tBody').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const a=b.dataset.a,k=b.dataset.k,i=b.dataset.i!=null?+b.dataset.i:null;
+  if(a==='acc')closeModal();if(NET.role==='guest')doAct({a:'term',x:a,k,i});else termAct(ME(),a,k,i);};
+function termAct(pi,a,k,i){
+  if(a==='acc')acceptOffer(i,pi);
   else if(a==='cancel')cancelJob();
-  else if(a==='tow'){if(cash<250){toast('Not enough money.');return;}cash-=250;const st=vs();st.fuel=Math.min(1,st.fuel+15/perf().cap);engineOn=true;SFX.fuel();toast('Roadside assistance added 15 litres.');renderTerm();save();}
-  else if(a==='biz'){const k=b.dataset.k,lv=[0,3000,7000,15000],ld=[0,1500,4000],levels=k==='marketing'?lv:ld,p=levels[BIZ[k]+1];if(p===undefined||cash<p)return;cash-=p;BIZ[k]++;SFX.buy();if(k==='dispatch')fillOffers();renderTerm();save();}
-  else if(a==='ins'){BIZ.insurance=!BIZ.insurance;SFX.click();renderTerm();save();}};
+  else if(a==='tow'){if(cash<250){say(pi,'Not enough money.');return;}cash-=250;const st=vs();st.fuel=Math.min(1,st.fuel+15/perf().cap);if(V.seat[0]!==-1)engineOn=true;sfxAll('fuel');sayAll('Roadside assistance added 15 litres.');}
+  else if(a==='biz'){const levels=k==='marketing'?[0,3000,7000,15000]:[0,1500,4000],p=levels[BIZ[k]+1];if(p===undefined||cash<p)return;cash-=p;BIZ[k]++;sfxAll('buy');if(k==='dispatch')fillOffers();}
+  else if(a==='ins'){BIZ.insurance=!BIZ.insurance;SFX.click();}
+  NET.metaDirty=true;save();if(modal==='term')renderTerm();}
 function renderGar(){
   const st=vs(),S=VEH[FLEET.active],pf=perf();
   $('gInfo').textContent=eur(cash);$('gFoot').textContent=S.name+' · body '+Math.round(st.cond)+'% · fuel '+Math.round(st.fuel*pf.cap)+' / '+Math.round(pf.cap)+' L';
@@ -1000,18 +1058,20 @@ function renderGar(){
     h+=`<div class="grid2"><div class="item"><h4>Body repair</h4><p>Body condition ${Math.round(st.cond)}%. A damaged van loses top speed.</p><div class="row"><span class="lbl">${rc?eur(rc):'No damage'}</span><button class="btn sm" data-a="repair" ${!rc||cash<rc?'disabled':''}>Repair</button></div></div>
       <div class="item"><h4>Fill up</h4><p>${fl.toFixed(1)} L needed. The garage charges €2.20 per litre; the fuel station on King Street is cheaper.</p><div class="row"><span class="lbl">${fl>.5?eur(fc):'Full'}</span><button class="btn sm" data-a="fill" ${fl<.5?'disabled':''}>Fill tank</button></div></div></div>`;}
   $('gBody').innerHTML=h;}
-$('gBody').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const a=b.dataset.a,st=vs();let rebuild=false;
-  const pay=p=>{if(cash<p){toast('Not enough money.');return false;}cash-=p;SFX.buy();return true;};
-  if(a==='buyv'){const k=b.dataset.k;if(!pay(VEH[k].price))return;FLEET.own[k]=newVeh();if(!V.cargo.length){FLEET.active=k;rebuild=true;}else toast('Bought. Unload the cargo to switch vehicles.');}
-  else if(a==='use'){if(V.cargo.length){toast('Unload the cargo first.');return;}FLEET.active=b.dataset.k;rebuild=true;SFX.click();}
-  else if(a==='up'){const k=b.dataset.k,p=UPG[k].levels[st.up[k]+1];if(p===undefined||!pay(p))return;st.up[k]++;}
-  else if(a==='hd'){if(!pay(700))return;BIZ.hd=true;rebuildDolly();}
-  else if(a==='paint'||a==='stripe'||a==='rims'){const i=+b.dataset.i,price={paint:350,stripe:150,rims:200}[a];if(st[a]===i)return;if(!pay(price))return;st[a]=i;rebuild=true;}
-  else if(a==='ex'){const k=b.dataset.k,x=EXTRAS.find(x=>x.k===k);if(!st.exOwn[k]){if(!pay(x.price))return;st.exOwn[k]=true;st.ex[k]=true;}else{st.ex[k]=!st.ex[k];SFX.click();}rebuild=true;}
-  else if(a==='repair'){const rc=Math.round((100-st.cond)*14);if(!pay(rc))return;st.cond=100;}
-  else if(a==='fill'){refuel(2.2);}
-  if(rebuild)buildVan();renderGar();save();};
-function renderPause(){$('sMusic').value=SET.music;$('sSfx').value=SET.sfx;for(const[id,v]of[['sStation',String(SET.station)],['sQual',SET.quality],['sMir',SET.mirrors?'1':'0']])$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
+$('gBody').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const a=b.dataset.a,k=b.dataset.k,i=b.dataset.i!=null?+b.dataset.i:null;
+  if(NET.role==='guest')doAct({a:'gar',x:a,k,i});else garAct(ME(),a,k,i);};
+function garAct(pi,a,k,i){const st=vs();let rebuild=false;
+  const pay=p=>{if(cash<p){say(pi,'Not enough money.');return false;}cash-=p;sfxAll('buy');return true;};
+  if(a==='buyv'){if(FLEET.own[k]||!pay(VEH[k].price))return;FLEET.own[k]=newVeh();if(!V.cargo.length){FLEET.active=k;rebuild=true;}else say(pi,'Bought. Unload the cargo to switch vehicles.');}
+  else if(a==='use'){if(V.cargo.length){say(pi,'Unload the cargo first.');return;}FLEET.active=k;rebuild=true;SFX.click();}
+  else if(a==='up'){const p=UPG[k].levels[st.up[k]+1];if(p===undefined||!pay(p))return;st.up[k]++;}
+  else if(a==='hd'){if(BIZ.hd||!pay(700))return;BIZ.hd=true;rebuildDolly();}
+  else if(a==='paint'||a==='stripe'||a==='rims'){const price={paint:350,stripe:150,rims:200}[a];if(st[a]===i)return;if(!pay(price))return;st[a]=i;rebuild=true;}
+  else if(a==='ex'){const x=EXTRAS.find(x=>x.k===k);if(!st.exOwn[k]){if(!pay(x.price))return;st.exOwn[k]=true;st.ex[k]=true;}else{st.ex[k]=!st.ex[k];SFX.click();}rebuild=true;}
+  else if(a==='repair'){const rc=Math.round((100-st.cond)*14);if(!rc||!pay(rc))return;st.cond=100;}
+  else if(a==='fill'){refuel(2.2,pi);}
+  if(rebuild)buildVan();NET.metaDirty=true;if(modal==='gar')renderGar();save();}
+function renderPause(){const on=NET.connected;$('pauseTitle').textContent=on?'Settings':'Paused';$('pauseNote').textContent=on?'The game keeps running in online play.':'';$('bLeave').classList.toggle('hidden',!on);$('sMusic').value=SET.music;$('sSfx').value=SET.sfx;for(const[id,v]of[['sStation',String(SET.station)],['sQual',SET.quality],['sMir',SET.mirrors?'1':'0']])$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
 $('sMusic').oninput=e=>{SET.music=+e.target.value;applyVol();saveSet();};
 $('sSfx').oninput=e=>{SET.sfx=+e.target.value;applyVol();saveSet();};
 $('sStation').onclick=e=>{const b=e.target.closest('button');if(!b)return;SET.station=+b.dataset.v;saveSet();renderPause();};
@@ -1065,7 +1125,7 @@ function drawMap(){
   const tg=jobTarget();if(tg){const p=doorPt(tg);mg.fillStyle='#fff';mg.strokeStyle='#111';mg.lineWidth=3;mg.beginPath();mg.arc(X(p[0]),Z(p[1]),9*u,0,2*PI);mg.fill();mg.stroke();}
   mg.fillStyle='#6e7b88';for(const c of CARS)mg.fillRect(X(c.x)-3*u,Z(c.z)-3*u,6*u,6*u);
   const arrow=(x,z,yaw,col,s)=>{mg.save();mg.translate(X(x),Z(z));mg.rotate(-yaw);mg.fillStyle=col;mg.strokeStyle='#111';mg.lineWidth=2;mg.beginPath();mg.moveTo(0,s);mg.lineTo(s*.65,-s*.7);mg.lineTo(-s*.65,-s*.7);mg.closePath();mg.fill();mg.stroke();mg.restore();};
-  arrow(V.x,V.z,V.yaw+PI,mode==='van'?'#fff':'#9aa1ab',(mode==='van'?11:9)*u);if(mode==='foot')arrow(P.x,P.z,P.yaw,'#4fb3ff',8*u);
+  arrow(V.x,V.z,V.yaw+PI,mode==='van'?'#fff':'#9aa1ab',(mode==='van'?11:9)*u);if(mode==='foot')arrow(P.x,P.z,P.yaw,'#4fb3ff',8*u);if(NET.connected&&OTHER.mode==='foot')arrow(OTHER.x,OTHER.z,OTHER.yaw,'#7fc48a',8*u);
   mg.fillStyle='rgba(255,255,255,.85)';mg.font='700 22px Inter,Arial';mg.textAlign='center';mg.fillText('N',MS-22,26);}
 
 /* ================= sky & time ================= */
@@ -1117,7 +1177,7 @@ function updateAudio(dt,thr,moving){if(!ENG)return;const t=AC.currentTime,on=mod
   ENG.o1.frequency.setTargetAtTime(Math.max(20,r/60*2),t,.04);ENG.o2.frequency.setTargetAtTime(Math.max(10,r/60),t,.04);ENG.o3.frequency.setTargetAtTime(Math.max(10,r/120),t,.04);ENG.f.frequency.setTargetAtTime(300+r*.18+(thr?500:0),t,.05);
   ENG.ng.gain.setTargetAtTime(on?.02+(thr?.04:0):0,t,.08);ENG.out.gain.setTargetAtTime(on?.05+(thr?.035:0):0,t,.08);
   ENG.sg.gain.setTargetAtTime(mode==='van'&&!modal&&!paused?clamp((Math.abs(V.lat)-6)*.03,0,.1)+(keys.Space&&sp>4?.07:0):0,t,.05);
-  ENG.rg.gain.setTargetAtTime(mode==='foot'&&dolly.state==='held'&&moving&&!modal?.12:mode==='van'&&!modal?clamp(sp/25,0,1)*.07:0,t,.06);
+  ENG.rg.gain.setTargetAtTime(mode==='foot'&&dollyBy(ME())&&moving&&!modal?.12:mode==='van'&&!modal?clamp(sp/25,0,1)*.07:0,t,.06);
   ENG.hg.gain.setTargetAtTime(mode==='van'&&keys.KeyH&&!modal?.1:0,t,.01);
   ENG.bg.gain.setTargetAtTime(on&&V.v<-.1&&(t%1)<.5?.03:0,t,.01);
   const hr=(gameT%86400)/3600,inside=!!bldAt(mode==='van'?V.x:P.x,mode==='van'?V.z:P.z);AMB.g.gain.setTargetAtTime(inside?.015:.04,t,.3);
@@ -1155,34 +1215,41 @@ function musicTick(){if(!AC||AC.state!=='running')return;if(SET.station===2||SET
 /* ================= van physics ================= */
 let impactCD=0;
 function damageCargo(amount){if(!V.cargo.length)return;for(const it of V.cargo)it.cond=Math.max(0,it.cond-amount*it.T.frag*R(.6,1.4));updateJobPanel(true);}
+function vanAuth(){return V.seat[0]===-1?NET.role!=='guest':V.seat[0]===ME();}
+function dmgCargo(a){if(NET.role==='guest')NET.pend.c+=a;else damageCargo(a);}
+function dmgBody(a){if(NET.role==='guest')NET.pend.b+=a;else vs().cond=Math.max(20,vs().cond-a);}
 function updateVan(dt){
-  const pf=perf(),st=vs(),drive=mode==='van',eng=drive&&engineOn&&st.fuel>0;
-  const thr=drive&&(keys.KeyW||keys.ArrowUp),brk=drive&&(keys.KeyS||keys.ArrowDown),lt=keys.KeyA||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight,hb=drive&&keys.Space;
-  const v=V.v,vmax=pf.vmax*(.75+.25*st.cond/100);let a=0;
-  if(thr){if(v<-.3)a=pf.brake;else if(eng)a=pf.accel*Math.max(0,1-v/vmax);}
-  if(brk){if(v>.3)a=-pf.brake;else if(eng)a=-1.8*Math.max(0,1+v/4.5);}
-  if(hb||!drive)a+=v>0?-6:v<0?6:0;
-  a+=-(Math.sign(v)*(.25+.0026*v*v))-(drive&&!thr&&!brk?Math.sign(v)*.35:0);
-  let nv=v+a*dt;if(!thr&&!brk&&Math.sign(nv)!==Math.sign(v)&&v!==0)nv=0;if((brk&&v>0&&nv<0)||(thr&&v<0&&nv>0))nv=0;if(Math.abs(nv)<.02&&!thr&&!brk)nv=0;
-  V.acc=(nv-v)/dt;V.v=nv;
-  const inp=drive?(lt?1:0)-(rt?1:0):0,maxS=pf.steer/(1+V.v*V.v*.0055),tgt=inp*maxS;
-  V.steer+=clamp(tgt-V.steer,-(inp?1.8:2.6)*dt,(inp?1.8:2.6)*dt);
-  let yr=V.v*Math.tan(V.steer)/VAN.d.wb;if(hb&&Math.abs(V.v)>3)yr*=1.25;V.yaw+=yr*dt;V.lat=V.v*yr;
-  V.x+=Math.sin(V.yaw)*V.v*dt;V.z+=Math.cos(V.yaw)*V.v*dt;
-  let hit=0,nx=0,nz=0;const fx=Math.sin(V.yaw),fz=Math.cos(V.yaw),rad=VAN.d.W,top=Math.max(2.6,VAN.d.top);
-  for(const oz of VAN.d.circ){const c={x:V.x+fx*oz,z:V.z+fz*oz};const ox=c.x,oz2=c.z;res(c,rad,.25,top);
-    for(const car of CARS)for(const co of[-1.15,1.15]){const cx=car.x+Math.sin(car.h)*co,cz=car.z+Math.cos(car.h)*co,dx=c.x-cx,dz=c.z-cz,d=Math.hypot(dx,dz),m=rad+.92;if(d<m&&d>1e-4){c.x+=dx/d*(m-d);c.z+=dz/d*(m-d);}}
-    const px=c.x-ox,pz=c.z-oz2;if(px||pz){V.x+=px;V.z+=pz;const l=Math.hypot(px,pz);nx+=px/l;nz+=pz/l;hit++;}}
-  impactCD-=dt;
-  if(hit){const l=Math.hypot(nx,nz)||1,imp=Math.abs(V.v*(fx*nx+fz*nz)/l);if(imp>1.2&&impactCD<=0){SFX.crash(imp);damageCargo(imp*3.2*pf.straps);st.cond=Math.max(20,st.cond-imp*1.4);impactCD=.6;if(imp>2.5)toast('Collision. Cargo and van may be damaged.');}if(imp>.5)V.v*=-.18;else V.v*=.9;}
-  const ex=Math.max(0,Math.abs(V.acc)-5)+Math.max(0,Math.abs(V.lat)-pf.latThr);if(ex>0)damageCargo(ex*dt*2.2*pf.susp);
-  if(eng){const used=(Math.abs(V.v)*.0085*(thr?1.4:.7)+.002)*dt*pf.cons;st.fuel=Math.max(0,st.fuel-used/pf.cap);if(st.fuel<.15&&!lowFuelWarned){lowFuelWarned=true;toast('Fuel is low. The fuel station is on King Street.');}if(st.fuel<=0){engineOn=false;toast('Out of fuel. Call roadside assistance from the tablet (J).');}}
-  V.pitch=lerp(V.pitch,clamp(V.acc*.004,-.03,.03),Math.min(1,dt*4));V.roll=lerp(V.roll,clamp(-V.lat*.006,-.04,.04),Math.min(1,dt*4));V.doorT=lerp(V.doorT,V.doors,Math.min(1,dt*3));
+  const pf=perf(),st=vs(),drive=mode==='van'&&mySeat===0,auth=vanAuth(),eng=engineOn&&st.fuel>0;
+  const thr=!!(drive&&(keys.KeyW||keys.ArrowUp));let brk=!!(drive&&(keys.KeyS||keys.ArrowDown));const hb=!!(drive&&keys.Space),lt=keys.KeyA||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
+  if(auth){
+    const v=V.v,vmax=pf.vmax*(.75+.25*st.cond/100);let a=0;
+    if(thr){if(v<-.3)a=pf.brake;else if(eng)a=pf.accel*Math.max(0,1-v/vmax);}
+    if(brk){if(v>.3)a=-pf.brake;else if(eng)a=-1.8*Math.max(0,1+v/4.5);}
+    if(hb||!drive)a+=v>0?-6:v<0?6:0;
+    a+=-(Math.sign(v)*(.25+.0026*v*v))-(drive&&!thr&&!brk?Math.sign(v)*.35:0);
+    let nv=v+a*dt;if(!thr&&!brk&&Math.sign(nv)!==Math.sign(v)&&v!==0)nv=0;if((brk&&v>0&&nv<0)||(thr&&v<0&&nv>0))nv=0;if(Math.abs(nv)<.02&&!thr&&!brk)nv=0;
+    V.acc=(nv-v)/dt;V.v=nv;
+    const inp=drive?(lt?1:0)-(rt?1:0):0,maxS=pf.steer/(1+V.v*V.v*.0055),tgt=inp*maxS;
+    V.steer+=clamp(tgt-V.steer,-(inp?1.8:2.6)*dt,(inp?1.8:2.6)*dt);
+    let yr=V.v*Math.tan(V.steer)/VAN.d.wb;if(hb&&Math.abs(V.v)>3)yr*=1.25;V.yaw+=yr*dt;V.lat=V.v*yr;
+    V.x+=Math.sin(V.yaw)*V.v*dt;V.z+=Math.cos(V.yaw)*V.v*dt;
+    let hit=0,nx=0,nz=0;const fx=Math.sin(V.yaw),fz=Math.cos(V.yaw),rad=VAN.d.W,top=Math.max(2.6,VAN.d.top);
+    for(const oz of VAN.d.circ){const c={x:V.x+fx*oz,z:V.z+fz*oz};const ox=c.x,oz2=c.z;res(c,rad,.25,top);
+      for(const car of CARS)for(const co of[-1.15,1.15]){const cx=car.x+Math.sin(car.h)*co,cz=car.z+Math.cos(car.h)*co,dx=c.x-cx,dz=c.z-cz,d=Math.hypot(dx,dz),m=rad+.92;if(d<m&&d>1e-4){c.x+=dx/d*(m-d);c.z+=dz/d*(m-d);}}
+      const px=c.x-ox,pz=c.z-oz2;if(px||pz){V.x+=px;V.z+=pz;const l=Math.hypot(px,pz);nx+=px/l;nz+=pz/l;hit++;}}
+    impactCD-=dt;
+    if(hit){const l=Math.hypot(nx,nz)||1,imp=Math.abs(V.v*(fx*nx+fz*nz)/l);if(imp>1.2&&impactCD<=0){SFX.crash(imp);dmgCargo(imp*3.2*pf.straps);dmgBody(imp*1.4);if(NET.role==='guest')NET.pend.s=Math.max(NET.pend.s,imp);else netEv(['sfx','crash',[imp]]);impactCD=.6;if(imp>2.5)toast('Collision. Cargo and van may be damaged.');}if(imp>.5)V.v*=-.18;else V.v*=.9;}
+    const ex=Math.max(0,Math.abs(V.acc)-5)+Math.max(0,Math.abs(V.lat)-pf.latThr);if(ex>0)dmgCargo(ex*dt*2.2*pf.susp);
+  }else{const s=sampleBuf(vanBuf,performance.now()-(NET.off||0)-110,[2]);if(s){const ov=V.v;V.x=s[0];V.z=s[1];V.yaw=s[2];V.v=s[3];V.steer=s[4];V.pitch=s[5];V.roll=s[6];V.acc=lerp(V.acc,(V.v-ov)/Math.max(dt,1e-3),.2);}brk=V.acc<-2.5&&V.v>.5;}
+  if(NET.role!=='guest'&&V.seat[0]!==-1&&eng){const T=V.seat[0]===ME()?thr:NET.remoteThr,used=(Math.abs(V.v)*.0085*(T?1.4:.7)+.002)*dt*pf.cons;st.fuel=Math.max(0,st.fuel-used/pf.cap);
+    if(st.fuel<.15&&!lowFuelWarned){lowFuelWarned=true;sayAll('Fuel is low. The fuel station is on King Street.');}if(st.fuel<=0){engineOn=false;sayAll('Out of fuel. Call roadside assistance from the tablet (J).');}}
+  if(auth){V.pitch=lerp(V.pitch,clamp(V.acc*.004,-.03,.03),Math.min(1,dt*4));V.roll=lerp(V.roll,clamp(-V.lat*.006,-.04,.04),Math.min(1,dt*4));}
+  V.doorT=lerp(V.doorT,V.doors,Math.min(1,dt*3));
   VAN.g.position.set(V.x,0,V.z);VAN.g.rotation.set(V.pitch,V.yaw,V.roll);
   for(const w of VAN.wheels)w.rotation.x+=V.v*dt/VAN.d.wR;for(const f of VAN.front)f.rotation.y=V.steer;
   VAN.sw.rotation.z=-V.steer*7;VAN.doors[0].rotation.y=-V.doorT*2.5;VAN.doors[1].rotation.y=V.doorT*2.5;
   VAN.tailMat.emissive.setHex((brk&&V.v>.2)||hb?0xc01010:lightsOn?0x500000:0x2a0000);
-  if(drive){$('spd').textContent=Math.round(Math.abs(V.v)*3.6);$('gear').textContent=!engineOn?'P':V.v<-.1||(brk&&V.v<=.3)?'R':Math.abs(V.v)<.1&&!thr?'N':'D';
+  if(mode==='van'){$('spd').textContent=Math.round(Math.abs(V.v)*3.6);$('gear').textContent=mySeat===1?'—':!engineOn?'P':V.v<-.1||(brk&&V.v<=.3)?'R':Math.abs(V.v)<.1&&!thr?'N':'D';
     const fb=$('fuelBar'),cb=$('condBar');fb.style.width=(st.fuel*100)+'%';fb.classList.toggle('low',st.fuel<.15);cb.style.width=st.cond+'%';cb.classList.toggle('low',st.cond<50);
     const kg=V.cargo.reduce((s,i)=>s+i.T.mass,0);$('cargoInfo').innerHTML=V.cargo.length?V.cargo.length+' items<br>'+kg+' kg':'Empty';$('radioInfo').textContent=SET.station===2?'Radio off':STATIONS[SET.station].name;}
   return thr;}
@@ -1190,7 +1257,7 @@ function updateVan(dt){
 /* ================= foot movement ================= */
 function surfaceKind(){if(bldAt(P.x,P.z))return'wood';return nearRoad(P.x,P.z,0)||[DEPOT,GASR].some(t=>P.x>t.x1&&P.x<t.x2&&P.z>t.z1&&P.z<t.z2)?'hard':'grass';}
 function updateFoot(dt){
-  const dHeld=dolly.state==='held',run=keys.ShiftLeft||keys.ShiftRight;let sp=run?5.4:3.1;
+  const dHeld=dollyBy(ME()),held=heldBy(ME()),run=keys.ShiftLeft||keys.ShiftRight;let sp=run?5.4:3.1;
   if(held){sp*=clamp(1-held.T.mass/70,.5,1);if(held.T.mass>12)sp=Math.min(sp,3.0);}
   if(dHeld){const L=dolly.load;sp=Math.min(sp,!L?3.4:L.k==='piano'?1.6:BIZ.hd?2.9:2.3);}
   if(onRamp())sp*=dHeld&&dolly.load&&!BIZ.hd?.55:.85;
@@ -1198,7 +1265,7 @@ function updateFoot(dt){
   if(keys.KeyW||keys.ArrowUp){mx+=fx;mz+=fz;}if(keys.KeyS||keys.ArrowDown){mx-=fx;mz-=fz;}if(keys.KeyD||keys.ArrowRight){mx+=rx;mz+=rz;}if(keys.KeyA||keys.ArrowLeft){mx-=rx;mz-=rz;}
   const l=Math.hypot(mx,mz);let moved=false;
   if(l){const ox=P.x,oz=P.z,n=Math.ceil(sp*dt/.12);for(let i=0;i<n;i++)moveP(mx/l*sp*dt/n,mz/l*sp*dt/n);const d=Math.hypot(P.x-ox,P.z-oz);moved=d>.001;stepAcc+=d;if(stepAcc>(run?.85:.65)){stepAcc=0;SFX.step(surfaceKind());}}
-  const px=P.x,pz=P.z;res(P,.3,P.y+.25,P.y+1.7);if(P.y<.5){pushFromVan(P,.3);pushFromCars(P,.3);}res(P,.3,P.y+.25,P.y+1.7);
+  const px=P.x,pz=P.z;res(P,.3,P.y+.25,P.y+1.7);if(P.y<.5){pushFromVan(P,.3);pushFromCars(P,.3);}if(NET.connected&&OTHER.mode==='foot'&&Math.abs(OTHER.y-P.y)<1){const dx=P.x-OTHER.x,dz=P.z-OTHER.z,d=Math.hypot(dx,dz);if(d<.6&&d>1e-4){P.x+=dx/d*(.6-d);P.z+=dz/d*(.6-d);}}res(P,.3,P.y+.25,P.y+1.7);
   const s=pickSurface(P.x,P.z,P.y);if(s===null){P.x=px;P.z=pz;}else P.y=s;
   bob+=moved?dt*sp*2.2:0;camY=lerp(camY,P.y+1.66,Math.min(1,dt*14));
   camera.position.set(P.x,camY+(moved?Math.sin(bob)*.03:0),P.z);camera.rotation.set(P.pitch,P.yaw,0);
@@ -1207,11 +1274,11 @@ const _v=new THREE.Vector3(),_t=new THREE.Vector3();
 function updateCamVan(dt){
   if(performance.now()-lastMouse>1500&&Math.abs(V.v)>3){lookYaw*=1-Math.min(1,dt*1.5);lookPitch=lerp(lookPitch,-.14,Math.min(1,dt*1.5));}
   VAN.g.updateMatrixWorld();
-  if(camMode==='cab'){_v.set(...VAN.d.eye);VAN.g.localToWorld(_v);camera.position.copy(_v);camera.rotation.set(lookPitch+V.pitch,V.yaw+PI+lookYaw,-V.roll*.5);}
+  if(camMode==='cab'){_v.set(VAN.d.eye[0]*(mySeat===0?1:-1),VAN.d.eye[1],VAN.d.eye[2]);VAN.g.localToWorld(_v);camera.position.copy(_v);camera.rotation.set(lookPitch+V.pitch,V.yaw+PI+lookYaw,-V.roll*.5);}
   else{const fx=Math.sin(V.yaw+lookYaw),fz=Math.cos(V.yaw+lookYaw),dist=VAN.d.Lh*1.6+6;_t.set(V.x-fx*dist,VAN.d.top+2,V.z-fz*dist);camera.position.lerp(_t,Math.min(1,dt*5));camera.lookAt(V.x+fx*3,1.4,V.z+fz*3);}}
 let mirTick=0;
 function renderMirrors(){
-  const cab=mode==='van'&&camMode==='cab',rev=cab&&engineOn&&(V.v<-.1||((keys.KeyS||keys.ArrowDown)&&V.v<=.3));
+  const cab=mode==='van'&&camMode==='cab',rev=cab&&mySeat===0&&engineOn&&(V.v<-.1||((keys.KeyS||keys.ArrowDown)&&V.v<=.3));
   if(rev!==revOn){revOn=rev;VAN.scrM.map=rev?RT.B.texture:null;VAN.scrM.color.setHex(rev?0xffffff:0x0e0f11);VAN.scrM.needsUpdate=true;}
   if(!cab||(!SET.mirrors&&!rev))return;mirTick++;const hi=SET.quality==='high';
   renderer.shadowMap.autoUpdate=false;VAN.g.updateMatrixWorld();
@@ -1220,35 +1287,203 @@ function renderMirrors(){
   renderer.setRenderTarget(null);renderer.shadowMap.autoUpdate=true;}
 function updateRoomLight(){const x=mode==='van'?V.x:P.x,z=mode==='van'?V.z:P.z,r=bldAt(x,z);if(r){const h=r[0],k=floorIdx(h,mode==='van'?0:P.y),c=h.toW(0,0);roomLight.position.set(c[0],k*h.fh+h.fh-.45,c[1]);roomLight.distance=Math.max(16,Math.max(h.o.w,h.o.d)*1.2);roomLight.intensity=.95;}else roomLight.intensity=0;}
 
+/* ================= co-op partner avatar ================= */
+function makeAvatar(shirt,name){
+  const g=new THREE.Group(),skin=M(0xd9a982),pants=M(0x2f3640),sh=M(shirt),boot=M(0x1f1f22),capM=M(0x23262b),vest=M(0xd8dde2);
+  const legs=[],arms=[];
+  for(const s of[-1,1]){const p=new THREE.Group();p.position.set(s*.11,.92,0);g.add(p);box(.16,.86,.18,pants,0,-.43,0,p);box(.18,.1,.28,boot,0,-.88,-.04,p);legs.push(p);}
+  box(.46,.62,.26,sh,0,1.26,0,g);box(.47,.07,.27,vest,0,1.12,0,g,false);box(.47,.07,.27,vest,0,1.4,0,g,false);
+  for(const s of[-1,1]){const p=new THREE.Group();p.position.set(s*.3,1.52,0);g.add(p);box(.12,.58,.13,sh,0,-.27,0,p);box(.1,.1,.11,skin,0,-.6,0,p);arms.push(p);}
+  box(.12,.08,.12,skin,0,1.6,0,g);box(.25,.27,.25,skin,0,1.77,0,g);box(.27,.09,.28,capM,0,1.94,.01,g);box(.25,.03,.14,capM,0,1.91,-.19,g);
+  box(.05,.04,.01,M(0x111111),-.06,1.8,-.126,g,false);box(.05,.04,.01,M(0x111111),.06,1.8,-.126,g,false);
+  const tc=document.createElement('canvas');tc.width=256;tc.height=64;const c=tc.getContext('2d');c.fillStyle='rgba(16,18,21,.78)';c.fillRect(0,8,256,48);c.fillStyle='#fff';c.font='600 30px Inter,Segoe UI,Arial';c.textAlign='center';c.textBaseline='middle';c.fillText(name,128,33);
+  const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(tc),depthTest:false,transparent:true}));tag.scale.set(.9,.225,1);tag.position.set(0,2.3,0);tag.renderOrder=5;g.add(tag);
+  const carryG=new THREE.Group();g.add(carryG);g.userData.dyn=true;g.visible=false;scene.add(g);
+  return{g,legs,arms,carry:carryG,tag};}
+function pushBuf(B,ts,arr){const L=B[B.length-1];if(L&&ts<=L[0])return;B.push([ts,...arr]);if(B.length>14)B.shift();}
+function angLerp(a,b,t){let d=b-a;while(d>PI)d-=2*PI;while(d<-PI)d+=2*PI;return a+d*t;}
+function sampleBuf(B,rt,ang){if(!B.length)return null;if(rt<=B[0][0])return B[0].slice(1);
+  for(let i=B.length-1;i>=0;i--){if(B[i][0]<=rt){const a=B[i],c=B[i+1];if(!c)return a.slice(1);const t=(rt-a[0])/(c[0]-a[0]);return a.slice(1).map((v,j)=>typeof v!=='number'?v:ang&&ang.includes(j)?angLerp(v,c[j+1],t):v+(c[j+1]-v)*t);}}
+  return B[B.length-1].slice(1);}
+function updateOther(dt){const av=OTHER.av;if(!av)return;if(!NET.connected||OTHER.mode==='off'||OTHER.mode==='menu'){av.g.visible=false;return;}av.g.visible=true;
+  const s=sampleBuf(OTHER.buf,performance.now()-(NET.off||0)-110,[3]);if(s){OTHER.x=s[0];OTHER.z=s[1];OTHER.y=s[2];OTHER.yaw=s[3];OTHER.pitch=s[4];}
+  const pi=1-ME(),carrying=!!heldBy(pi)||dollyBy(pi);
+  if(OTHER.mode==='van'&&OTHER.seat>=0){VAN.g.add(av.g);av.g.position.set((OTHER.seat===0?1:-1)*(VAN.d.W-.58),VAN.d.eye[1]-1.77,VAN.d.zc+.42);av.g.rotation.set(0,PI,0);
+    for(const l of av.legs)l.rotation.x=1.45;av.arms[0].rotation.x=av.arms[1].rotation.x=OTHER.seat===0?1.0:.25;av.tag.visible=false;}
+  else{scene.add(av.g);av.g.position.set(OTHER.x,OTHER.y,OTHER.z);av.g.rotation.set(0,OTHER.yaw,0);av.tag.visible=true;
+    const sp=Math.hypot(OTHER.x-OTHER.px,OTHER.z-OTHER.pz)/Math.max(dt,1e-3);OTHER.phase+=dt*Math.min(sp,6)*2.2;const k=clamp(sp/3,0,1);
+    av.legs[0].rotation.x=Math.sin(OTHER.phase)*.6*k;av.legs[1].rotation.x=-Math.sin(OTHER.phase)*.6*k;
+    for(let i=0;i<2;i++)av.arms[i].rotation.x=carrying?1.25:(i?1:-1)*Math.sin(OTHER.phase)*.5*k;}
+  OTHER.px=OTHER.x;OTHER.pz=OTHER.z;}
+function ensureAvatar(){if(!OTHER.av)OTHER.av=makeAvatar(ME()===0?0x2f6fd0:0xe58f2a,'Partner');}
+
+/* ================= online co-op ================= */
+const NET_VER='nm-net-1',NET_PREFIX='rr-muuttopaku-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const hasNet=()=>typeof window.Peer==='function'&&typeof window.RTCPeerConnection==='function';
+const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100,r3=v=>Math.round(v*1000)/1000;
+function netStatus(t,bad){const el=$('netStatus');el.textContent=t;el.classList.toggle('bad',!!bad);}
+function netErrText(err){const m={'peer-unavailable':'No game found with that code. Check the code and that your friend\'s game is open.','network':'Can\'t reach the relay server. Check your internet connection.',
+  'server-error':'The relay server isn\'t responding right now. Try again in a moment.','socket-error':'The relay server isn\'t responding right now. Try again in a moment.','socket-closed':'Lost connection to the relay server.',
+  'browser-incompatible':'This browser doesn\'t support online play. Play in Pelipaja.','webrtc':'A direct connection couldn\'t be opened. The network may be blocking it.'};
+  return m[err&&err.type]||('Connection error: '+((err&&(err.message||err.type))||'unknown'));}
+function netSend(o){if(NET.conn&&NET.conn.open){try{NET.conn.send(o);}catch(e){}}}
+function sendFast(o){const f=NET.fast;if(f&&f.open){const dc=f.dataChannel;if(dc&&dc.bufferedAmount>64000)return;try{f.send(o);}catch(e){}}else netSend(o);}
+let evQ=[];function netEv(e){if(NET.role==='host'&&NET.connected)evQ.push(e);}
+function netCleanup(){const c=NET.conn,f=NET.fast,p=NET.peer;NET.conn=NET.fast=NET.peer=null;NET.connected=false;NET.lastQ=NET.lastInQ=0;NET.off=null;try{f&&f.close();}catch(e){}try{c&&c.close();}catch(e){}try{p&&p.destroy();}catch(e){}}
+function newCode(){let c='';for(let i=0;i<5;i++)c+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return c;}
+function netButtons(on){$('bHost').disabled=!on;$('bJoin').disabled=!on;}
+function syncOff(ts){const o=performance.now()-ts;if(NET.off==null||o<NET.off)NET.off=o;else NET.off+=(o-NET.off)*.01;}
+function hostGame(){
+  if(!hasNet())return;netCleanup();NET.role='solo';netButtons(false);$('codeWrap').classList.add('hidden');$('bNetStart').classList.add('hidden');netStatus('Creating game…');
+  const code=newCode(),peer=new Peer(NET_PREFIX+code,{debug:0});NET.peer=peer;
+  peer.on('open',()=>{if(NET.peer!==peer)return;NET.code=code;$('codeLbl').textContent=code;$('codeWrap').classList.remove('hidden');$('bCopy').textContent='Copy';netStatus('Send the code to your friend. Waiting for them to join…');});
+  peer.on('connection',conn=>{if(NET.peer!==peer)return;
+    if(conn.label==='nm-fast'){if(NET.fast)try{NET.fast.close();}catch(e){}NET.fast=conn;conn.on('data',d=>{if(NET.fast===conn)onFast(d,'host');});conn.on('error',()=>{});return;}
+    if(NET.conn&&NET.conn.open){conn.on('open',()=>{conn.send({t:'full'});setTimeout(()=>conn.close(),400);});return;}
+    NET.conn=conn;bindConn(conn,'host');});
+  peer.on('error',err=>{if(NET.peer!==peer)return;if(err.type==='unavailable-id'){peer.destroy();NET.peer=null;hostGame();return;}if(mode!=='menu'&&NET.connected){netLost(netErrText(err));return;}netStatus(netErrText(err),true);netButtons(true);});
+  peer.on('disconnected',()=>{if(NET.peer===peer&&!peer.destroyed){try{peer.reconnect();}catch(e){}}});}
+function joinGame(){
+  if(!hasNet())return;const code=$('joinCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(code.length!==5){netStatus('The join code has 5 characters.',true);$('joinCode').focus();return;}
+  netCleanup();netButtons(false);$('codeWrap').classList.add('hidden');$('bNetStart').classList.add('hidden');netStatus('Connecting…');
+  const peer=new Peer({debug:0});NET.peer=peer;
+  peer.on('open',()=>{if(NET.peer!==peer)return;NET.hostId=NET_PREFIX+code;const conn=peer.connect(NET.hostId,{reliable:true,serialization:'json'});NET.conn=conn;bindConn(conn,'client');
+    setTimeout(()=>{if(NET.conn===conn&&!NET.connected){netStatus('Couldn\'t connect. Check the code or try another network.',true);netCleanup();netButtons(true);}},15000);});
+  peer.on('error',err=>{if(NET.peer!==peer)return;if(mode!=='menu'&&NET.connected){netLost(netErrText(err));return;}netStatus(netErrText(err),true);netCleanup();netButtons(true);});}
+function bindConn(conn,role){
+  conn.on('open',()=>{if(role==='client')conn.send({t:'hello',v:NET_VER});});
+  conn.on('data',d=>{if(NET.conn===conn)onNet(d,role);});
+  conn.on('close',()=>{if(NET.conn!==conn)return;if(NET.connected)netLost('Your partner left or the connection dropped.');else{netStatus('The connection closed.',true);netCleanup();netButtons(true);}});
+  conn.on('error',()=>{});}
+function onNet(d,role){
+  if(!d||typeof d!=='object')return;NET.lastRx=performance.now();
+  if(role==='host'){switch(d.t){
+    case'hello':if(d.v!==NET_VER){netSend({t:'bad'});netStatus('Your friend has a different version of the game. Both of you should update.',true);return;}
+      NET.connected=true;NET.role='host';NET.lastRx=performance.now();ensureAvatar();netSend({t:'welcome'});SFX.cash&&SFX.cash();
+      if(mode==='menu'){netStatus('Your partner joined. Start the shift when you are both ready.');$('bNetStart').classList.remove('hidden');}
+      else{netSend({t:'start',m:metaObj(),s:snapObj()});toast('Your partner joined the shift.');}break;
+    case'in':onFast(d,'host');break;
+    case'act':if(mode!=='menu'&&d.c&&typeof d.c==='object')applyAct(1,d.c);break;
+    case'ping':netSend({t:'pong',ts:d.ts});break;
+    case'bye':netLost('Your partner left the session.');break;}}
+  else{switch(d.t){
+    case'welcome':NET.connected=true;NET.role='guest';NET.lastRx=performance.now();ensureAvatar();
+      try{const f=NET.peer.connect(NET.hostId,{label:'nm-fast',reliable:false,serialization:'json'});NET.fast=f;f.on('data',x=>{if(NET.fast===f)onFast(x,'client');});f.on('error',()=>{});}catch(e){}
+      netStatus('Connected. Waiting for the host to start the shift…');break;
+    case'bad':netStatus('Game versions don\'t match. Both of you should update.',true);break;
+    case'full':netStatus('That game already has two players.',true);break;
+    case'start':guestStart(d);break;
+    case'meta':if(mode!=='menu')applyMeta(d.m);break;
+    case's':onFast(d,'client');break;
+    case'ev':if(mode!=='menu')for(const e of d.e||[])applyEv(e);break;
+    case'pong':NET.ping=Math.round(performance.now()-d.ts);break;
+    case'bye':netLost('The host ended the session.');break;}}}
+function onFast(d,role){
+  if(!d||typeof d!=='object')return;NET.lastRx=performance.now();
+  if(role==='host'&&d.t==='in'){if(d.q<=NET.lastInQ)return;NET.lastInQ=d.q;syncOff(d.ts);pushBuf(OTHER.buf,d.ts,d.P.slice(0,5));OTHER.mode=d.P[5];OTHER.seat=d.P[6];
+    if(d.V&&V.seat[0]===1)pushBuf(vanBuf,d.ts,d.V);NET.remoteThr=!!d.th;if(d.p!=null)NET.ping=d.p;}
+  else if(role==='client'&&d.t==='s'&&mode!=='menu')applySnap(d);}
+const ST=['loose','carried','dolly','van','placed'],DS=['van','held','parked'];
+function serOffer(o){return{id:o.id,client:o.client,from:HOUSES.indexOf(o.from),to:HOUSES.indexOf(o.to),keys:o.keys,pay:o.pay,due:o.due,len:o.len,mass:o.mass,kind:o.kind,prem:o.prem,zoneFloor:o.zoneFloor,needHD:o.needHD,notes:o.notes};}
+function deOffer(o){return Object.assign({},o,{from:HOUSES[o.from],to:HOUSES[o.to]});}
+function metaObj(){return{cash,rating,jobsDone,earned,history,day,FLEET,BIZ,offers:offers.map(serOffer),job:job?Object.assign(serOffer(job),{zone:job.zone,start:job.start}):null,items:ITEMS.map(i=>[i.id,i.k,i.floor])};}
+function applyMeta(m){
+  cash=m.cash;rating=m.rating;jobsDone=m.jobsDone;earned=m.earned;history=m.history;day=m.day;
+  const look=()=>JSON.stringify([FLEET.active,lookOf(vs())]),old=look(),oldHD=BIZ.hd;FLEET=m.FLEET;BIZ=m.BIZ;
+  if(look()!==old)buildVan();if(BIZ.hd!==oldHD)rebuildDolly();
+  offers=m.offers.map(deOffer);
+  if(m.items.map(a=>a[0]).join(',')!==ITEMS.map(i=>i.id).join(',')){clearItems();for(const[id,k,f]of m.items){const it={id,k,T:IT[k],mesh:buildItem(k),cond:100,state:'loose',by:-1,home:null,floor:f,x:0,z:0,y:-50,yaw:0};it.mesh.userData.dyn=true;ITEMS.push(it);}refreshItems();}
+  const oj=job?job.id:null;job=m.job?Object.assign(deOffer(m.job),{zone:m.job.zone,start:m.job.start}):null;
+  if(job&&oj!==job.id)showZone(job.to,job.zoneFloor,job.zone);else if(!job&&oj!==null)showZone(null);
+  updateJobPanel(true);if(modal==='term')renderTerm();if(modal==='gar')renderGar();}
+function snapObj(){return{t:'s',q:++NET.q,ts:Math.round(performance.now()),gt:Math.round(gameT),c:Math.round(cash),dy:day,
+  V:[r2(V.x),r2(V.z),r3(V.yaw),r2(V.v),r3(V.steer),r3(V.pitch),r3(V.roll)],dr:V.doors,seat:V.seat,eo:engineOn?1:0,fu:r3(vs().fuel),co:r1(vs().cond),
+  P:[r2(P.x),r2(P.z),r2(P.y),r3(P.yaw),r3(P.pitch),mode,mode==='van'?mySeat:-1],
+  C:CARS.map(c=>[r1(c.x),r1(c.z),r2(c.h)]),
+  I:ITEMS.map(i=>[i.id,ST.indexOf(i.state),i.by==null?-1:i.by,r2(i.x||0),r2(i.z||0),r2(i.y||0),r2(i.yaw||0),Math.round(i.cond),job&&i.home===job.from?1:0]),
+  cg:V.cargo.map(i=>i.id),D:[DS.indexOf(dolly.state),dolly.by,r2(dolly.x),r2(dolly.z),r2(dolly.y),r2(dolly.yaw),dolly.load?dolly.load.id:-1]};}
+function applySnap(d){
+  if(d.q<=NET.lastQ)return;NET.lastQ=d.q;syncOff(d.ts);
+  gameT=d.gt;cash=d.c;day=d.dy;V.doors=d.dr;V.seat=d.seat;engineOn=!!d.eo;vs().fuel=d.fu;vs().cond=d.co;
+  if(!vanAuth())pushBuf(vanBuf,d.ts,d.V);
+  pushBuf(OTHER.buf,d.ts,d.P.slice(0,5));OTHER.mode=d.P[5];OTHER.seat=d.P[6];
+  d.C.forEach((a,i)=>{const c=CARS[i];if(c){c.tx=a[0];c.tz=a[1];c.th=a[2];}});
+  const by=new Map(ITEMS.map(i=>[i.id,i]));
+  for(const a of d.I){const it=by.get(a[0]);if(!it)continue;it.state=ST[a[1]]||'loose';it.by=a[2];it.x=a[3];it.z=a[4];it.y=a[5];it.yaw=a[6];it.cond=a[7];it.home=a[8]&&job?job.from:null;}
+  V.cargo=d.cg.map(id=>by.get(id)).filter(Boolean);
+  dolly.state=DS[d.D[0]]||'van';dolly.by=d.D[1];dolly.x=d.D[2];dolly.z=d.D[3];dolly.y=d.D[4];dolly.yaw=d.D[5];dolly.load=d.D[6]>=0?by.get(d.D[6])||null:null;
+  refreshItems();
+  if(mode==='van'){const k=V.seat.indexOf(ME());if(k<0){if(performance.now()-NET.enterT>1500)forceExit();}else mySeat=k;}}
+function lerpCars(dt){const k=Math.min(1,dt*10);for(const c of CARS){if(c.tx==null)continue;c.x=lerp(c.x,c.tx,k);c.z=lerp(c.z,c.tz,k);c.h=angLerp(c.h,c.th,k);c.mesh.position.set(c.x,0,c.z);c.mesh.rotation.y=c.h;}}
+function applyEv(e){switch(e[0]){
+  case'toast':toast(e[1]);break;
+  case'sfx':if(SFX[e[1]])SFX[e[1]](...(e[2]||[]));break;
+  case'report':$('rTitle').textContent=e[1];$('rSub').textContent=e[2];$('rTable').innerHTML=e[3];openModal('report');break;
+  case'kick':forceExit();break;}}
+function netTick(dt,thr){if(!NET.connected||mode==='menu')return;
+  if(NET.role==='host'){NET.snapT-=dt;if(NET.snapT<=0){NET.snapT=1/15;if(evQ.length){netSend({t:'ev',e:evQ});evQ=[];}sendFast(snapObj());}
+    NET.metaT-=dt;if(NET.metaDirty||NET.metaT<=0){NET.metaDirty=false;NET.metaT=4;netSend({t:'meta',m:metaObj()});}}
+  else{NET.inT-=dt;if(NET.inT<=0){NET.inT=.05;const o={t:'in',q:++NET.inQ,ts:Math.round(performance.now()),P:[r2(P.x),r2(P.z),r2(P.y),r3(P.yaw),r3(P.pitch),mode,mode==='van'?mySeat:-1],th:thr?1:0,p:NET.ping};
+      if(vanAuth()&&V.seat[0]===1)o.V=[r2(V.x),r2(V.z),r3(V.yaw),r2(V.v),r3(V.steer),r3(V.pitch),r3(V.roll)];sendFast(o);}
+    NET.pendT-=dt;if(NET.pendT<=0){NET.pendT=.3;if(NET.pend.c>0||NET.pend.b>0){netSend({t:'act',c:{a:'dmg',c:NET.pend.c,b:NET.pend.b,s:NET.pend.s}});NET.pend={c:0,b:0,s:0};}}}
+  NET.pingT-=dt;if(NET.pingT<=0){NET.pingT=2;netSend({t:'ping',ts:performance.now()});}}
+function netLost(msg){
+  const wasGuest=NET.role==='guest',inGame=mode!=='menu';netCleanup();
+  if(wasGuest){NET.role='solo';if(inGame){toast('Connection lost. '+msg+' Returning to the menu…');setTimeout(()=>location.reload(),2800);}else{netStatus(msg,true);netButtons(true);}return;}
+  NET.role='solo';
+  for(const q of[0,1])if(V.seat[q]===1)V.seat[q]=-1;if(mode==='van')V.seat[mySeat]=0;if(V.seat[0]===-1)engineOn=false;
+  for(const it of ITEMS)if(it.state==='carried'&&it.by===1){it.state='loose';it.by=-1;it.x=OTHER.x;it.z=OTHER.z;it.y=OTHER.y;it.yaw=OTHER.yaw;it.home=null;}
+  if(dolly.state==='held'&&dolly.by===1){dolly.state='parked';dolly.by=-1;dolly.x=OTHER.x;dolly.z=OTHER.z;dolly.y=OTHER.y;dolly.yaw=OTHER.yaw;}
+  OTHER.mode='off';OTHER.buf=[];vanBuf=[];if(OTHER.av)OTHER.av.g.visible=false;refreshItems();
+  if(inGame)toast('Online session ended. '+msg);else{netStatus(msg,true);netButtons(true);$('bNetStart').classList.add('hidden');}}
+setInterval(()=>{if(!NET.connected)return;netSend({t:'hb'});if(performance.now()-NET.lastRx>8000)netLost('Your partner isn\'t responding.');},1000);
+function guestStart(d){applyMeta(d.m);NET.lastQ=0;startGame();applySnap(d.s);}
+
 /* ================= start & loop ================= */
 window.rrSaveGame=save;
 if(hadSave){$('saveInfo').textContent='Balance '+eur(cash)+' · '+jobsDone+' jobs · rating '+rating.toFixed(1);$('bStart').textContent='Continue';$('bNew').classList.remove('hidden');}
 $('bNew').onclick=()=>{try{localStorage.removeItem('muuttopaku.v3');localStorage.removeItem('muuttopaku.v2');}catch(e){}cash=1500;jobsDone=0;history=[];day=1;gameT=8*3600;jobSeq=1041;rating=3;earned=0;FLEET={active:'van',own:{van:newVeh()}};BIZ={marketing:0,dispatch:0,insurance:false,hd:false};buildVan();rebuildDolly();startGame();};
-$('bStart').onclick=startGame;
-function startGame(){$('start').classList.add('hidden');['hud','mapw','dot'].forEach(i=>$(i).classList.remove('hidden'));mode='foot';offers=[];fillOffers();initAudio();if(AC&&AC.state==='suspended')AC.resume();lock();
-  toast('Your shift has started. Check the dispatch computer for jobs.');updateJobPanel(true);}
+$('bStart').onclick=()=>{if(NET.peer)netCleanup();NET.role='solo';startGame();};
+$('bOnline').onclick=()=>{initAudio();$('mainActs').classList.add('hidden');$('netBox').classList.remove('hidden');netButtons(true);netStatus('');if(!hasNet()){netButtons(false);netStatus('Online play needs Pelipaja or a normal browser window. This view blocks direct connections.',true);}};
+$('bNetBack').onclick=()=>{netCleanup();NET.role='solo';$('netBox').classList.add('hidden');$('mainActs').classList.remove('hidden');$('codeWrap').classList.add('hidden');$('bNetStart').classList.add('hidden');};
+$('bHost').onclick=hostGame;$('bJoin').onclick=joinGame;
+$('joinCode').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')joinGame();});
+$('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');});
+$('bCopy').onclick=()=>{const b=$('bCopy');try{navigator.clipboard.writeText(NET.code).then(()=>b.textContent='Copied',()=>b.textContent=NET.code);}catch(e){b.textContent=NET.code;}};
+$('bNetStart').onclick=()=>{if(!NET.connected)return;startGame();netSend({t:'start',m:metaObj(),s:snapObj()});};
+$('bLeave').onclick=()=>{netSend({t:'bye'});if(NET.role==='guest'){netCleanup();location.reload();}else{netLost('You ended the session.');closeModal();}};
+function startGame(){$('start').classList.add('hidden');['hud','mapw','dot'].forEach(i=>$(i).classList.remove('hidden'));mode='foot';
+  if(NET.role!=='guest'){offers=[];fillOffers();toast(NET.connected?'Shift started. Your partner is at the office with you.':'Your shift has started. Check the dispatch computer for jobs.');}
+  else{P.x=START.x+.9;P.z=START.z+.5;toast('You joined the shift. The host\'s company is in charge.');}
+  initAudio();if(AC&&AC.state==='suspended')AC.resume();lock();updateJobPanel(true);}
 let last=performance.now(),saveT=0,mapT=0,frameMs=16,prevNow=performance.now(),prT=0;
+function simWorld(dt){gameT+=dt*TIME_SCALE;if(gameT>=86400){gameT-=86400;day++;}if(gameT-lastOfferT>7200&&offers.length){offers.shift();fillOffers();lastOfferT=gameT;}updateCars(dt);}
 function frame(now){
   requestAnimationFrame(frame);
   const dt=Math.min(.05,(now-last)/1000);last=now;
   frameMs=lerp(frameMs,(now-prevNow)||16,.05);prevNow=now;prT+=dt;
   if(prT>2&&mode!=='menu'){prT=0;let np=curPR;if(frameMs>24)np=Math.max(.6,curPR-.15);else if(frameMs<14)np=Math.min(maxPR(),curPR+.1);if(np!==curPR){curPR=np;renderer.setPixelRatio(curPR);}}
-  const active=mode!=='menu'&&!paused&&!modal;let thr=false,moving=false;
+  const online=NET.connected,active=mode!=='menu'&&(online||(!paused&&!modal));let thr=false,moving=false;
   if(active){
-    gameT+=dt*TIME_SCALE;if(gameT>=86400){gameT-=86400;day++;}cloudDrift+=dt*.8;
-    if(gameT-lastOfferT>7200&&offers.length){offers.shift();fillOffers();lastOfferT=gameT;}
-    updateCars(dt);thr=updateVan(dt);
+    cloudDrift+=dt*.8;
+    if(NET.role!=='guest')simWorld(dt);else{gameT+=dt*TIME_SCALE;lerpCars(dt);}
+    thr=updateVan(dt);
     if(mode==='van'){P.x=V.x;P.z=V.z;updateCamVan(dt);}else moving=updateFoot(dt);
+    updateOther(dt);netTick(dt,thr);
     routeT-=dt;if(routeT<=0){routeT=.5;const tg=jobTarget();if(tg){const p=doorPt(tg),sx=mode==='van'?V.x:P.x,sz=mode==='van'?V.z:P.z;routePts=route(sx,sz,p[0],p[1]);}else routePts=null;}
     saveT+=dt;if(saveT>20){saveT=0;save();}
     if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').classList.remove('show');}
     $('clock').textContent=fmtT(gameT);$('day').textContent='Day '+day;$('cash').textContent=eur(cash);$('cash').classList.toggle('neg',cash<0);$('rating').textContent=starStr(rating)+' '+rating.toFixed(1);
+    const ni=$('netInfo');ni.classList.toggle('hidden',!online);if(online)ni.textContent='Online · partner '+(OTHER.mode==='van'?(OTHER.seat===0?'driving':'in the passenger seat'):'on foot')+' · '+NET.ping+' ms';
     updateHint();updateJobPanel(false);mapT-=dt;if(mapT<=0){mapT=.066;drawMap();}
   }else if(mode==='menu'){const t=now*.00004;camera.position.set(-82+Math.cos(t)*70,32,-55+Math.sin(t)*70);camera.lookAt(-82,0,-55);}
   updateAudio(dt,thr,moving);
   updateSky(mode==='van'?V.x:mode==='menu'?-82:P.x,mode==='van'?V.z:mode==='menu'?-55:P.z);updateRoomLight();
   if(active)renderMirrors();
   renderer.render(scene,camera);}
+// the host keeps the world running while its window is hidden (the browser stops animation frames then)
+setInterval(()=>{if(document.hidden&&NET.role==='host'&&NET.connected&&mode!=='menu'){const now=performance.now(),dt=Math.min(.1,(now-last)/1000);last=now;simWorld(dt);updateVan(dt);netTick(dt,false);}},50);
 updateSky(-82,-55);requestAnimationFrame(frame);
 </script>
 </body>

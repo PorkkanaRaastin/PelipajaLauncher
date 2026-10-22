@@ -2,28 +2,26 @@
   "games": [
     {
       "id": "muuttopaku",
-      "name": "Muuttopaku",
+      "name": "Northline Movers",
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.2",
+      "version": "0.3",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
         "Work in progress",
+        "Co-op",
+        "Online",
         "Simulator",
-        "Driving",
-        "3D"
+        "Driving"
       ],
-      "description": "Run the vans for Northline Moving. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. Spend your earnings on bigger vehicles, engine tuning and paint. Work in progress: expect changes.",
+      "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
-        "Town four times bigger, with two- and three-storey houses and apartment blocks with stairs",
-        "Working side mirrors and a reversing camera",
-        "Garage: buy a long van or a box truck, tune the engine, brakes and tyres, paint your van",
-        "Fuel, a fuel station, van damage and repairs",
-        "Business upgrades, company rating and premium jobs, including pianos",
-        "Around 30 kinds of items, bigger moves over several trips",
-        "Sound effects and two in-game radio stations"
+        "Online co-op: host a game and share the 5-letter code with a friend",
+        "Both players can get in the van: one drives, the other takes the passenger seat",
+        "Movers now have characters, so you can see your partner carry things and walk around",
+        "The game is now called Northline Movers"
       ]
     },
     {
