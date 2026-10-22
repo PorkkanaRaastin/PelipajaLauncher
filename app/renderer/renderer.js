@@ -7,6 +7,7 @@ let games = [];
 let newIds = new Set();
 let whatsNew = null, whatsNewShown = false;
 function newBadge() { const b = document.createElement("span"); b.className = "new-badge"; b.textContent = "NEW"; return b; }
+function statusBadge(g) { const b = document.createElement("span"); b.className = "status-badge"; b.textContent = g.status; b.title = "Work in progress: this game is still being built and will change in updates."; return b; }
 const mainGames = () => games.filter((g) => g.category !== "minipeli");
 const miniGames = () => games.filter((g) => g.category === "minipeli");
 let stats = {};
@@ -123,6 +124,7 @@ function renderHero() {
   const tags = $("heroTags");
   tags.replaceChildren();
   if (newIds.has(g.id)) tags.append(newBadge());
+  if (g.status) tags.append(statusBadge(g));
   for (const t of g.tags || []) {
     const s = document.createElement("span");
     s.className = "tag";
@@ -171,6 +173,7 @@ function renderGrid() {
     body.append(b, span);
     card.append(body);
     if (newIds.has(g.id)) { const nb = newBadge(); nb.classList.add("on-card"); card.append(nb); }
+    if (g.status) { const sb = statusBadge(g); sb.classList.add("on-card"); card.append(sb); }
     card.addEventListener("click", () => selectGame(g.id));
     grid.append(card);
   }

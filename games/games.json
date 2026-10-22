@@ -1,6 +1,28 @@
 {
   "games": [
     {
+      "id": "muuttopaku",
+      "name": "Muuttopaku",
+      "type": "html",
+      "path": "muuttopaku/index.html",
+      "cover": "muuttopaku/cover.jpg",
+      "version": "0.1",
+      "status": "Early access",
+      "endButton": "top-right",
+      "tags": [
+        "Work in progress",
+        "Simulator",
+        "Driving",
+        "3D"
+      ],
+      "description": "Run the vans for Northline Moving. Take jobs from dispatch, carry boxes and furniture out of homes, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. Work in progress: expect changes.",
+      "updates": [
+        "New game in early access",
+        "Moves between real addresses with a GPS route on the map",
+        "Van handling, traffic, day and night, and damage claims from careless driving"
+      ]
+    },
+    {
       "id": "rautasatama",
       "name": "Iron Harbor",
       "type": "html",

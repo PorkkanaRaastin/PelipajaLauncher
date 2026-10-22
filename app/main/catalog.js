@@ -44,6 +44,8 @@ function checkGame(raw, gamesDir) {
     category: CATEGORIES.includes(raw.category) ? raw.category : "peli",
     players: raw.players === 2 ? 2 : 1,
     controls: text(raw.controls, 60),
+    // esim. "Early access": näkyy oranssina merkkinä kortissa ja pelin sivulla
+    status: text(raw.status, 30),
   };
 
   if (type === "html") {
