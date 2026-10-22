@@ -141,7 +141,7 @@ canvas{display:block}
 <body>
 
 <div id="hud" class="hidden">
-  <div id="status" class="panel"><div><span id="clock" class="num">08:00</span><span id="day" class="lbl">Day 1</span></div><div id="cash" class="num">€0</div><div id="rating"></div><div class="lbl" style="text-align:right">Northline Moving</div><div id="netInfo" class="lbl hidden"></div></div>
+  <div id="status" class="panel"><div><span id="clock" class="num">08:00</span><span id="day" class="lbl">Day 1</span></div><div id="cash" class="num">€0</div><div id="rating"></div><div id="coName" class="lbl" style="text-align:right">Northline Moving</div><div id="netInfo" class="lbl hidden"></div></div>
   <div id="jobp" class="panel hidden"></div>
 </div>
 <div id="dot" class="hidden"></div>
@@ -200,7 +200,7 @@ canvas{display:block}
 </div>
 
 <div id="term" class="overlay hidden"><div class="win">
-  <header><b>Northline Moving</b><div class="tabs" id="tTabs"><button data-t="jobs" class="on">Jobs</button><button data-t="biz">Business</button><button data-t="co">Company</button></div><span class="sp"></span><span id="tInfo" class="num"></span><button class="btn ghost sm" id="tClose">Close</button></header>
+  <header><b id="tCo">Northline Moving</b><div class="tabs" id="tTabs"><button data-t="jobs" class="on">Jobs</button><button data-t="biz">Business</button><button data-t="co">Company</button></div><span class="sp"></span><span id="tInfo" class="num"></span><button class="btn ghost sm" id="tClose">Close</button></header>
   <div class="body" id="tBody"></div>
   <div class="foot"><span>Payment is reduced by damage claims and late arrival.</span><span>Esc to close</span></div>
 </div></div>
@@ -715,7 +715,9 @@ let BIZ={marketing:0,dispatch:0,insurance:false,hd:false};
 const vs=()=>FLEET.own[FLEET.active];
 function perf(){const s=VEH[FLEET.active],u=vs().up;return{accel:s.accel*(1+.18*u.engine),vmax:s.vmax+2.5*u.engine,brake:s.brake*(1+.2*u.brakes),steer:s.steer*(1+.08*u.tires),latThr:4.2+.7*u.tires,susp:1-.25*u.susp,straps:1-.25*u.straps,cap:s.fuelCap*(u.tank?1.5:1),cons:s.cons};}
 const lookOf=st=>({paint:PAINTS[st.paint][1],stripe:STRIPES[st.stripe][1],rims:RIMS[st.rims][1],ex:st.ex});
-const SAVES_KEY='muuttopaku.saves';let slotId=null;
+const SAVES_KEY='muuttopaku.saves';let slotId=null,COMPANY='My company';
+const cleanCo=n=>String(n||'').replace(/[<>]/g,'').trim().slice(0,24)||'My company';
+function setCompany(n){COMPANY=cleanCo(n);const a=$('coName'),b=$('tCo');if(a)a.textContent=COMPANY;if(b)b.textContent=COMPANY;}
 function listSaves(){try{const l=JSON.parse(localStorage.getItem(SAVES_KEY)||'[]');return Array.isArray(l)?l:[];}catch(e){return[];}}
 function writeSaves(l){try{localStorage.setItem(SAVES_KEY,JSON.stringify(l));}catch(e){}}
 function save(){if(NET.role==='guest'||!slotId)return;try{localStorage.setItem('muuttopaku.slot.'+slotId,JSON.stringify({cash,jobsDone,history,gameT,day,jobSeq,rating,earned,FLEET,BIZ}));
@@ -1076,7 +1078,7 @@ $('tTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;termTab=b
 $('gTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;garTab=b.dataset.t;SFX.click();renderGar();};
 const pips=(l,n)=>'<div class="pips">'+Array.from({length:n},(_,i)=>`<i class="${i<l?'on':''}"></i>`).join('')+'</div>';
 function renderTerm(){
-  $('tInfo').textContent='Day '+day+' · '+fmtT(gameT)+' · '+eur(cash);
+  setCompany(COMPANY);$('tInfo').textContent='Day '+day+' · '+fmtT(gameT)+' · '+eur(cash);
   document.querySelectorAll('#tTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===termTab));
   let h='';
   if(termTab==='jobs'){
@@ -1095,6 +1097,7 @@ function renderTerm(){
       `<div class="item"><h4>Cargo insurance</h4><p>Damage claims are cut by 60%. Costs 8% of each job price.</p><div class="row"><span class="${BIZ.insurance?'owned':'lbl'}">${BIZ.insurance?'Active':'Not active'}</span><button class="btn ghost sm" data-a="ins">${BIZ.insurance?'Cancel policy':'Take out policy'}</button></div></div>`+
       '</div></section>';}
   else{
+    h+=`<section><div class="lbl">Company</div><div style="font-size:22px;font-weight:700;margin:2px 0 4px">${esc(COMPANY)}</div><div class="s" style="color:#8d949e;font-size:12.5px">${NET.role==='guest'?'You are working in '+esc(OTHER.name||'your friend')+'\'s company.':NET.connected?'Owner · '+esc(OTHER.name||'your partner')+' works with you':'Owner'}</div></section>`;
     h+=`<div class="stat"><div><span class="lbl">Balance</span><b class="num">${eur(cash)}</b></div><div><span class="lbl">Rating</span><b>${rating.toFixed(1)} <span style="color:#e9a23b;font-size:13px">${starStr(rating)}</span></b></div><div><span class="lbl">Jobs done</span><b class="num">${jobsDone}</b></div><div><span class="lbl">Total earned</span><b class="num">${eur(earned)}</b></div></div>`;
     h+=`<section><div class="lbl">Fleet</div><table><tr><th>Vehicle</th><th>Body</th><th>Fuel</th><th></th></tr>${Object.keys(FLEET.own).map(k=>{const v=FLEET.own[k];return`<tr><td>${VEH[k].name}</td><td>${Math.round(v.cond)}%</td><td>${Math.round(v.fuel*100)}%</td><td class="r">${k===FLEET.active?'<span class="owned">In use</span>':''}</td></tr>`;}).join('')}</table></section>`;
     h+=`<section><div class="lbl">Rating</div><div class="s" style="color:#8d949e;font-size:12.5px">Clients rate every job on item condition and punctuality. At 4.0 stars premium clients start calling, including piano moves.</div></section>`;
@@ -1453,7 +1456,7 @@ function onNet(d,role){
   if(!d||typeof d!=='object')return;NET.lastRx=performance.now();
   if(role==='host'){switch(d.t){
     case'hello':if(d.v!==NET_VER){netSend({t:'bad'});netStatus('Your friend has a different version of the game. Both of you should update.',true);return;}
-      NET.connected=true;NET.role='host';NET.lastRx=performance.now();ensureAvatar(d.ch);netSend({t:'welcome',ch:CHAR});SFX.cash&&SFX.cash();
+      NET.connected=true;NET.role='host';NET.lastRx=performance.now();ensureAvatar(d.ch);netSend({t:'welcome',ch:CHAR,co:COMPANY});SFX.cash&&SFX.cash();
       if(mode==='menu'){netStatus((OTHER.name||'Your partner')+' joined. Start the shift when you are both ready.');$('bNetStart').classList.remove('hidden');}
       else{netSend({t:'start',m:metaObj(),s:snapObj()});toast('Your partner joined the shift.');}break;
     case'in':onFast(d,'host');break;
@@ -1461,9 +1464,9 @@ function onNet(d,role){
     case'ping':netSend({t:'pong',ts:d.ts});break;
     case'bye':netLost('Your partner left the session.');break;}}
   else{switch(d.t){
-    case'welcome':NET.connected=true;NET.role='guest';NET.lastRx=performance.now();ensureAvatar(d.ch);
+    case'welcome':NET.connected=true;NET.role='guest';NET.lastRx=performance.now();ensureAvatar(d.ch);setCompany(d.co);
       try{const f=NET.peer.connect(NET.hostId,{label:'nm-fast',reliable:false,serialization:'json'});NET.fast=f;f.on('data',x=>{if(NET.fast===f)onFast(x,'client');});f.on('error',()=>{});}catch(e){}
-      netStatus('Connected. Waiting for the host to start the shift…');break;
+      netStatus('Connected to '+COMPANY+'. Waiting for '+(OTHER.name||'the host')+' to start the shift…');break;
     case'bad':netStatus('Game versions don\'t match. Both of you should update.',true);break;
     case'full':netStatus('That game already has two players.',true);break;
     case'start':guestStart(d);break;
@@ -1480,8 +1483,8 @@ function onFast(d,role){
 const ST=['loose','carried','dolly','van','placed'],DS=['van','held','parked'];
 function serOffer(o){return{id:o.id,client:o.client,from:HOUSES.indexOf(o.from),to:HOUSES.indexOf(o.to),keys:o.keys,pay:o.pay,due:o.due,len:o.len,mass:o.mass,kind:o.kind,prem:o.prem,zoneFloor:o.zoneFloor,needHD:o.needHD,notes:o.notes};}
 function deOffer(o){return Object.assign({},o,{from:HOUSES[o.from],to:HOUSES[o.to]});}
-function metaObj(){return{cash,rating,jobsDone,earned,history,day,FLEET,BIZ,offers:offers.map(serOffer),job:job?Object.assign(serOffer(job),{zone:job.zone,start:job.start}):null,items:ITEMS.map(i=>[i.id,i.k,i.floor])};}
-function applyMeta(m){
+function metaObj(){return{co:COMPANY,cash,rating,jobsDone,earned,history,day,FLEET,BIZ,offers:offers.map(serOffer),job:job?Object.assign(serOffer(job),{zone:job.zone,start:job.start}):null,items:ITEMS.map(i=>[i.id,i.k,i.floor])};}
+function applyMeta(m){if(m.co)setCompany(m.co);
   cash=m.cash;rating=m.rating;jobsDone=m.jobsDone;earned=m.earned;history=m.history;day=m.day;
   const look=()=>JSON.stringify([FLEET.active,lookOf(vs())]),old=look(),oldHD=BIZ.hd;FLEET=m.FLEET;BIZ=m.BIZ;
   if(look()!==old)buildVan();if(BIZ.hd!==oldHD)rebuildDolly();
@@ -1551,7 +1554,7 @@ $('saveList').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.del){if(b.dataset.sure){const id=b.dataset.del;writeSaves(listSaves().filter(s=>s.id!==id));try{localStorage.removeItem('muuttopaku.slot.'+id);}catch(x){}SFX.click();if(!listSaves().length){backScr();return;}renderSaves();}else{b.dataset.sure='1';b.textContent='Sure?';b.classList.remove('ghost');}return;}
   if(b.dataset.slot){SFX.click();chooseSlot(b.dataset.slot);}};
 function chooseSlot(id){slotId=id;const s=listSaves().find(x=>x.id===id);$('modeTitle').textContent=s?s.name:'';showScr('scrMode');}
-function loadSlot(id){resetState();clearItems();V.cargo=[];dolly.state='van';dolly.by=-1;dolly.load=null;showZone(null);slotId=id;try{const raw=localStorage.getItem('muuttopaku.slot.'+id);if(raw)applySaveData(JSON.parse(raw));}catch(e){}buildVan();rebuildDolly();}
+function loadSlot(id){resetState();clearItems();V.cargo=[];dolly.state='van';dolly.by=-1;dolly.load=null;showZone(null);slotId=id;{const e=listSaves().find(x=>x.id===id);setCompany(e&&e.name);}try{const raw=localStorage.getItem('muuttopaku.slot.'+id);if(raw)applySaveData(JSON.parse(raw));}catch(e){}buildVan();rebuildDolly();}
 $('mContinue').onclick=()=>{SFX.click();initAudio();renderSaves();showScr('scrSaves');};
 $('mNew').onclick=()=>{SFX.click();initAudio();$('saveName').value='Company '+(listSaves().length+1);showScr('scrNew');setTimeout(()=>{$('saveName').focus();$('saveName').select();},30);};
 $('saveName').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')$('bCreate').click();});
@@ -1590,7 +1593,7 @@ $('mChar').onclick=()=>{SFX.click();initAudio();renderChar();showScr('scrChar');
 refreshMain();
 function startGame(){$('start').classList.add('hidden');try{renderer.compile(scene,camera);}catch(e){}['hud','mapw','dot'].forEach(i=>$(i).classList.remove('hidden'));mode='foot';
   if(NET.role!=='guest'){offers=[];fillOffers();toast(NET.connected?'Shift started. Your partner is at the office with you.':'Your shift has started. Check the dispatch computer for jobs.');}
-  else{P.x=START.x+.9;P.z=START.z+.5;toast('You joined the shift. The host\'s company is in charge.');}
+  else{P.x=START.x+.9;P.z=START.z+.5;toast('You joined '+COMPANY+'. '+(OTHER.name||'The host')+' is in charge of the company.');}
   initAudio();if(AC&&AC.state==='suspended')AC.resume();lock();updateJobPanel(true);}
 let last=performance.now(),saveT=0,mapT=0,frameMs=16,prevNow=performance.now(),prT=0,slowT=0,fastT=0;
 const HC={};function setTxt(id,v){if(HC[id]!==v){HC[id]=v;$(id).textContent=v;}}function setHtml(el,v){if(el._h!==v){el._h=v;el.innerHTML=v;}}
