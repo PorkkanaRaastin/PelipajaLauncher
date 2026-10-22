@@ -6,7 +6,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.1",
+      "version": "0.2",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -15,11 +15,15 @@
         "Driving",
         "3D"
       ],
-      "description": "Run the vans for Northline Moving. Take jobs from dispatch, carry boxes and furniture out of homes, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. Work in progress: expect changes.",
+      "description": "Run the vans for Northline Moving. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. Spend your earnings on bigger vehicles, engine tuning and paint. Work in progress: expect changes.",
       "updates": [
-        "New game in early access",
-        "Moves between real addresses with a GPS route on the map",
-        "Van handling, traffic, day and night, and damage claims from careless driving"
+        "Town four times bigger, with two- and three-storey houses and apartment blocks with stairs",
+        "Working side mirrors and a reversing camera",
+        "Garage: buy a long van or a box truck, tune the engine, brakes and tyres, paint your van",
+        "Fuel, a fuel station, van damage and repairs",
+        "Business upgrades, company rating and premium jobs, including pianos",
+        "Around 30 kinds of items, bigger moves over several trips",
+        "Sound effects and two in-game radio stations"
       ]
     },
     {
