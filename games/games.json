@@ -6,7 +6,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.3",
+      "version": "0.4",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -18,10 +18,13 @@
       ],
       "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
-        "Online co-op: host a game and share the 5-letter code with a friend",
-        "Both players can get in the van: one drives, the other takes the passenger seat",
-        "Movers now have characters, so you can see your partner carry things and walk around",
-        "The game is now called Northline Movers"
+        "New main menu with several named saves: pick a save, then play solo or with a friend",
+        "Character editor: hats, clothes, hair, glasses and beards, plus your name above your head",
+        "Traffic lights at every crossing and three times more traffic, including city buses",
+        "Smoother online play for the joining player",
+        "Fixed getting stuck in house doorways",
+        "Fixed the player arrow on the minimap pointing the wrong way",
+        "Smoother camera when looking around"
       ]
     },
     {
