@@ -42,24 +42,25 @@
     },
     {
       "id": "tunturiin",
-      "name": "Peak Pals",
+      "name": "Chained Climbers",
       "type": "html",
       "path": "tunturiin/index.html",
       "cover": "tunturiin/cover.jpg",
-      "version": "2.0",
+      "version": "3.0",
       "endButton": "top-left",
       "tags": [
         "Climbing",
+        "Co-op",
         "Singleplayer",
-        "Online co-op"
+        "Online"
       ],
-      "description": "Climb six Lapland fells before sunset. Grip rock, kick up ice chimneys, leap crevasses, dodge falling rocks and hammer pitons to rest. Play alone or online with a friend.",
+      "description": "Pate and Masa are chained together and a storm is rising below. Climb cliffs, icy chimneys and caves inside the mountain. If one falls, the other must hold on. Play solo with Masa the bot or online with a friend.",
       "updates": [
-        "Singleplayer, plus online co-op with a join code",
-        "Saves: continue your trip, and keep a list of online trips",
-        "New controls: Shift grip, Space jump and wall jump, E piton",
-        "Six fells with ice chimneys, crumbling rock, crevasses, rockfall and wind",
-        "Cloudberries to find, and all-new graphics with High quality and High performance modes"
+        "Peak Pals is now Chained Climbers: two climbers chained together",
+        "Climb straight up huge mountains with a storm rising behind you",
+        "Caves inside the mountain, icy chimneys, swings across gaps and falling rocks",
+        "Singleplayer with Masa the bot, who follows you, holds the chain and shows the way",
+        "34 achievements with trophies, progress and filters"
       ]
     },
     {
@@ -107,18 +108,21 @@
       "type": "html",
       "path": "kuutiomaa/index.html",
       "cover": "kuutiomaa/cover.jpg",
-      "version": "0.3",
+      "version": "0.6",
       "endButton": "top-right",
       "tags": [
         "Sandbox",
+        "Survival",
         "Crafting",
         "3D"
       ],
-      "description": "A block world with biomes, villages and animals. Chop trees, craft tools and build. Every account has its own saved world.",
+      "description": "An endless block world with caves, villages, diamonds and monsters. Survive the nights, build a portal to the Underworld and find the stronghold that leads to the Rim and its Warden.",
       "updates": [
-        "Biomes, villages and animals",
-        "Inventory and crafting",
-        "Your world is saved to your account"
+        "New classic pixel-block look: textured grass, dirt, stone, wood, leaves and water",
+        "Textured tall grass, flowers and crops, and textured block icons",
+        "Caves, diamonds, armor, furnaces, chests and villager trading",
+        "The Underworld and the Rim with portals and a final boss",
+        "Flowing water and lava, buckets and generative music"
       ]
     },
     {

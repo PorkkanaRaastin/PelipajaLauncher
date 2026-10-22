@@ -2,19 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Peak Pals</title>
+<title>Chained Climbers</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#141826;font-family:"Segoe UI",system-ui,sans-serif;color:#f4efe6}
 canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh}
 #hud{position:fixed;left:0;right:0;top:12px;display:flex;justify-content:center;gap:8px;pointer-events:none;z-index:5;flex-wrap:wrap;padding:0 12px}
 #hud[hidden],.pp[hidden]{display:none}
-.pill{background:rgba(12,14,24,.7);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:7px 13px;display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;backdrop-filter:blur(4px)}
+.pill{background:rgba(12,14,24,.72);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:7px 13px;display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;backdrop-filter:blur(4px)}
 .pill small{font-weight:700;color:#b9b2a6;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase}
-#sunBar{width:110px;height:8px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
-#sunFill{height:100%;background:linear-gradient(90deg,#ff6a3d,#ffd36a);border-radius:9px}
-#time.low{color:#ff8c6a}
+#altBar{width:90px;height:8px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
+#altFill{height:100%;background:linear-gradient(90deg,#7ec8ff,#ffffff);border-radius:9px}
+#stormPill.near{border-color:rgba(255,120,90,.8);background:rgba(70,20,30,.8)}
+#stormPill.near #storm{color:#ffb09a}
 .berry{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffd08a,#f08a24 60%,#b85a10);box-shadow:0 0 0 2px rgba(0,0,0,.25)}
-.pp{position:fixed;bottom:14px;pointer-events:none;z-index:5;background:rgba(12,14,24,.7);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px;min-width:170px}
+.pp{position:fixed;bottom:14px;pointer-events:none;z-index:5;background:rgba(12,14,24,.72);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px;min-width:170px;max-width:46vw}
 .pp b{display:flex;align-items:center;gap:8px}.pp b i{width:11px;height:11px;border-radius:50%}
 .pp span{display:block;color:#b9b2a6;font-size:12px;font-weight:700;margin-top:3px}
 #pp1{left:14px}#pp2{right:14px}
@@ -22,605 +23,119 @@ canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh}
   text-shadow:0 2px 0 rgba(0,0,0,.5);background:rgba(20,40,70,.55);border:1px solid rgba(180,220,255,.3);border-radius:12px;padding:6px 16px;opacity:0;transition:opacity .2s,transform .2s}
 #wind.on{opacity:1;transform:translate(-50%,0)}
 #wind.gust{background:rgba(60,110,170,.7);color:#fff}
+#frost{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .25s;
+  background:radial-gradient(ellipse at center,rgba(200,230,255,0) 45%,rgba(200,230,255,.55) 80%,rgba(235,248,255,.9) 100%)}
+#flash{position:fixed;inset:0;pointer-events:none;z-index:4;background:#e9f2ff;opacity:0}
+/* saavutukset */
+.achbtn{display:inline-flex!important;align-items:center;gap:8px}
+.achbtn svg{width:22px;height:22px}
+#achv{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(8,10,18,.7);backdrop-filter:blur(3px);padding:16px}
+#achv[hidden]{display:none}
+#achv .card{width:min(880px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;gap:12px;background:#1a1d2b;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.achhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.achhead h2{margin:2px 0 0;font-size:26px}
+.achhead .kick{color:#ffb347;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.achpct{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:220px}
+.achpct .big{font-size:38px;font-weight:900;line-height:.9}
+.achpct small{color:#b9b2a6;font-weight:700}
+.achbar{width:100%;height:10px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden}
+.achbar i{display:block;height:100%;background:linear-gradient(90deg,#c98a1a,#ffd36a);width:0;transition:width .4s}
+.achfilter{display:flex;gap:8px;flex-wrap:wrap}
+.achfilter button{font:700 14px "Segoe UI",system-ui,sans-serif;color:#f4efe6;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 14px;cursor:pointer}
+.achfilter button[aria-pressed="true"]{background:#ffb347;color:#2a1405;border-color:#ffb347}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;overflow:auto;padding:2px 4px 2px 0;min-height:120px}
+.ach{display:flex;gap:11px;align-items:flex-start;padding:10px 11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px}
+.ach.done{background:rgba(255,211,106,.1);border-color:rgba(255,211,106,.45)}
+.ach svg{width:46px;height:46px;flex:none}
+.ach div{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.ach b{font-size:15px}
+.ach span{font-size:13px;color:#d8d2c6;line-height:1.3}
+.ach:not(.done) b,.ach:not(.done) span{opacity:.6}
+.ach small{font-size:12px;font-weight:700;color:#b9b2a6}
+.ach .pb{height:5px;background:rgba(255,255,255,.1);border-radius:9px;margin-top:4px;overflow:hidden}
+.ach .pb i{display:block;height:100%;background:#ffb347}
+.achempty{padding:18px 4px;font-weight:700;color:#b9b2a6}
+.achfoot{display:flex;justify-content:flex-end}
+.achfoot button{font:800 15px "Segoe UI",system-ui,sans-serif;background:#ffb347;color:#2a1405;border:0;border-radius:12px;padding:10px 20px;cursor:pointer}
+#achPops{position:fixed;right:14px;top:70px;display:flex;flex-direction:column;gap:10px;z-index:70;pointer-events:none}
+.achpop{display:flex;gap:12px;align-items:center;width:min(340px,80vw);background:#1a1d2b;color:#f4efe6;padding:10px 14px 10px 10px;box-shadow:0 8px 24px rgba(0,0,0,.5);border:1px solid rgba(255,211,106,.6);border-radius:14px;animation:achIn .45s cubic-bezier(.2,1.4,.4,1) both}
+.achpop.out{animation:achOut .35s ease-in both}
+@keyframes achIn{from{transform:translateX(120%)}to{transform:translateX(0)}}
+@keyframes achOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(60%)}}
+.achpop svg{width:54px;height:54px;flex:none;filter:drop-shadow(0 0 10px rgba(255,211,106,.7))}
+.achpop div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.achpop em{font-style:normal;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#ffb347}
+.achpop b{font-size:17px}
+.achpop span{font-size:13px;color:#d8d2c6;line-height:1.25}
 </style>
 </head>
 <body>
 <canvas id="ov"></canvas>
+<div id="frost"></div>
+<div id="flash"></div>
 <div id="hud" hidden>
-  <div class="pill"><small id="lvName">Saana</small></div>
-  <div class="pill"><small>Sunset</small><div id="sunBar"><div id="sunFill"></div></div><span id="time">4:00</span></div>
-  <div class="pill"><small>Altitude</small><span id="alt">0 m</span></div>
+  <div class="pill"><small id="lvName">Saana</small><span id="zone">Foothills</span></div>
+  <div class="pill"><small>Altitude</small><div id="altBar"><div id="altFill"></div></div><span id="alt">0 m</span></div>
+  <div class="pill" id="stormPill"><small>Storm</small><span id="storm">waiting</span></div>
   <div class="pill"><i class="berry"></i><span id="ber">0 / 3</span></div>
   <div class="pill"><small>Pitons</small><span id="pit">3</span></div>
+  <div class="pill"><small>Time</small><span id="time">0:00</span></div>
 </div>
 <div id="wind"></div>
 <div class="pp" id="pp1" hidden><b><i style="background:#ff8a3d"></i><span style="color:inherit;display:inline;margin:0" id="n1">PATE</span></b><span id="k1"></span></div>
 <div class="pp" id="pp2" hidden><b><i style="background:#33d1c4"></i><span style="color:inherit;display:inline;margin:0" id="n2">MASA</span></b><span id="k2"></span></div>
+<div id="achPops" aria-live="polite"></div>
+<div id="achv" hidden role="dialog" aria-modal="true" aria-labelledby="achTitle">
+  <div class="card">
+    <div class="achhead">
+      <div><div class="kick">Chained Climbers</div><h2 id="achTitle">Achievements</h2></div>
+      <div class="achpct"><span class="big" id="achPct">0 %</span><small id="achCount"></small><div class="achbar"><i id="achBar"></i></div></div>
+    </div>
+    <div class="achfilter" role="group" aria-label="Filter">
+      <button data-af="all" aria-pressed="true">All</button><button data-af="done" aria-pressed="false">Unlocked</button><button data-af="todo" aria-pressed="false">Locked</button>
+    </div>
+    <div class="achgrid" id="achGrid"></div>
+    <div class="achfoot"><button id="achClose">Close</button></div>
+  </div>
+</div>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="ccGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".45" stop-color="#ffcf3f"/><stop offset="1" stop-color="#c98a1a"/></linearGradient>
+  <linearGradient id="ccSilver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#cfd6de"/><stop offset="1" stop-color="#8a96a3"/></linearGradient>
+  <linearGradient id="ccBronze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd2a8"/><stop offset=".5" stop-color="#d08a4a"/><stop offset="1" stop-color="#8a5228"/></linearGradient>
+</defs></svg>
 
 <script src="../_shared/three.min.js"></script>
 <script src="../_shared/peerjs.min.js"></script>
 <script src="../_shared/coop.js"></script>
+<script src="core.js"></script>
 <script>
-// Peak Pals – kiipeilyseikkailu Lapin tuntureilla. Yksinpeli tai co-op netissä.
-// Kenttä on ruudukko (tile grid): kalliota, jäätä (ei pitoa), murenevaa kiveä ja railojen pohjia.
+// Chained Climbers – kaksi kiipeilijää kahlittuna yhteen. Yksinpelissä kaverina botti, co-op netissä.
+// Pelilogiikka on tiedostossa core.js (kenttä, fysiikka, ketju, myrsky, botti). Tässä grafiikka, äänet ja valikot.
 (() => {
 "use strict";
 const $ = (id) => document.getElementById(id);
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const { T, PW, PH, W, AIR, ROCK, ICE, CRUM, PLAT, SLAB, Z, ZNAME, CHAIN, clamp, mulberry32 } = CC;
+const MAP = CC.M, S = CC.S;
 const lerp = (a, b, t) => a + (b - a) * t;
-function mulberry32(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const hash = (a, b) => { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
-
-const T = 32;                 // ruudun koko
-const PW = 10, PH = 34;       // pelaajan puolileveys ja korkeus
-const GRAV = 1500, JUMP = 520, CLIMB = 100, WALK = 210;
-const AIR = 0, ROCK = 1, ICE = 2, CRUM = 3, PIT = 4;
-const gripT = (t) => t === ROCK || t === CRUM;
 const NAMES = ["PATE", "MASA"], COLS = ["#ff8a3d", "#33d1c4"];
-const FELLS = [
-  { n: "Saana", m: 1029, base: 480, top: 52 },
-  { n: "Pallas", m: 807, base: 330, top: 62 },
-  { n: "Ylläs", m: 718, base: 260, top: 72 },
-  { n: "Pyhä", m: 540, base: 180, top: 82 },
-  { n: "Halti", m: 1324, base: 700, top: 94 },
-  { n: "Kebnekaise", m: 2097, base: 900, top: 108 },
-];
-function fell(lv) {
-  const i = (lv - 1) % FELLS.length, loop = Math.floor((lv - 1) / FELLS.length), b = FELLS[i];
-  return { n: b.n + (loop ? " #" + (loop + 1) : ""), m: b.m, base: b.base, top: b.top + loop * 10, D: i + 1 + loop * 2, idx: i };
-}
-
-// ---------- kenttä ----------
-let W = 0, TH = 0, grid = null, slick = null, saus = [], bers = [], cps = [], spawners = [], signs = [], crumList = [], crumIdx = new Map(), summit = null, F = null, windRow = Infinity, topOf = null;
-function tile(cx, cy) { if (cx < 0 || cx >= W || cy < 0) return ROCK; if (cy >= TH) return AIR; return grid[cy * W + cx]; }
-const solid = (cx, cy) => tile(cx, cy) !== AIR;
-const solidAt = (x, y) => solid(Math.floor(x / T), Math.floor(y / T));
-
-function buildMap(seed, lv) {
-  const R = mulberry32(seed);
-  F = fell(lv);
-  const D = F.D, MAXW = 1800;
-  TH = F.top + 32;
-  const g = new Uint8Array(MAXW * TH), sl = new Uint8Array(MAXW);
-  saus = []; bers = []; cps = []; spawners = []; signs = [];
-  const berryCand = [];
-  const ri = (a, b) => a + Math.floor(R() * (b - a + 1));
-  const put = (x, y, t) => { if (x >= 0 && x < MAXW && y >= 0 && y < TH) g[y * MAXW + x] = t; };
-  const col = (x, hh, t = ROCK) => { for (let y = 0; y < TH; y++) g[y * MAXW + x] = y < hh ? t : AIR; };
-  const seen = new Set();
-  const sign = (sx, sy, txt, type) => {
-    if (seen.has(type)) return;
-    const near = signs.findIndex((o) => Math.abs(o.x - (sx * T + T / 2)) < 6 * T);
-    if (near >= 0) { if (signs[near].type !== "basics") return; signs.splice(near, 1); }
-    seen.add(type); signs.push({ x: sx * T + T / 2, y: sy * T, t: txt, type });
-  };
-  const sausAt = (sx, sy) => saus.push({ x: sx * T + T / 2, y: sy * T + 12, e: false });
-  const spawner = (px, py) => spawners.push({ x: px, y: py, per: 2.7 + R() * 1.6, t: R() * 2.5, warn: false, gy: 0 });
-  windRow = D >= 3 ? Math.floor(F.top * 0.55) : Infinity;
-  let x = 0, h = 3, est = 0;
-  for (; x < 12; x++) col(x, h);
-  cps.push({ x: 4 * T, y: h * T, i: 0, start: true });
-  sign(8, h, "Hold SHIFT to grip|W climbs · SPACE jumps", "basics");
-
-  function stairs() {
-    const n = ri(2, 4);
-    for (let k = 0; k < n; k++) {
-      const r = ri(1, D >= 3 ? 4 : 3), t = ri(2, 5);
-      for (let i = 0; i < t; i++) col(x + i, h + r);
-      if (R() < 0.25) sausAt(x + (t >> 1), h + r);
-      if (R() < 0.2) berryCand.push([x + (t >> 1), h + r + 2]);
-      x += t; h += r; est += 2.5 + r * 0.3;
-    }
-  }
-  function cliff() {
-    const r = ri(5, Math.min(13, 6 + Math.round(D * 1.3))), t = ri(4, 6);
-    if (r >= 8) sign(x - 3, h, "Tall wall ahead!|E hammers a piton: rest on it", "piton");
-    else sign(x - 3, h, "Grip the wall with SHIFT|W/S to climb · W at the top", "cliff");
-    if (r >= 9 && R() < 0.75) { const mh = h + Math.floor(r / 2); col(x, mh); if (R() < 0.5) sausAt(x, mh); x++; }
-    const wx = x;
-    for (let i = 0; i < t; i++) col(x + i, h + r);
-    if (D >= 4 && R() < 0.35) { spawner(wx * T - 14, (h + r + 9) * T); sign(wx - 4, h, "Falling rocks!|Watch for the warning", "rocks"); }
-    x += t; h += r; est += r * 0.45 + 4;
-  }
-  function gap() {
-    // leveässä railossa on mureneva askelkivi kohdassa, johon täysi hyppy osuu
-    const gw = D <= 1 ? ri(2, 3) : D >= 3 && R() < 0.45 ? 6 : ri(3, 4);
-    const hb = Math.max(1, h - ri(4, 7));
-    sign(x - 3, h, "Crevasse!|Run and jump with SPACE", "gap");
-    for (let i = 0; i < gw; i++) { col(x + i, hb); put(x + i, hb - 1, PIT); }
-    if (gw === 6) put(x + 4, h - 1, CRUM);
-    if (R() < 0.4) berryCand.push([x + Math.floor(gw / 2), h + 2]);
-    x += gw;
-    const hl = h + (D >= 3 && R() < 0.4 ? 1 : 0), t = ri(3, 5);
-    for (let i = 0; i < t; i++) col(x + i, hl);
-    x += t; h = hl; est += 5;
-  }
-  function crumbleRun() {
-    const n = ri(3, 3 + Math.min(3, D - 1)), w = n * 2 + 1, hb = Math.max(1, h - ri(4, 6));
-    sign(x - 3, h, "Crumbling rock!|Don't stop moving", "crum");
-    for (let i = 0; i < w; i++) { col(x + i, hb); put(x + i, hb - 1, PIT); }
-    for (let k = 0; k < n; k++) {
-      const sy = h - 1 + (k % 2 && D >= 3 ? 1 : 0);
-      put(x + 1 + k * 2, sy, CRUM);
-      if (k === (n >> 1) && R() < 0.5) berryCand.push([x + 1 + k * 2, sy + 4]);
-    }
-    x += w;
-    const t = ri(3, 5);
-    for (let i = 0; i < t; i++) col(x + i, h);
-    x += t; est += 4 + n;
-  }
-  function chimney() {
-    const r = ri(6, Math.min(12, 7 + D)), wd = D >= 4 && R() < 0.5 ? 4 : 3;
-    sign(x - 3, h, "Ice can't be gripped!|Jump between the walls with SPACE", "chim");
-    col(x, h);
-    for (let y = h + 3; y < h + r + 3; y++) put(x, y, ICE);
-    for (let i = 1; i <= wd; i++) col(x + i, h);
-    const rx = x + wd + 1, t = ri(4, 6);
-    for (let i = 0; i < t; i++) col(rx + i, h + r);
-    for (let y = h; y < h + r - 1; y++) put(rx, y, ICE);
-    if (R() < 0.45) berryCand.push([x + 1 + (wd >> 1), h + r + 1]);
-    x = rx + t; h += r; est += 12 + r * 0.7;
-  }
-  function iceBand() {
-    const r = ri(9, 12), band = D >= 5 ? 3 : 2, t = ri(4, 6);
-    sign(x - 3, h, "Icy band!|W + SPACE while gripping = lunge", "band");
-    for (let i = 0; i < t; i++) col(x + i, h + r);
-    for (let y = h + 4; y < h + 4 + band; y++) put(x, y, ICE);
-    x += t; h += r; est += r * 0.5 + 7;
-  }
-  function gully() {
-    sign(x - 3, h, "Falling rocks!|Watch for the warning", "rocks");
-    const n = ri(3, 4), steps = [];
-    for (let k = 0; k < n; k++) {
-      const r = ri(1, 2), t = ri(3, 4);
-      for (let i = 0; i < t; i++) col(x + i, h + r);
-      steps.push(x + (t >> 1));
-      x += t; h += r;
-    }
-    for (const sx of steps) spawner(sx * T + T / 2, (h + 11) * T);
-    est += 10;
-  }
-  function ridge() {
-    sign(x - 3, h, "Wind gusts up here!|Grip the rock when it blows", "wind");
-    const n = ri(2, 3);
-    for (let k = 0; k < n; k++) {
-      const t = ri(3, 5);
-      for (let i = 0; i < t; i++) { col(x + i, h); if (D >= 4 && R() < 0.5) sl[x + i] = 1; }
-      x += t;
-      const hb = Math.max(1, h - 5);
-      for (let i = 0; i < 2; i++) { col(x + i, hb); put(x + i, hb - 1, PIT); }
-      x += 2;
-    }
-    for (let i = 0; i < 3; i++) col(x + i, h);
-    x += 3; est += 8;
-  }
-  function hut() {
-    sign(x + 1, h, "Hut = checkpoint|Refills stamina · +1 piton", "hut");
-    for (let i = 0; i < 8; i++) col(x + i, h);
-    cps.push({ x: (x + 4) * T, y: h * T, i: cps.length });
-    sausAt(x + 6, h);
-    x += 8; est += 3;
-  }
-  const RUN = { stairs, cliff, gap, crum: crumbleRun, chim: chimney, band: iceBand, gully, ridge };
-  const pool = () => {
-    const a = [["stairs", 3], ["cliff", 4], ["gap", 3]];
-    if (D >= 2) a.push(["crum", 2], ["chim", 2.5]);
-    if (D >= 3) a.push(["band", 2], ["gully", 1.5]);
-    if (h > windRow) a.push(["ridge", 2.5]);
-    return a;
-  };
-  const intro = lv === 1 ? ["stairs", "gap", "cliff", "stairs", "cliff"] : lv === 2 ? ["chim"] : lv === 3 ? ["band"] : [];
-  let last = "", secN = 0;
-  while (h < F.top - 3 && x < MAXW - 80) {
-    let type;
-    if (intro.length) type = intro.shift();
-    else {
-      const a = pool().filter((e) => e[0] !== last);
-      let s = a.reduce((q, e) => q + e[1], 0) * R();
-      type = a[a.length - 1][0];
-      for (const e of a) { s -= e[1]; if (s <= 0) { type = e[0]; break; } }
-    }
-    RUN[type]();
-    last = type; secN++;
-    if (secN % 3 === 0 && h < F.top - 8) hut();
-  }
-  // huippu
-  const sx0 = x;
-  for (let i = 0; i < 14; i++) col(x + i, h);
-  summit = { x0: sx0 * T, x1: (sx0 + 14) * T, y: h * T, gx: (sx0 + 7) * T };
-  x += 14;
-  while (h > 3) { h = Math.max(3, h - ri(1, 3)); col(x, h); col(x + 1, h); x += 2; }
-  for (let i = 0; i < 10; i++) col(x + i, 3);
-  x += 10;
-  W = x;
-  grid = new Uint8Array(W * TH); slick = new Uint8Array(W);
-  for (let y = 0; y < TH; y++) for (let cx = 0; cx < W; cx++) grid[y * W + cx] = g[y * MAXW + cx];
-  for (let cx = 0; cx < W; cx++) slick[cx] = sl[cx];
-  topOf = new Int16Array(W);
-  for (let cx = 0; cx < W; cx++) { let t = 0; for (let y = 0; y < TH; y++) if (grid[y * W + cx] !== AIR) t = y + 1; topOf[cx] = t; }
-  // murenevat kivet
-  crumList = []; crumIdx = new Map();
-  for (let y = 0; y < TH; y++) for (let cx = 0; cx < W; cx++) if (grid[y * W + cx] === CRUM) { crumIdx.set(y * W + cx, crumList.length); crumList.push({ cx, cy: y, idx: y * W + cx, st: 0, t: 0 }); }
-  // putoavien kivien osumakohta
-  for (const s of spawners) { const cx = Math.floor(s.x / T); let cy = Math.min(TH - 1, Math.floor(s.y / T)); while (cy > 0 && !solid(cx, cy)) cy--; s.gy = (cy + 1) * T; }
-  // lakat: kolme eri puolilta reittiä
-  berryCand.sort((a, b) => a[0] - b[0]);
-  while (berryCand.length < 3) { const cx = 20 + Math.floor(R() * (sx0 - 30)); berryCand.push([cx, topOf[cx] + 2]); berryCand.sort((a, b) => a[0] - b[0]); }
-  const used = new Set();
-  for (const f of [0.18, 0.55, 0.88]) {
-    let k = Math.min(berryCand.length - 1, Math.floor(f * berryCand.length));
-    while (used.has(k)) k = (k + 1) % berryCand.length;
-    used.add(k);
-    const [bx, by] = berryCand[k];
-    bers.push({ x: bx * T + T / 2, y: by * T + 12, got: false });
-  }
-  F.time = Math.round(est * (2.2 - 0.1 * Math.min(6, D)) + 40);
-}
-
-// ---------- pelaajat ----------
-function mkP(i) {
-  return { i, x: 0, y: 0, vx: 0, vy: 0, ground: true, cling: 0, st: 100, tired: false, face: 1, stun: 0, fallTop: 0, coyote: 0, rescue: 0, climbing: false, hang: false, falls: 0,
-    kickLock: 0, kickCd: 0, kickSide: 0, lunge: false, autoGrip: 0, resting: false, slide: false };
-}
-let P = [], G = {};
-const NOIN = { x: 0, y: 0, a: false, b: false, c: false, aP: false, bP: false, cP: false };
-
-function boxHit(x, y) {
-  const x0 = Math.floor((x - PW) / T), x1 = Math.floor((x + PW - 0.01) / T);
-  const y0 = Math.floor(y / T), y1 = Math.floor((y + PH - 0.01) / T);
-  for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) if (solid(cx, cy)) return true;
-  return false;
-}
-function moveP(p, dt) {
-  const along = (dx, dy) => {
-    const n = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) / 6);
-    for (let i = 0; i < n; i++) {
-      const sx = dx / n, sy = dy / n;
-      if (!boxHit(p.x + sx, p.y + sy)) { p.x += sx; p.y += sy; continue; }
-      const m = Math.ceil(Math.max(Math.abs(sx), Math.abs(sy)));
-      for (let j = 0; j < m; j++) {
-        const ux = sx / m, uy = sy / m;
-        if (boxHit(p.x + ux, p.y + uy)) return true;
-        p.x += ux; p.y += uy;
-      }
-      return true;
-    }
-    return false;
-  };
-  if (along(p.vx * dt, 0)) p.vx = 0;
-  p.ground = false;
-  if (along(0, p.vy * dt)) { if (p.vy < 0) p.ground = true; p.vy = 0; }
-  if (!p.ground && p.vy <= 0 && boxHit(p.x, p.y - 1)) p.ground = true;
-}
-function wallInfo(p, side, dy = 0) {
-  const cx = Math.floor((p.x + side * (PW + 2)) / T), y = p.y + dy;
-  const rl = Math.floor((y + 4) / T), rm = Math.floor((y + PH / 2) / T), ru = Math.floor((y + PH - 4) / T);
-  const tl = tile(cx, rl), tm = tile(cx, rm), tu = tile(cx, ru);
-  return { cx, any: !!(tl || tm || tu), grip: gripT(tl) || gripT(tm) || gripT(tu), up: !!(tu || tm), low: !!tl, below: solid(cx, Math.floor((y - 6) / T)), rows: [rl, rm, ru] };
-}
-const anchored = (p) => p.cling !== 0 || p.ground;
-function tileUnder(p) {
-  const cy = Math.floor((p.y - 1) / T);
-  for (const ox of [0, -PW + 1, PW - 1]) { const t = tile(Math.floor((p.x + ox) / T), cy); if (t !== AIR) return t; }
-  return AIR;
-}
-
-// ---------- pelilogiikka (yksinpeli / isäntä) ----------
-function step(dt, inputs) {
-  G.time -= dt;
-  G.t += dt;
-  const grips = P.map((p) => inputs[p.i].a || p.autoGrip > 0);
-  if (P.length === 2) {
-    const [A, B] = P;
-    const d = Math.hypot(B.x - A.x, B.y - A.y);
-    const both = grips[0] && grips[1] && A.stun <= 0 && B.stun <= 0 && A.rescue <= 0 && B.rescue <= 0;
-    if (!G.link) {
-      const reach = inputs[0].aP || inputs[1].aP;
-      if (both && reach && d < 52 && !(A.cling && B.cling)) { G.link = true; G.linkLen = Math.max(30, d); Coop.emit("link", (A.x + B.x) / 2, (A.y + B.y) / 2 + PH); }
-    } else if (!both || d > 110) { G.link = false; if (d > 110) Coop.emit("snap", B.x, B.y); }
-  }
-  for (const p of P) playerStep(p, inputs[p.i], grips[p.i], dt);
-  if (P.length === 2 && G.link) linkConstraint(inputs, dt);
-  crumbleStep(dt);
-  rocksStep(dt);
-  windStep(dt);
-  // makkarat ja lakat
-  for (const s of saus) {
-    if (s.e) continue;
-    const p = P.find((p) => p.rescue <= 0 && Math.abs(p.x - s.x) < 22 && Math.abs(p.y + PH / 2 - s.y) < 30);
-    if (p) { s.e = true; G.saus++; p.st = Math.min(100, p.st + 45); Coop.emit("eat", p.i, s.x, s.y); }
-  }
-  for (const b of bers) {
-    if (b.got) continue;
-    const p = P.find((p) => p.rescue <= 0 && Math.abs(p.x - b.x) < 22 && Math.abs(p.y + PH / 2 - b.y) < 30);
-    if (p) { b.got = true; G.ber++; Coop.emit("berry", p.i, b.x, b.y, G.ber); }
-  }
-  // kodat
-  for (const cp of cps) {
-    if (cp.i <= G.cp) continue;
-    if (P.some((p) => p.rescue <= 0 && Math.abs(p.x - cp.x) < 70 && Math.abs(p.y - cp.y) < 40)) {
-      G.cp = cp.i; G.pitLeft = Math.min(5, G.pitLeft + 1); G.resp = { x: cp.x, y: cp.y, cl: 0 };
-      for (const p of P) { p.st = 100; p.tired = false; }
-      Coop.emit("cp", cp.i, cp.x, cp.y);
-      G.wantSave = true;
-    }
-  }
-  // huippu
-  const atTop = (p) => p.x > summit.x0 && p.x < summit.x1 && p.y >= summit.y - 2 && p.rescue <= 0;
-  if (P.every(atTop)) { G.topT += dt; if (G.topT > 1.2) return finish(true); } else G.topT = 0;
-  if (G.time <= 0) { G.time = 0; return finish(false); }
-  if (G.wantSave) { G.wantSave = false; Coop.save(); }
-}
-
-function playerStep(p, inp, grip, dt) {
-  const o = P.length === 2 ? P[1 - p.i] : null;
-  if (p.rescue > 0) { p.rescue -= dt; if (p.rescue <= 0) respawn(p); return; }
-  if (p.stun > 0) { p.stun -= dt; inp = NOIN; grip = false; }
-  if (p.autoGrip > 0) { p.autoGrip -= dt; if (inp.bP || inp.a) p.autoGrip = 0; }
-  if (inp.x) p.face = Math.sign(inp.x);
-  p.kickLock = Math.max(0, p.kickLock - dt);
-  p.kickCd = Math.max(0, p.kickCd - dt);
-  if (p.lunge && p.vy < 150) p.lunge = false;
-
-  const sides = inp.x ? [Math.sign(inp.x), -Math.sign(inp.x)] : [p.face, -p.face];
-  let wall = 0, wi = null, touch = 0;
-  for (const s of sides) { const w = wallInfo(p, s); if (w.grip && !(p.kickLock > 0 && s === p.kickSide)) { wall = s; wi = w; break; } }
-  for (const s of sides) if (wallInfo(p, s).any) { touch = s; break; }
-  const was = p.cling;
-  if (p.tired && p.st >= 35) p.tired = false;
-  p.cling = grip && wall && !p.tired && p.st > 0 && !p.lunge && (!p.ground || inp.y < 0) ? wall : 0;
-  // seinän yläreuna: noustaan tasanteelle
-  if (was && grip && inp.y < 0) {
-    const w = wallInfo(p, was);
-    if (!w.up && (w.low || w.below)) { p.cling = 0; p.vy = 330; p.vx = was * 170; Coop.emit("mantle", p.i); }
-  }
-  p.climbing = false;
-  p.slide = false;
-  const hanging = !!(G.link && o && !anchored(p) && anchored(o));
-  p.hang = hanging;
-  const wind = windForce(p);
-
-  if (p.cling) {
-    const up = -inp.y;
-    let vy = up * CLIMB;
-    if (up > 0 && !wallInfo(p, p.cling, 6).grip) vy = 0; // jäähän ei voi kiivetä
-    p.vy = vy; p.vx = 0; p.climbing = vy !== 0;
-    for (const row of wi.rows) markCrum(wi.cx, row);
-    if (nearPiton(p)) { p.st = Math.min(100, p.st + 22 * dt); p.resting = true; }
-    else {
-      let drain = 5 + (vy > 0 ? 16 : vy < 0 ? 4 : 0);
-      if (G.link && o && !anchored(o)) drain += 14;
-      if (wind) drain += 10;
-      p.st -= drain * dt; p.resting = false;
-    }
-    if (p.st <= 0) { p.st = 0; p.cling = 0; p.tired = true; Coop.emit("slip", p.i, p.x, p.y + PH); }
-    else if (inp.bP) {
-      const s = p.cling;
-      if (inp.y < 0 && p.st > 12) { p.cling = 0; p.vy = 560; p.vx = 0; p.st -= 16; p.lunge = true; Coop.emit("lunge", p.i, p.x, p.y); }
-      else if (p.st > 6) { p.cling = 0; p.vy = 470; p.vx = -s * 260; p.face = -s; p.st -= 8; p.kickLock = 0.22; p.kickSide = s; Coop.emit("jump", p.i); }
-    }
-  } else {
-    p.resting = false;
-    const ice = p.ground && slick[clamp(Math.floor(p.x / T), 0, W - 1)];
-    const target = inp.x * WALK;
-    const acc = p.ground ? (ice ? 2.5 : 12) : p.kickLock > 0 ? 0 : 5;
-    p.vx += (target - p.vx) * Math.min(1, acc * dt);
-    if (wind) p.vx += wind * (p.ground ? 950 : 1050) * dt;
-    p.vy = Math.max(p.vy - GRAV * dt, -900);
-    if (!p.ground && touch && inp.x === touch && p.vy < -170) { p.vy = -170; p.slide = true; }
-    p.coyote = p.ground ? 0.1 : Math.max(0, p.coyote - dt);
-    if (inp.bP) {
-      if (hanging) {
-        G.link = false; p.vy = 640; p.vx = (o.x - p.x) * 2; o.st = Math.max(0, o.st - 18);
-        Coop.emit("toss", p.i, p.x, p.y + PH);
-      } else if (p.ground || p.coyote > 0) { p.vy = JUMP; p.coyote = 0; Coop.emit("jump", p.i); }
-      else if (touch && p.kickCd <= 0) {
-        p.vy = 500; p.vx = -touch * 270; p.face = -touch; p.kickCd = 0.15; p.kickLock = 0.2; p.kickSide = touch;
-        Coop.emit("kick", p.i, p.x + touch * PW, p.y + PH / 2);
-      }
-    }
-    if (p.ground) p.st = Math.min(100, p.st + 35 * dt);
-  }
-  if (inp.cP) placePiton(p);
-  // lyhyt hyppy, jos nappi päästetään irti
-  if (!inp.b && p.vy > 200 && !p.cling && !hanging && !p.lunge && p.kickLock <= 0) p.vy -= 1400 * dt;
-
-  const wasGround = p.ground;
-  moveP(p, dt);
-  if (p.ground) for (const ox of [-PW + 1, 0, PW - 1]) markCrum(Math.floor((p.x + ox) / T), Math.floor((p.y - 1) / T));
-  if (p.ground || p.cling) {
-    const fall = p.fallTop - p.y;
-    if (!wasGround && p.ground) {
-      if (tileUnder(p) === PIT) return startRescue(p, "pit");
-      if (fall > 12 * T) return startRescue(p, "fall");
-      if (fall > 6 * T) { p.stun = 0.9; Coop.emit("thud", p.i, p.x, p.y, Math.min(14, fall / 40)); }
-      else if (fall > 1.5 * T) Coop.emit("land", p.x, p.y);
-    }
-    p.fallTop = p.y;
-  } else p.fallTop = Math.max(p.fallTop, p.y);
-  if (p.y < -2 * T) startRescue(p, "fall");
-}
-
-function startRescue(p, why) {
-  p.rescue = 1.5; p.falls++; G.falls++; G.time -= 8;
-  p.cling = 0; p.vx = p.vy = 0; p.autoGrip = 0;
-  if (G.link) G.link = false;
-  Coop.emit("rescue", p.i, p.x, p.y, why);
-}
-function placeAt(p, r, i) {
-  p.x = r.x + (r.cl ? 0 : i ? 22 : -22); p.y = r.y; p.vx = p.vy = 0;
-  p.cling = r.cl || 0; p.autoGrip = r.cl ? 2.5 : 0; p.fallTop = p.y; p.st = 100; p.tired = false; p.stun = 0; p.lunge = false;
-  p.ground = !r.cl;
-}
-function respawn(p) {
-  placeAt(p, G.resp, p.i);
-  Coop.emit("respawn", p.i, G.resp.cl ? 1 : 0);
-}
-function nearPiton(p) {
-  if (!p.cling) return false;
-  const hx = p.x + p.cling * (PW + 1), hy = p.y + PH * 0.7;
-  return G.pitons.some((q) => q.s === p.cling && Math.abs(q.x - hx) < 6 && Math.abs(q.y - hy) < 30);
-}
-function placePiton(p) {
-  if (!p.cling) return Coop.emit("say", p.i, "Grip a rock wall first", "#ffd36a");
-  if (G.pitLeft <= 0) return Coop.emit("say", p.i, "No pitons left!", "#ff8c6a");
-  const hx = p.x + p.cling * (PW + 1), hy = p.y + PH * 0.7;
-  if (G.pitons.some((q) => Math.hypot(q.x - hx, q.y - hy) < 40)) return Coop.emit("say", p.i, "There's a piton here", "#ffd36a");
-  G.pitons.push({ x: Math.round(hx), y: Math.round(hy), s: p.cling });
-  G.pitLeft--; G.pitUsed++;
-  G.resp = { x: Math.round(p.x), y: Math.round(p.y), cl: p.cling };
-  Coop.emit("piton", hx, hy, p.cling);
-}
-function linkConstraint(inputs, dt) {
-  const [A, B] = P;
-  const pull = P.some((p) => p.hang && inputs[p.i].y < 0);
-  G.linkLen = pull ? Math.max(26, G.linkLen - 70 * dt) : Math.min(50, G.linkLen + 20 * dt);
-  const ax = A.x, ay = A.y + PH / 2, bx = B.x, by = B.y + PH / 2;
-  const dd = Math.hypot(bx - ax, by - ay);
-  if (dd <= G.linkLen) return;
-  const nx = (bx - ax) / dd, ny = (by - ay) / dd, over = dd - G.linkLen;
-  let wa = 0.5, wb = 0.5;
-  if (anchored(A) && !anchored(B)) { wa = 0; wb = 1; }
-  else if (anchored(B) && !anchored(A)) { wa = 1; wb = 0; }
-  else if (anchored(A) && anchored(B)) { wa = wb = 0; }
-  const tryMove = (p, mx, my) => { if (!boxHit(p.x + mx, p.y + my)) { p.x += mx; p.y += my; } else if (!boxHit(p.x, p.y + my)) p.y += my; };
-  if (wa) tryMove(A, nx * over * wa, ny * over * wa);
-  if (wb) tryMove(B, -nx * over * wb, -ny * over * wb);
-  const rel = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
-  if (rel > 0) { A.vx += nx * rel * wa; A.vy += ny * rel * wa; B.vx -= nx * rel * wb; B.vy -= ny * rel * wb; }
-}
-// murenevat kivet
-function markCrum(cx, cy) {
-  const k = crumIdx.get(cy * W + cx);
-  if (k == null) return;
-  const c = crumList[k];
-  if (c.st === 0) { c.st = 1; c.t = 0; Coop.emit("shake", c.cx * T + T / 2, c.cy * T + T / 2); }
-}
-function crumbleStep(dt) {
-  const life = F.D >= 4 ? 0.55 : 0.75;
-  for (const c of crumList) {
-    if (c.st === 1) {
-      c.t += dt;
-      if (c.t >= life) { c.st = 2; c.t = 0; grid[c.idx] = AIR; Coop.emit("crumble", c.cx * T + T / 2, c.cy * T + T / 2); }
-    } else if (c.st === 2) {
-      c.t += dt;
-      if (c.t >= 7) {
-        const x0 = c.cx * T, y0 = c.cy * T;
-        const blocked = P.some((p) => p.x + PW > x0 && p.x - PW < x0 + T && p.y + PH > y0 && p.y < y0 + T);
-        if (!blocked) { c.st = 0; c.t = 0; grid[c.idx] = CRUM; }
-      }
-    }
-  }
-}
-// putoavat kivet
-function rocksStep(dt) {
-  for (const s of spawners) {
-    if (!P.some((p) => Math.abs(p.x - s.x) < 1000 && p.y < s.y)) { s.warn = false; continue; }
-    s.t += dt;
-    if (!s.warn && s.t >= s.per - 0.9) { s.warn = true; Coop.emit("warn", s.x, s.gy); }
-    if (s.t >= s.per) { s.t = 0; s.warn = false; G.rocks.push({ x: s.x + (Math.random() - 0.5) * 6, y: s.y, vy: -100 }); }
-  }
-  for (const r of G.rocks) {
-    r.vy -= 1200 * dt; r.y += r.vy * dt;
-    if (r.y < -50 || solidAt(r.x, r.y - 9)) { r.dead = true; Coop.emit("rock", r.x, r.y); continue; }
-    for (const p of P) {
-      if (p.rescue > 0 || p.stun > 0) continue;
-      if (Math.abs(p.x - r.x) < PW + 9 && r.y - 9 < p.y + PH && r.y + 9 > p.y) {
-        r.dead = true; p.stun = 1.0; p.cling = 0; p.autoGrip = 0; p.vx = (p.x < r.x ? -1 : 1) * 180; p.vy = 120;
-        Coop.emit("bonk", p.i, p.x, p.y + PH);
-        break;
-      }
-    }
-  }
-  G.rocks = G.rocks.filter((r) => !r.dead);
-}
-// tuuli
-function windStep(dt) {
-  if (!isFinite(windRow)) return;
-  const w = G.wind;
-  w.t -= dt;
-  if (w.t > 0) return;
-  if (w.s === 0) { w.s = 1; w.t = 1.4; w.dir = Math.random() < 0.5 ? -1 : 1; Coop.emit("windWarn", w.dir); }
-  else if (w.s === 1) { w.s = 2; w.t = 1.9; Coop.emit("gust", w.dir); }
-  else { w.s = 0; w.t = 5 + Math.random() * 5; Coop.emit("calm"); }
-}
-const windForce = (p) => (G.wind && G.wind.s === 2 && p.y / T > windRow ? G.wind.dir : 0);
-
+const isBotGame = () => S.P[1] && S.P[1].bot;
+let P = [], G = null;
+const sync = () => { P = S.P; G = S.G; };
+const MT = () => MAP.MT;
+const meters = (y) => Math.round(MT().base + (MT().m - MT().base) * clamp(y / MAP.summit.y, 0, 1));
+const mPerPx = () => (MT().m - MT().base) / MAP.summit.y;
 const mmss = (s) => Math.floor(s / 60) + ":" + String(Math.floor(Math.max(0, s) % 60)).padStart(2, "0");
-function finish(ok) {
-  const f = F;
-  Coop.end({
-    ok,
-    kicker: f.n + " · " + f.m + " m",
-    title: ok ? "Summit! Fire up the grill." : "The sun went down",
-    text: ok ? pick(["The sausages are sizzling and the view looks like a postcard. Next up: higher.", "The summit wind nearly blows the grill out, but the sausages cook anyway.", "A reindeer watches enviously. Great climbing!"])
-      : pick(["No climbing in the dark. The trip starts over tomorrow.", "The headlamps were left in the car. You climbed down safely."]),
-    stamp: ok ? "SUMMIT" : "TOO DARK",
-    stats: [[ok ? "Time to spare" : "Time", ok ? mmss(G.time) : "0:00"], ["Cloudberries", G.ber + " / 3"], ["Sausages", G.saus + " / " + saus.length], ["Falls", G.falls], ["Pitons used", G.pitUsed]],
-    next: "Next fell: " + fell(Coop.level + 1).n,
-    retry: "Try again",
-  });
-}
-
-// ---------- tallennus ----------
-const mask = (a, k) => a.map((s) => (s[k] ? 1 : 0)).join("");
-function saveData() {
-  return { cp: G.cp, t: Math.round(G.time), e: mask(saus, "e"), b: mask(bers, "got"), sa: G.saus, be: G.ber, f: G.falls, pl: G.pitLeft, pu: G.pitUsed, pt: G.pitons.map((q) => [q.x, q.y, q.s]), r: [G.resp.x, G.resp.y, G.resp.cl] };
-}
-function loadData(d) {
-  if (!d || typeof d !== "object") return;
-  const num = (v, a, b, def) => (Number.isFinite(+v) ? clamp(+v, a, b) : def);
-  G.cp = num(d.cp, 0, cps.length - 1, 0) | 0;
-  G.time = num(d.t, 30, F.time, F.time);
-  if (typeof d.e === "string") saus.forEach((s, i) => (s.e = d.e[i] === "1"));
-  if (typeof d.b === "string") bers.forEach((s, i) => (s.got = d.b[i] === "1"));
-  G.saus = saus.filter((s) => s.e).length; G.ber = bers.filter((b) => b.got).length;
-  G.falls = num(d.f, 0, 999, 0) | 0; G.pitLeft = num(d.pl, 0, 5, 3) | 0; G.pitUsed = num(d.pu, 0, 999, 0) | 0;
-  if (Array.isArray(d.pt)) G.pitons = d.pt.slice(0, 40).filter((q) => Array.isArray(q) && q.every(Number.isFinite)).map((q) => ({ x: q[0], y: q[1], s: q[2] > 0 ? 1 : -1 }));
-  const cp = cps[G.cp];
-  G.resp = { x: cp.x, y: cp.y, cl: 0 };
-  if (Array.isArray(d.r) && d.r.every(Number.isFinite) && d.r[2] && G.pitons.length) {
-    const t = { x: d.r[0], y: d.r[1], cl: d.r[2] > 0 ? 1 : -1 };
-    if (t.x > 0 && t.x < W * T && t.y > 0 && !boxHit(t.x, t.y)) G.resp = t;
-  }
-}
-
-// ---------- nettipeli: tilannekuva ----------
-const r1 = (v) => Math.round(v * 10) / 10;
-function snapshot() {
-  return {
-    t: r1(G.time), cp: G.cp, l: G.link ? 1 : 0, ll: r1(G.linkLen), sa: G.saus, be: G.ber, f: G.falls, pl: G.pitLeft, pu: G.pitUsed, tt: r1(G.topT),
-    e: mask(saus, "e"), b: mask(bers, "got"), cr: crumList.map((c) => c.st).join(""),
-    pt: G.pitons.map((q) => [q.x, q.y, q.s]), rk: G.rocks.map((r) => [Math.round(r.x), Math.round(r.y)]), w: [G.wind.s, G.wind.dir],
-    P: P.map((p) => [r1(p.x), r1(p.y), r1(p.vx), r1(p.vy), Math.round(p.st), p.cling, p.face, r1(p.stun), r1(p.rescue), p.ground ? 1 : 0, p.climbing ? 1 : 0, p.hang ? 1 : 0, p.tired ? 1 : 0, p.resting ? 1 : 0, p.slide ? 1 : 0]),
-  };
-}
-function apply(s, first) {
-  G.time = s.t; G.cp = s.cp; G.link = !!s.l; G.linkLen = s.ll; G.saus = s.sa; G.ber = s.be; G.falls = s.f; G.pitLeft = s.pl; G.pitUsed = s.pu; G.topT = s.tt;
-  for (let i = 0; i < saus.length; i++) saus[i].e = s.e[i] === "1";
-  for (let i = 0; i < bers.length; i++) bers[i].got = s.b[i] === "1";
-  for (let i = 0; i < crumList.length; i++) { const c = crumList[i], st = +s.cr[i] || 0; if (st !== c.st) { c.st = st; grid[c.idx] = st === 2 ? AIR : CRUM; } }
-  G.pitons = s.pt.map((q) => ({ x: q[0], y: q[1], s: q[2] }));
-  G.rocks = s.rk.map((q) => ({ x: q[0], y: q[1] }));
-  G.wind.s = s.w[0]; G.wind.dir = s.w[1];
-  s.P.forEach((a, i) => {
-    const p = P[i];
-    if (!p) return;
-    p.tx = a[0]; p.ty = a[1]; p.vx = a[2]; p.vy = a[3]; p.st = a[4]; p.cling = a[5]; p.face = a[6]; p.stun = a[7]; p.rescue = a[8];
-    p.ground = !!a[9]; p.climbing = !!a[10]; p.hang = !!a[11]; p.tired = !!a[12]; p.resting = !!a[13]; p.slide = !!a[14];
-    if (first || Math.hypot(p.x - a[0], p.y - a[1]) > 200) { p.x = a[0]; p.y = a[1]; }
-  });
-}
 
 // ---------- grafiikka ----------
 let Q = true;
-try { Q = (localStorage.getItem("tunturiin:gfx") || "quality") === "quality"; } catch {}
+try { Q = (localStorage.getItem("climbers:gfx") || localStorage.getItem("tunturiin:gfx") || "quality") === "quality"; } catch {}
 let renderer = null, glc = null;
 const ov = $("ov"), og = ov.getContext("2d");
 let vw = 0, vh = 0, odpr = 1;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(42, 1, 10, 14000);
+const camera = new THREE.PerspectiveCamera(42, 1, 10, 16000);
 function makeRenderer() {
   if (renderer) { renderer.dispose(); try { renderer.forceContextLoss(); } catch {} glc.remove(); }
   glc = document.createElement("canvas");
@@ -640,20 +155,20 @@ function resize() {
 }
 addEventListener("resize", resize);
 
-const hemi = new THREE.HemisphereLight("#cfe0ff", "#40362a", 0.75);
+const hemi = new THREE.HemisphereLight("#cfe0ff", "#40362a", 0.8);
 const sun = new THREE.DirectionalLight("#ffe2b8", 1.15);
 sun.shadow.mapSize.set(2048, 2048);
-{ const sc = sun.shadow.camera; sc.left = -1000; sc.right = 1000; sc.top = 800; sc.bottom = -800; sc.near = 10; sc.far = 4500; }
+{ const sc = sun.shadow.camera; sc.left = -900; sc.right = 900; sc.top = 800; sc.bottom = -800; sc.near = 10; sc.far = 4500; }
 sun.shadow.bias = -0.0006;
 const rim = new THREE.DirectionalLight("#9fb8ff", 0.3);
-rim.position.set(-700, 500, -900);
-const fireLight = new THREE.PointLight("#ff9a4a", 0, 560, 2);
-scene.add(hemi, sun, sun.target, rim, fireLight);
-scene.fog = new THREE.Fog("#a9c8e6", 1000, 7000);
+const fireLight = new THREE.PointLight("#ff9a4a", 0, 520, 2);
+const lampLights = [0, 1, 2].map(() => new THREE.PointLight("#ffb25a", 0, 420, 2));
+const headLights = [0, 1].map(() => new THREE.PointLight("#fff1d0", 0, 360, 2));
+scene.add(hemi, sun, sun.target, rim, fireLight, ...lampLights, ...headLights);
+scene.fog = new THREE.Fog("#a9c8e6", 900, 6500);
 
-// materiaalit: laatutilassa Standard, suorituskykytilassa kevyempi Lambert
 let MATS = {};
-function M(o) {
+function MM(o) {
   const k = (Q ? "q" : "p") + JSON.stringify(o, (key, v) => (v && v.isTexture ? v.uuid : v));
   if (MATS[k]) return MATS[k];
   let m;
@@ -665,21 +180,20 @@ function M(o) {
   }
   return (MATS[k] = m);
 }
-const mat = (c, o) => M(Object.assign({ color: c }, o || {}));
+const mat = (c, o) => MM(Object.assign({ color: c }, o || {}));
 function add(g, geo, m, x, y, z) { const me = new THREE.Mesh(geo, m); me.position.set(x || 0, y || 0, z || 0); me.castShadow = Q; me.receiveShadow = Q; g.add(me); return me; }
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 const SPH = new THREE.SphereGeometry(1, 12, 9);
 const DOD = new THREE.DodecahedronGeometry(1, 0);
-
 function canvasTex(w, h, draw, rep) {
   const c = document.createElement("canvas"); c.width = w; c.height = h;
   draw(c.getContext("2d"), w, h);
   const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
-  if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; }
+  if (rep) t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.anisotropy = 4;
   return t;
 }
-const DOT = canvasTex(64, 64, (g, w, h) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.45, "rgba(255,255,255,.8)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+const DOT = canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.45, "rgba(255,255,255,.8)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
 const TEX = {
   rock: canvasTex(128, 128, (g, w, h) => {
     g.fillStyle = "#d8d8d8"; g.fillRect(0, 0, w, h);
@@ -687,6 +201,13 @@ const TEX = {
     for (let i = 0; i < 900; i++) { const v = 150 + R() * 105; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(R() * w, R() * h, 1 + R() * 3, 1 + R() * 3); }
     g.strokeStyle = "rgba(60,60,60,.35)"; g.lineWidth = 1.5;
     for (let i = 0; i < 6; i++) { g.beginPath(); let x = R() * w, y = R() * h; g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (R() - 0.5) * 40; y += R() * 26; g.lineTo(x, y); } g.stroke(); }
+  }, true),
+  slab: canvasTex(128, 128, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#cfcfcf"); gr.addColorStop(1, "#b5b5b5"); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    const R = mulberry32(17);
+    g.strokeStyle = "rgba(255,255,255,.25)"; g.lineWidth = 2;
+    for (let i = 0; i < 5; i++) { g.beginPath(); const y = R() * h; g.moveTo(0, y); g.bezierCurveTo(w * 0.3, y + 10, w * 0.7, y - 12, w, y + 4); g.stroke(); }
+    for (let i = 0; i < 300; i++) { const v = 170 + R() * 60; g.fillStyle = `rgba(${v},${v},${v},.5)`; g.fillRect(R() * w, R() * h, 1, 1); }
   }, true),
   crack: canvasTex(64, 64, (g, w, h) => {
     g.fillStyle = "#d9c3aa"; g.fillRect(0, 0, w, h);
@@ -702,11 +223,30 @@ const TEX = {
     g.strokeStyle = "rgba(120,170,210,.35)"; g.lineWidth = 1;
     for (let i = 0; i < 10; i++) { g.beginPath(); g.moveTo(0, i * 13); g.lineTo(w, i * 13 + 6); g.stroke(); }
   }),
+  wall: canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = "#c8c8c8"; g.fillRect(0, 0, w, h);
+    const R = mulberry32(23);
+    for (let i = 0; i < 260; i++) { const x = R() * w, y = R() * h, r = 6 + R() * 26, v = 150 + R() * 90; const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(${v},${v},${v},.55)`); gr.addColorStop(1, `rgba(${v},${v},${v},0)`); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); }
+    for (let i = 0; i < 2500; i++) { const v = 120 + R() * 120; g.fillStyle = `rgba(${v},${v},${v},.35)`; g.fillRect(R() * w, R() * h, 1, 1); }
+    g.strokeStyle = "rgba(55,55,55,.4)"; g.lineWidth = 1.2;
+    for (let i = 0; i < 9; i++) { g.beginPath(); let x = R() * w, y = R() * h; g.moveTo(x, y); for (let k = 0; k < 7; k++) { x += (R() - 0.5) * 30; y += 8 + R() * 22; g.lineTo(x, y); } g.stroke(); }
+  }, true),
+  wood: canvasTex(64, 32, (g, w, h) => {
+    g.fillStyle = "#8a6038"; g.fillRect(0, 0, w, h);
+    g.strokeStyle = "rgba(40,22,8,.6)"; g.lineWidth = 2;
+    for (let x = 0; x <= w; x += 16) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+    g.strokeStyle = "rgba(255,220,170,.18)"; g.lineWidth = 1;
+    for (let y = 4; y < h; y += 7) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y + 2); g.stroke(); }
+  }),
+  cloud: canvasTex(256, 128, (g, w, h) => {
+    const R = mulberry32(31);
+    for (let i = 0; i < 40; i++) { const x = 20 + R() * (w - 40), y = 30 + R() * (h - 50), r = 14 + R() * 30; const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "rgba(255,255,255,.55)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+  }),
 };
 
 // taivas
 const skyU = { top: { value: new THREE.Color() }, mid: { value: new THREE.Color() }, bot: { value: new THREE.Color() }, sunDir: { value: new THREE.Vector3(0.3, 0.5, -1) }, sunCol: { value: new THREE.Color() } };
-const sky = new THREE.Mesh(new THREE.SphereGeometry(11000, 32, 16), new THREE.ShaderMaterial({
+const sky = new THREE.Mesh(new THREE.SphereGeometry(13000, 32, 16), new THREE.ShaderMaterial({
   uniforms: skyU, side: THREE.BackSide, depthWrite: false, fog: false,
   vertexShader: "varying vec3 vW; void main(){ vW = (modelMatrix*vec4(position,1.0)).xyz - cameraPosition; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
   fragmentShader: "uniform vec3 top; uniform vec3 mid; uniform vec3 bot; uniform vec3 sunDir; uniform vec3 sunCol; varying vec3 vW;" +
@@ -718,117 +258,45 @@ sky.frustumCulled = false; sky.renderOrder = -10;
 scene.add(sky);
 const stars = (() => {
   const N = 700, pos = new Float32Array(N * 3), R = mulberry32(77);
-  for (let i = 0; i < N; i++) { const a = R() * Math.PI * 2, e = 0.08 + R() * 1.3, r = 10000; pos[i * 3] = Math.cos(a) * Math.cos(e) * r; pos[i * 3 + 1] = Math.sin(e) * r; pos[i * 3 + 2] = Math.sin(a) * Math.cos(e) * r; }
+  for (let i = 0; i < N; i++) { const a = R() * Math.PI * 2, e = 0.08 + R() * 1.3, r = 12000; pos[i * 3] = Math.cos(a) * Math.cos(e) * r; pos[i * 3 + 1] = Math.sin(e) * r; pos[i * 3 + 2] = Math.sin(a) * Math.cos(e) * r; }
   const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   const p = new THREE.Points(g, new THREE.PointsMaterial({ color: "#ffffff", size: 2.2, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false }));
   p.frustumCulled = false; p.renderOrder = -9;
   scene.add(p); return p;
 })();
-let aurora = [];
-const auroraU = { time: { value: 0 }, op: { value: 0 } };
-function buildAurora() {
-  for (const a of aurora) { scene.remove(a); a.geometry.dispose(); }
-  aurora = [];
-  if (!Q) return;
-  const m = new THREE.ShaderMaterial({
-    uniforms: auroraU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
-    vertexShader: "uniform float time; varying vec2 vUv; void main(){ vUv = uv; vec3 p = position; p.y += sin(p.x*0.0011 + time*0.25)*260.0 + sin(p.x*0.0031 - time*0.4)*90.0; p.z += sin(p.x*0.0017 + time*0.2)*600.0; gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.0); }",
-    fragmentShader: "uniform float time; uniform float op; varying vec2 vUv; void main(){ float band = smoothstep(0.0,0.25,vUv.y)*(1.0-smoothstep(0.35,1.0,vUv.y));" +
-      "float rays = 0.55 + 0.45*sin(vUv.x*140.0 + time*1.7)*sin(vUv.x*37.0 - time*0.9); vec3 c = mix(vec3(0.15,1.0,0.55), vec3(0.65,0.35,1.0), smoothstep(0.35,1.0,vUv.y));" +
-      "gl_FragColor = vec4(c, band*rays*op*0.75); }",
-  });
-  for (let i = 0; i < 3; i++) {
-    const me = new THREE.Mesh(new THREE.PlaneGeometry(16000, 1500, 120, 1), m);
-    me.position.set(0, 2600 + i * 500, -7000 - i * 900); me.frustumCulled = false; me.renderOrder = -8;
-    scene.add(me); aurora.push(me);
-  }
-}
-let backdrop = null, clouds = [];
-function buildBackdrop() {
-  if (backdrop) { scene.remove(backdrop); backdrop.traverse((o) => o.geometry && o.geometry.dispose()); }
-  backdrop = new THREE.Group();
-  const R = mulberry32((G.seed || 1) + 7);
-  const x0 = -6000, x1 = W * T + 6000;
-  const layers = [
-    { z: -1100, H: 750, base: "#3d4858", snow: 560, step: 90 },
-    { z: -2300, H: 1250, base: "#566781", snow: 860, step: 130 },
-    { z: -4200, H: 1900, base: "#7a8cab", snow: 1150, step: 190 },
-  ];
-  const mats = [];
-  for (const L of layers) {
-    const ph = [R() * 9, R() * 9, R() * 9, R() * 9], pos = [], cols = [], idx = [];
-    const cb = new THREE.Color(L.base), cs = new THREE.Color("#eef3fa"), c = new THREE.Color();
-    let n = 0;
-    for (let x = x0; x <= x1; x += L.step) {
-      const r1 = 1 - Math.abs(Math.sin(x * 0.0009 + ph[0])), r2 = 1 - Math.abs(Math.sin(x * 0.0023 + ph[1]));
-      const h = L.H * (0.25 + 0.45 * r1 * r1 + 0.22 * r2 * r2 + 0.08 * Math.sin(x * 0.011 + ph[2]));
-      const sn = h > L.snow, sl = Math.max(h - L.H * 0.14, Math.min(h, L.snow));
-      pos.push(x, h, L.z, x, sl, L.z, x, sl - 30, L.z, x, -400, L.z);
-      c.copy(sn ? cs : cb).multiplyScalar(sn ? 1 : 1.1); cols.push(c.r, c.g, c.b);
-      c.copy(sn ? cs : cb).multiplyScalar(sn ? 0.95 : 1.05); cols.push(c.r, c.g, c.b);
-      c.copy(cb); cols.push(c.r, c.g, c.b);
-      c.copy(cb).multiplyScalar(0.72); cols.push(c.r, c.g, c.b);
-      if (n > 0) { const a = (n - 1) * 4, b = n * 4; for (let q = 0; q < 3; q++) idx.push(a + q, a + q + 1, b + q, b + q, a + q + 1, b + q + 1); }
-      n++;
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    g.setAttribute("color", new THREE.Float32BufferAttribute(cols, 3));
-    g.setIndex(idx);
-    const m = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true });
-    mats.push(m);
-    backdrop.add(new THREE.Mesh(g, m));
-  }
-  backdrop.userData.mats = mats;
-  // maa
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, 9000), mat("#101a0d"));
-  ground.rotation.x = -Math.PI / 2; ground.position.set((x0 + x1) / 2, 1, -2500); ground.receiveShadow = Q;
-  backdrop.add(ground);
-  scene.add(backdrop);
-  // pilvet
-  for (const c of clouds) scene.remove(c);
-  clouds = [];
-  const cm = new THREE.MeshLambertMaterial({ color: "#ffffff", emissive: "#2a3550" });
-  const ico = new THREE.IcosahedronGeometry(1, 1);
-  for (let i = 0; i < (Q ? 22 : 8); i++) {
-    const g = new THREE.Group();
-    const n = 3 + Math.floor(R() * 4);
-    for (let k = 0; k < n; k++) { const m = new THREE.Mesh(ico, cm); const s = 70 + R() * 90; m.scale.set(s * 1.6, s * 0.7, s); m.position.set((k - n / 2) * 110 + R() * 40, R() * 40, R() * 60); g.add(m); }
-    g.position.set(x0 / 2 + R() * (x1 - x0 / 2), 1100 + R() * 1500, -1500 - R() * 2600);
-    g.userData.v = 8 + R() * 18;
-    scene.add(g); clouds.push(g);
-  }
-}
 
-let world = null, sausMeshes = [], berMeshes = [], cpMeshes = [], players3 = [], linkMesh = null, grillFire = null, crumMesh = null, rockMeshes = [], pitonGroup = null, pitonCount = -1, snow = null, smoke = null;
+let world = null, backdrop = null, clouds = [], stormG = null, snow = null, smoke = null;
+let sausMeshes = [], berMeshes = [], cpMeshes = [], players3 = [], chainMesh = null, grillFire = null, crumMesh = null, rockMeshes = [], pitonGroup = null, pitonCount = -1, lampPos = [];
 function disposeWorld() {
-  if (!world) return;
-  scene.remove(world);
-  world.traverse((o) => { if (o.geometry && o.geometry !== BOX && o.geometry !== SPH && o.geometry !== DOD) o.geometry.dispose(); });
-  world = null;
+  for (const g of [world, backdrop, stormG]) if (g) { scene.remove(g); g.traverse((o) => { if (o.geometry && o.geometry !== BOX && o.geometry !== SPH && o.geometry !== DOD) o.geometry.dispose(); }); }
+  for (const c of clouds) scene.remove(c);
+  world = backdrop = stormG = null; clouds = [];
 }
 function buildWorld() {
   disposeWorld();
   world = new THREE.Group();
   scene.add(world);
-  buildBackdrop();
-  buildAurora();
   sun.castShadow = Q;
+  buildBackdrop();
   buildTerrain();
   buildProps();
-  players3 = P.map((p) => playerModel(p.i));
+  buildStorm();
+  players3 = P.map((p) => playerModel(p.i, p.bot));
   players3.forEach((m) => world.add(m));
-  linkMesh = add(world, new THREE.CylinderGeometry(2.4, 2.4, 1, 6), mat("#f0d7b5"), 0, 0, 0);
-  linkMesh.visible = false;
+  // ketju: renkaat
+  const NL = 26;
+  chainMesh = new THREE.InstancedMesh(new THREE.TorusGeometry(3.4, 1.15, 6, 10), MM({ color: "#9aa3ad", metalness: 0.75, roughness: 0.35 }), NL);
+  chainMesh.castShadow = Q; chainMesh.frustumCulled = false;
+  chainMesh.visible = P.length === 2;
+  world.add(chainMesh);
   pitonCount = -1;
-  // sää: lumihiutaleet kameran ympärillä
+  // lumihiutaleet kameran ympärillä
   const N = Q ? 1100 : 350, pos = new Float32Array(N * 3);
-  for (let i = 0; i < N; i++) { pos[i * 3] = (Math.random() - 0.5) * 2600; pos[i * 3 + 1] = (Math.random() - 0.5) * 1700; pos[i * 3 + 2] = -300 + Math.random() * 700; }
+  for (let i = 0; i < N; i++) { pos[i * 3] = (Math.random() - 0.5) * 2400; pos[i * 3 + 1] = (Math.random() - 0.5) * 1700; pos[i * 3 + 2] = -200 + Math.random() * 600; }
   const sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: "#ffffff", map: DOT, size: Q ? 7 : 8, transparent: true, opacity: 0.85, depthWrite: false }));
   snow.frustumCulled = false;
   world.add(snow);
-  // savu tulipaikasta (laatutila)
   smoke = null;
   if (Q) {
     const M2 = 60, sp = new Float32Array(M2 * 3);
@@ -840,26 +308,118 @@ function buildWorld() {
   }
 }
 
+// kaukaiset tunturit, vuoren kyljet ja pilvet
+function buildBackdrop() {
+  backdrop = new THREE.Group();
+  const R = mulberry32((G.seed || 1) + 7);
+  const top = MAP.summit.y, CW = W * T;
+  // vuoren kyljet pelialueen molemmin puolin
+  const sideMat = MM({ color: "#ffffff", map: TEX.wall, vertexColors: true, roughness: 1, flatShading: true });
+  for (const side of [-1, 1]) {
+    const pos = [], col = [], idx = [], uv = [];
+    const c = new THREE.Color(), rockC = new THREE.Color("#6b6660"), snowC = new THREE.Color("#eef3f9"), darkC = new THREE.Color("#3d3a36");
+    const NX = 40, NY = 40, span = 2600;
+    for (let iy = 0; iy <= NY; iy++) for (let ix = 0; ix <= NX; ix++) {
+      const u = ix / NX, v = iy / NY;
+      const d = u * span; // etäisyys pelialueesta
+      const hTop = Math.max(0, top - d * 1.05 - Math.pow(d, 1.25) * 0.08) + 40;
+      const y = v * hTop;
+      const x = side < 0 ? -d : CW + d;
+      const z = 48 - Math.min(900, d * 0.45) - hash(ix, iy) * 30 * u - (1 - v) * 0;
+      pos.push(x, y, z);
+      uv.push(x / 320, y / 320);
+      const sn = y > top * 0.62 + hash(ix * 3, iy) * 160 - 80;
+      c.copy(sn ? snowC : rockC).lerp(darkC, (1 - v) * 0.25 + hash(iy, ix) * 0.12);
+      col.push(c.r, c.g, c.b);
+    }
+    for (let iy = 0; iy < NY; iy++) for (let ix = 0; ix < NX; ix++) {
+      const a = iy * (NX + 1) + ix, b = a + 1, cc = a + NX + 1, dd = cc + 1;
+      if (side < 0) idx.push(a, cc, b, b, cc, dd); else idx.push(a, b, cc, b, dd, cc);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+    g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex(idx); g.computeVertexNormals();
+    const me = new THREE.Mesh(g, sideMat);
+    me.receiveShadow = Q;
+    backdrop.add(me);
+  }
+  // kaukaiset tunturit
+  const x0 = -9000, x1 = CW + 9000;
+  const layers = [
+    { z: -3200, H: top * 0.55 + 700, base: "#566781", snow: 0.6, step: 160 },
+    { z: -6000, H: top * 0.7 + 1200, base: "#7a8cab", snow: 0.5, step: 240 },
+  ];
+  backdrop.userData.mats = [];
+  for (const L of layers) {
+    const ph = [R() * 9, R() * 9, R() * 9], pos = [], cols = [], idx = [];
+    const cb = new THREE.Color(L.base), cs = new THREE.Color("#eef3fa"), c = new THREE.Color();
+    let n = 0;
+    for (let x = x0; x <= x1; x += L.step) {
+      const r1 = 1 - Math.abs(Math.sin(x * 0.0006 + ph[0])), r2 = 1 - Math.abs(Math.sin(x * 0.0017 + ph[1]));
+      const h = L.H * (0.25 + 0.45 * r1 * r1 + 0.22 * r2 * r2 + 0.08 * Math.sin(x * 0.009 + ph[2]));
+      const sn = h > L.H * L.snow, sl = Math.max(h - L.H * 0.12, Math.min(h, L.H * L.snow));
+      pos.push(x, h, L.z, x, sl, L.z, x, sl - 30, L.z, x, -600, L.z);
+      c.copy(sn ? cs : cb); cols.push(c.r, c.g, c.b);
+      c.copy(sn ? cs : cb).multiplyScalar(0.95); cols.push(c.r, c.g, c.b);
+      c.copy(cb); cols.push(c.r, c.g, c.b);
+      c.copy(cb).multiplyScalar(0.72); cols.push(c.r, c.g, c.b);
+      if (n > 0) { const a = (n - 1) * 4, b = n * 4; for (let q = 0; q < 3; q++) idx.push(a + q, a + q + 1, b + q, b + q, a + q + 1, b + q + 1); }
+      n++;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(cols, 3));
+    g.setIndex(idx);
+    const m = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true });
+    backdrop.userData.mats.push(m);
+    backdrop.add(new THREE.Mesh(g, m));
+  }
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, 12000), mat("#101a0d"));
+  ground.rotation.x = -Math.PI / 2; ground.position.set((x0 + x1) / 2, -2, -3000);
+  backdrop.add(ground);
+  scene.add(backdrop);
+  const cm = new THREE.MeshLambertMaterial({ color: "#ffffff", emissive: "#2a3550" });
+  const ico = new THREE.IcosahedronGeometry(1, 1);
+  for (let i = 0; i < (Q ? 26 : 10); i++) {
+    const g = new THREE.Group();
+    const n = 3 + Math.floor(R() * 4);
+    for (let k = 0; k < n; k++) { const m = new THREE.Mesh(ico, cm); const s = 70 + R() * 90; m.scale.set(s * 1.6, s * 0.7, s); m.position.set((k - n / 2) * 110 + R() * 40, R() * 40, R() * 60); g.add(m); }
+    g.position.set(-3000 + R() * (CW + 6000), R() * (top + 1500), -1800 - R() * 2600);
+    g.userData.v = 8 + R() * 18;
+    scene.add(g); clouds.push(g);
+  }
+}
+
+// kallio, jää, liukas laatta, luukut
 function buildTerrain() {
   const tmp = new THREE.Object3D(), col = new THREE.Color();
-  const rel = (cy) => cy / F.top;
-  const isAir = (cx, cy) => !solid(cx, cy);
-  // kallio, jää ja railojen pohjat: yksi yhtenäinen mesh per tyyppi, tekstuuri toistuu ruuduittain
-  const low = (cx, cy) => hash(Math.floor(cx / 3) + 0.17, Math.floor(cy / 3) + 0.41);
-  const bandC = [new THREE.Color().setHSL(0.075, 0.18, 0.31), new THREE.Color().setHSL(0.08, 0.07, 0.36), new THREE.Color().setHSL(0.6, 0.07, 0.44)];
+  const grid = MAP.grid, TH = MAP.TH, top = MAP.summit.y / T;
+  const t = (cx, cy) => CC.tile(cx, cy);
+  const isAir = (cx, cy) => { const v = t(cx, cy); return v === AIR || v === PLAT; };
+  const zr = (cy) => MAP.zr[clamp(cy, 0, TH - 1)];
+  // pehmeä kohina (ei ruudukkoa): arvot hilapisteissä 4 ruudun välein, väliin bilineaarinen sekoitus
+  const low = (cx, cy) => {
+    const fx = cx / 4, fy = cy / 4, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
+    const sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+    const a = hash(x0 + 0.17, y0 + 0.41), b = hash(x0 + 1.17, y0 + 0.41), c = hash(x0 + 0.17, y0 + 1.41), d = hash(x0 + 1.17, y0 + 1.41);
+    return lerp(lerp(a, b, sx), lerp(c, d, sx), sy);
+  };
+  const ZC = [
+    [new THREE.Color().setHSL(0.075, 0.2, 0.32), new THREE.Color().setHSL(0.09, 0.12, 0.38)],
+    [new THREE.Color().setHSL(0.08, 0.07, 0.36), new THREE.Color().setHSL(0.6, 0.05, 0.42)],
+    [new THREE.Color().setHSL(0.07, 0.16, 0.2), new THREE.Color().setHSL(0.06, 0.12, 0.26)],
+    [new THREE.Color().setHSL(0.58, 0.1, 0.42), new THREE.Color().setHSL(0.58, 0.08, 0.5)],
+    [new THREE.Color().setHSL(0.6, 0.05, 0.5), new THREE.Color().setHSL(0.6, 0.04, 0.58)],
+    [new THREE.Color().setHSL(0.6, 0.05, 0.55), new THREE.Color().setHSL(0.6, 0.04, 0.6)],
+  ];
   const rockCol = (cx, cy) => {
-    const r = rel(cy), n = 0.7 * low(cx, cy) + 0.3 * hash(cx, cy);
-    if (r < 0.45) col.copy(bandC[0]).lerp(bandC[1], clamp((r - 0.18) / 0.27, 0, 1));
-    else col.copy(bandC[1]).lerp(bandC[2], clamp((r - 0.5) / 0.2, 0, 1));
-    col.multiplyScalar(0.86 + n * 0.28 * (cy % 5 === 0 ? 0.85 : 1));
+    const z = ZC[zr(cy)] || ZC[1], n = 0.85 * low(cx, cy) + 0.15 * hash(cx, cy);
+    col.copy(z[0]).lerp(z[1], n);
+    col.multiplyScalar(0.9 + n * 0.2);
     return col;
   };
-  const caps = [], edges = [];
-  for (let cx = 0; cx < W; cx++) for (let cy = 0; cy < TH; cy++) {
-    const t = grid[cy * W + cx];
-    if ((t === ROCK || t === PIT) && cy + 1 < TH && grid[(cy + 1) * W + cx] === AIR) caps.push([cx, cy, t]);
-    if (Q && t === ROCK && (isAir(cx - 1, cy) || isAir(cx + 1, cy)) && hash(cx * 0.7, cy * 1.3) > 0.45) edges.push([cx, cy, isAir(cx - 1, cy) ? -1 : 1]);
-  }
   function tileMesh(type, depth, colorFn, material) {
     const pos = [], nor = [], uv = [], cl = [], idx = [];
     const zf = depth / 2, zb = -depth / 2;
@@ -875,7 +435,7 @@ function buildTerrain() {
       const x0 = cx * T, x1 = x0 + T, y0 = cy * T, y1 = y0 + T;
       const c = colorFn(cx, cy);
       quad([x0, y0, zf, x1, y0, zf, x1, y1, zf, x0, y1, zf], [0, 0, 1], U, c);
-      sideC.copy(c).multiplyScalar(0.92);
+      sideC.copy(c).multiplyScalar(0.9);
       if (isAir(cx, cy + 1)) quad([x0, y1, zf, x1, y1, zf, x1, y1, zb, x0, y1, zb], [0, 1, 0], UD, c);
       if (isAir(cx - 1, cy)) quad([x0, y0, zb, x0, y0, zf, x0, y1, zf, x0, y1, zb], [-1, 0, 0], UD, sideC);
       if (isAir(cx + 1, cy)) quad([x1, y0, zf, x1, y0, zb, x1, y1, zb, x1, y1, zf], [1, 0, 0], UD, sideC);
@@ -893,52 +453,96 @@ function buildTerrain() {
     world.add(m);
     return m;
   }
-  tileMesh(ROCK, 96, rockCol, M({ color: "#ffffff", map: TEX.rock, roughness: 0.95, vertexColors: true }));
-  tileMesh(ICE, 104, (cx, cy) => col.setHSL(0.56, 0.5, 0.86 + hash(cx, cy) * 0.08), M({ color: "#ffffff", map: TEX.ice, roughness: 0.15, metalness: 0.05, emissive: "#1d3e5c", emissiveIntensity: 0.3, vertexColors: true }));
-  tileMesh(PIT, 98, () => col.set("#bcd3e6"), M({ color: "#ffffff", roughness: 0.9, vertexColors: true }));
-  // rosoiset kivet reunoilla (laatutila): rikkovat ruudukon suoria linjoja
-  if (edges.length) {
-    const em = new THREE.InstancedMesh(DOD, M({ color: "#ffffff", map: TEX.rock, roughness: 1, flatShading: true }), edges.length);
-    edges.forEach(([cx, cy, side], i) => {
-      const n = hash(cx + 3.1, cy), s = 9 + n * 9;
-      tmp.position.set(cx * T + T / 2 + side * (T / 2 - 3), cy * T + T * (0.2 + n * 0.6), -40 + hash(cy, cx) * 80); tmp.scale.set(s * 0.6, s, s); tmp.rotation.set(n * 4, n * 6, n * 3); tmp.updateMatrix();
-      em.setMatrixAt(i, tmp.matrix); em.setColorAt(i, rockCol(cx, cy).multiplyScalar(0.95));
+  tileMesh(ROCK, 96, rockCol, MM({ color: "#ffffff", map: TEX.rock, roughness: 0.95, vertexColors: true }));
+  tileMesh(SLAB, 96, (cx, cy) => col.copy(rockCol(cx, cy)).multiplyScalar(0.78), MM({ color: "#ffffff", map: TEX.slab, roughness: 0.6, vertexColors: true }));
+  tileMesh(ICE, 100, (cx, cy) => col.setHSL(0.56, 0.5, 0.86 + hash(cx, cy) * 0.08), MM({ color: "#ffffff", map: TEX.ice, roughness: 0.15, metalness: 0.05, emissive: "#1d3e5c", emissiveIntensity: 0.3, vertexColors: true }));
+  // luukut: puiset ritilät
+  const plats = [];
+  for (let cy = 0; cy < TH; cy++) for (let cx = 0; cx < W; cx++) if (grid[cy * W + cx] === PLAT) plats.push([cx, cy]);
+  if (plats.length) {
+    const pm = new THREE.InstancedMesh(BOX, MM({ color: "#ffffff", map: TEX.wood, roughness: 0.9 }), plats.length * 2);
+    plats.forEach(([cx, cy], i) => {
+      tmp.position.set(cx * T + T / 2, (cy + 1) * T - 4, 0); tmp.scale.set(T, 8, 92); tmp.updateMatrix(); pm.setMatrixAt(i * 2, tmp.matrix);
+      tmp.position.set(cx * T + T / 2, (cy + 1) * T - 12, 0); tmp.scale.set(T - 6, 3, 80); tmp.updateMatrix(); pm.setMatrixAt(i * 2 + 1, tmp.matrix);
     });
-    em.castShadow = em.receiveShadow = true;
-    world.add(em);
+    pm.castShadow = pm.receiveShadow = Q;
+    world.add(pm);
+  }
+  // takaseinä: ulkona vuoren rinne kauempana, luolassa tumma kallio lähellä
+  const bands = [];
+  let cur = null;
+  for (let cy = 0; cy < TH; cy++) {
+    const z = zr(cy), kind = z === Z.cave ? "cave" : z === Z.ridge || z === Z.summit ? "none" : "out";
+    if (!cur || cur.kind !== kind) { cur = { kind, y0: cy, y1: cy }; bands.push(cur); } else cur.y1 = cy;
+  }
+  for (const b of bands) {
+    if (b.kind === "none") continue;
+    const h = (b.y1 - b.y0 + 1) * T, cave = b.kind === "cave";
+    const BW = cave ? W * T : W * T + 1400;
+    const geo = new THREE.PlaneGeometry(BW, h, Math.round(BW / (Q ? 48 : 120)), Math.max(2, Math.round(h / (Q ? 48 : 120))));
+    const pa = geo.attributes.position, cl = [];
+    const zc = zr(b.y0 + 1);
+    const cA = new THREE.Color(cave ? "#2a221c" : zc === Z.ice ? "#5b6a80" : zc === Z.foot ? "#5e5648" : "#5a585c"), cB = new THREE.Color(cave ? "#3a2f26" : zc === Z.ice ? "#8796aa" : zc === Z.foot ? "#7d7464" : "#85827f");
+    const moss = new THREE.Color("#4f6b3a"), snowC = new THREE.Color("#e9eff6"), stain = new THREE.Color("#3b3a3c"), haze = new THREE.Color("#9fb3c9");
+    for (let i = 0; i < pa.count; i++) {
+      const x = pa.getX(i), y = pa.getY(i), wy = y + b.y0 * T + h / 2;
+      // pystysuuntaiset kylkiluut, kerrostumat ja vesijuovat
+      const rib = Math.sin(x * 0.011 + Math.sin(wy * 0.0017) * 2.2) * 0.6 + Math.sin(x * 0.031 + wy * 0.002) * 0.25;
+      const strata = Math.sin(wy * 0.021 + Math.sin(x * 0.004) * 1.5);
+      if (cave) pa.setZ(i, hash(x * 0.05, y * 0.05) * 6);
+      else pa.setZ(i, rib * 80 + strata * 10 + (hash(x * 0.05, wy * 0.05) - 0.5) * 22);
+      col.copy(cA).lerp(cB, clamp(0.5 + rib * 0.35 + strata * 0.15 + (hash(x * 0.02, wy * 0.02) - 0.5) * 0.25, 0, 1));
+      if (!cave) {
+        const st = Math.sin(x * 0.05 + Math.sin(wy * 0.003) * 3);
+        if (st > 0.93) col.lerp(stain, 0.35);
+        if (zc === Z.foot && hash(Math.floor(x / 90), Math.floor(wy / 70)) > 0.7) col.lerp(moss, 0.45);
+        if (zc !== Z.foot && strata > 0.75 && hash(Math.floor(x / 120), Math.floor(wy / 60)) > 0.45) col.lerp(snowC, 0.6);
+        col.lerp(haze, 0.18);
+      }
+      cl.push(col.r, col.g, col.b);
+    }
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(cl, 3));
+    geo.computeVertexNormals();
+    const tex = TEX.wall.clone(); tex.needsUpdate = true; tex.repeat.set(BW / 300, h / 300);
+    const me = new THREE.Mesh(geo, cave ? MM({ color: "#ffffff", map: TEX.rock, vertexColors: true, roughness: 1 }) : new (Q ? THREE.MeshStandardMaterial : THREE.MeshLambertMaterial)(Object.assign({ color: "#ffffff", map: tex, vertexColors: true }, Q ? { roughness: 1, flatShading: true } : {})));
+    me.position.set(W * T / 2, b.y0 * T + h / 2, cave ? -47 : -230);
+    me.receiveShadow = false;
+    world.add(me);
   }
   // murenevat kivet: oma mesh, jotta niitä voi täristää ja piilottaa
   crumMesh = null;
-  if (crumList.length) {
-    crumMesh = new THREE.InstancedMesh(BOX, M({ color: "#b48a66", map: TEX.crack, roughness: 1 }), crumList.length);
+  if (MAP.crumList.length) {
+    crumMesh = new THREE.InstancedMesh(BOX, MM({ color: "#a39484", map: TEX.crack, roughness: 1 }), MAP.crumList.length);
     crumMesh.castShadow = crumMesh.receiveShadow = Q;
     crumMesh.userData.dirty = true;
     world.add(crumMesh);
   }
-  // pintakerros: lumi, jäkälä, ruoho, kanerva
+  // pintakerros: ruoho, jäkälä, lumi
+  const caps = [], edges = [];
+  for (let cx = 0; cx < W; cx++) for (let cy = 0; cy < TH; cy++) {
+    const v = grid[cy * W + cx];
+    if ((v === ROCK || v === SLAB) && isAir(cx, cy + 1) && cy + 1 < TH) caps.push([cx, cy]);
+    if (Q && v === ROCK && (isAir(cx - 1, cy) || isAir(cx + 1, cy)) && hash(cx * 0.7, cy * 1.3) > 0.5) edges.push([cx, cy, isAir(cx - 1, cy) ? -1 : 1]);
+  }
   tmp.rotation.set(0, 0, 0);
-  const cm = new THREE.InstancedMesh(BOX, M({ color: "#ffffff", roughness: 0.9 }), caps.length);
-  const tufts = [], lumps = [];
-  caps.forEach(([cx, cy, t], i) => {
-    const r = rel(cy), n = hash(cx, cy + 0.5);
-    tmp.position.set(cx * T + T / 2, (cy + 1) * T - 2.5, 3); tmp.scale.set(T + 2.2, 7, 108); tmp.updateMatrix();
+  const cm = new THREE.InstancedMesh(BOX, MM({ color: "#ffffff", roughness: 0.9 }), Math.max(1, caps.length));
+  const tufts = [];
+  caps.forEach(([cx, cy], i) => {
+    const z = zr(cy), n = hash(cx, cy + 0.5);
+    tmp.position.set(cx * T + T / 2, (cy + 1) * T - 2.5, 3); tmp.scale.set(T + 2.2, 7, 100); tmp.updateMatrix();
     cm.setMatrixAt(i, tmp.matrix);
-    if (t === PIT) col.set("#e6f1fb");
-    else if (slick[cx]) col.set("#d2ebff");
-    else if (r > 0.62) col.setHSL(0.58, 0.25, 0.92 + n * 0.05);
-    else if (r > 0.3) col.setHSL(0.16 + n * 0.04, 0.24, 0.4 + n * 0.08);
-    else col.setHSL(n < 0.18 ? 0.95 : 0.26 + n * 0.04, n < 0.18 ? 0.14 : 0.36, n < 0.18 ? 0.36 : 0.31 + n * 0.06);
+    if (z === Z.foot) col.setHSL(n < 0.12 ? 0.9 : 0.24 + n * 0.05, n < 0.12 ? 0.18 : 0.34, n < 0.12 ? 0.34 : 0.3 + n * 0.06);
+    else if (z === Z.cliff) col.setHSL(0.16 + n * 0.04, 0.22, 0.4 + n * 0.08);
+    else if (z === Z.cave) col.setHSL(0.08, 0.12, 0.22 + n * 0.06);
+    else col.setHSL(0.58, 0.22, 0.9 + n * 0.06);
     cm.setColorAt(i, col);
-    if (Q && t === ROCK && !slick[cx]) {
-      if (r <= 0.32 && n > 0.35) tufts.push([cx, cy, n]);
-      else if (r > 0.62 && n > 0.55) lumps.push([cx, cy, n]);
-    }
+    if (Q && z === Z.foot && n > 0.35) tufts.push([cx, cy, n]);
   });
   cm.castShadow = false; cm.receiveShadow = Q;
   world.add(cm);
   if (tufts.length) {
     const tg = new THREE.ConeGeometry(2.4, 11, 4);
-    const tm = new THREE.InstancedMesh(tg, M({ color: "#ffffff", roughness: 1 }), tufts.length * 3);
+    const tm = new THREE.InstancedMesh(tg, MM({ color: "#ffffff", roughness: 1 }), tufts.length * 3);
     let j = 0;
     for (const [cx, cy, n] of tufts) for (let q = 0; q < 3; q++) {
       tmp.position.set(cx * T + 4 + hash(cx, q) * (T - 8), (cy + 1) * T + 4, -30 + hash(q, cx) * 70); tmp.scale.set(1, 0.7 + hash(cy, q) * 0.8, 1); tmp.rotation.set((hash(q, cy) - 0.5) * 0.6, 0, (hash(cy, cx + q) - 0.5) * 0.6); tmp.updateMatrix();
@@ -947,100 +551,78 @@ function buildTerrain() {
     tmp.rotation.set(0, 0, 0);
     world.add(tm);
   }
-  if (lumps.length) {
-    const lm = new THREE.InstancedMesh(SPH, M({ color: "#f3f8fd", roughness: 0.8 }), lumps.length);
-    lumps.forEach(([cx, cy, n], i) => { tmp.position.set(cx * T + T / 2, (cy + 1) * T + 1, -20 + n * 50); tmp.scale.set(14 + n * 10, 5 + n * 4, 12); tmp.updateMatrix(); lm.setMatrixAt(i, tmp.matrix); });
-    lm.receiveShadow = Q;
-    world.add(lm);
+  if (edges.length) {
+    const em = new THREE.InstancedMesh(DOD, MM({ color: "#ffffff", map: TEX.rock, roughness: 1, flatShading: true }), edges.length);
+    edges.forEach(([cx, cy, side], i) => {
+      const n = hash(cx + 3.1, cy), s = 8 + n * 8;
+      tmp.position.set(cx * T + T / 2 + side * (T / 2 - 3), cy * T + T * (0.2 + n * 0.6), -40 + hash(cy, cx) * 80); tmp.scale.set(s * 0.6, s, s); tmp.rotation.set(n * 4, n * 6, n * 3); tmp.updateMatrix();
+      em.setMatrixAt(i, tmp.matrix); em.setColorAt(i, rockCol(cx, cy).multiplyScalar(0.95));
+    });
+    em.castShadow = em.receiveShadow = true;
+    world.add(em);
   }
-  // kalliolaatat: etupintaan ulkonevia kivilaattoja, jotta seinä ei ole tasainen (laatutila)
+  // kalliolaatat etupinnassa (laatutila)
   if (Q) {
     const sl = [];
-    for (let cx = 0; cx < W; cx++) for (let cy = 1; cy < topOf[cx] - 1; cy++) if (grid[cy * W + cx] === ROCK && hash(cx * 2.3, cy * 0.9) > 0.8) sl.push([cx, cy]);
-    const sm = new THREE.InstancedMesh(BOX, M({ color: "#ffffff", map: TEX.rock, roughness: 0.95 }), sl.length);
-    sl.forEach(([cx, cy], i) => {
-      const n = hash(cx, cy * 1.7), n2 = hash(cy * 0.3, cx * 1.1);
-      tmp.position.set(cx * T + T / 2 + (n - 0.5) * 10, cy * T + T / 2 + (n2 - 0.5) * 10, 48 + 3 + n * 5);
-      tmp.scale.set(T * (0.6 + n2 * 1.6), T * (0.4 + n * 1.2), 5 + n2 * 8); tmp.rotation.set((n2 - 0.5) * 0.3, (n - 0.5) * 0.3, (n - 0.5) * 0.5); tmp.updateMatrix();
-      sm.setMatrixAt(i, tmp.matrix); sm.setColorAt(i, rockCol(cx, cy).multiplyScalar(0.9 + n2 * 0.2));
-    });
-    sm.castShadow = sm.receiveShadow = true;
-    world.add(sm);
-  }
-  // koristekivet kallion etupinnassa (laatutila)
-  tmp.rotation.set(0, 0, 0);
-  if (Q) {
-    const dec = [];
-    for (let cx = 0; cx < W; cx++) for (let cy = 1; cy < topOf[cx]; cy += 2) if (grid[cy * W + cx] === ROCK && hash(cx * 1.3, cy) > 0.72) dec.push([cx, cy]);
-    const dm = new THREE.InstancedMesh(DOD, M({ color: "#ffffff", map: TEX.rock, roughness: 1, flatShading: true }), dec.length);
-    dec.forEach(([cx, cy], i) => {
-      const n = hash(cy, cx * 0.7), s = 5 + n * 8;
-      tmp.position.set(cx * T + hash(cx, cy * 3) * T, cy * T + hash(cx * 2, cy) * T, 50 + n * 4); tmp.scale.set(s, s * 0.8, s * 0.5); tmp.rotation.set(n * 3, n * 5, n * 7); tmp.updateMatrix();
-      dm.setMatrixAt(i, tmp.matrix); dm.setColorAt(i, rockCol(cx, cy).multiplyScalar(0.8 + n * 0.3));
-    });
-    dm.castShadow = dm.receiveShadow = true;
-    world.add(dm);
-  }
-  // tunturin takaosa: kaksi siluettikerrosta (syvyys)
-  for (const L of [{ z: -560, extra: 2, rough: 8, base: "#6f7d9a", top: "#8d9cb8", snow: 0.7 }]) {
-    const pos = [], cl = [], idx = [], uv = [];
-    const cb = new THREE.Color(L.base), ct = new THREE.Color(L.top), cs = new THREE.Color("#eef3f9");
-    let n = 0;
-    for (let cx = -24; cx <= W + 24; cx += 2) {
-      let m = 3; for (let i = -6; i <= 8; i++) m = Math.max(m, topOf[clamp(cx + i, 0, W - 1)]);
-      const y = (m + L.extra + (hash(cx, L.z) - 0.3) * L.rough + Math.sin(cx * 0.21) * 1.5) * T;
-      const snowy = y > F.top * T * L.snow;
-      pos.push(cx * T, y, L.z, cx * T, y - 3 * T, L.z, cx * T, 0, L.z);
-      uv.push(cx / 5, y / (5 * T), cx / 5, (y - 3 * T) / (5 * T), cx / 5, 0);
-      const nz = 0.88 + hash(cx * 0.37, L.z) * 0.24;
-      col.copy(snowy ? cs : ct).multiplyScalar(snowy ? 1 : nz); cl.push(col.r, col.g, col.b);
-      col.copy(snowy ? cs : cb).multiplyScalar(snowy ? 0.92 : nz); cl.push(col.r, col.g, col.b);
-      col.copy(cb).multiplyScalar(0.7); cl.push(col.r, col.g, col.b);
-      if (n > 0) { const a = (n - 1) * 3, b = n * 3; idx.push(a, b, a + 1, b, b + 1, a + 1, a + 1, b + 1, a + 2, b + 1, b + 2, a + 2); }
-      n++;
+    for (let cx = 0; cx < W; cx++) for (let cy = 1; cy < TH; cy++) if (grid[cy * W + cx] === ROCK && hash(cx * 2.3, cy * 0.9) > 0.82) sl.push([cx, cy]);
+    if (sl.length) {
+      const sm = new THREE.InstancedMesh(BOX, MM({ color: "#ffffff", map: TEX.rock, roughness: 0.95 }), sl.length);
+      sl.forEach(([cx, cy], i) => {
+        const n = hash(cx, cy * 1.7), n2 = hash(cy * 0.3, cx * 1.1);
+        tmp.position.set(cx * T + T / 2 + (n - 0.5) * 10, cy * T + T / 2 + (n2 - 0.5) * 10, 51 + n * 4);
+        tmp.scale.set(T * (0.5 + n2 * 1.1), T * (0.4 + n * 0.9), 5 + n2 * 6); tmp.rotation.set((n2 - 0.5) * 0.3, (n - 0.5) * 0.3, (n - 0.5) * 0.5); tmp.updateMatrix();
+        sm.setMatrixAt(i, tmp.matrix); sm.setColorAt(i, rockCol(cx, cy).multiplyScalar(0.9 + n2 * 0.2));
+      });
+      tmp.rotation.set(0, 0, 0);
+      sm.castShadow = sm.receiveShadow = true;
+      world.add(sm);
     }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    g.setAttribute("color", new THREE.Float32BufferAttribute(cl, 3));
-    g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-    g.setIndex(idx); g.computeVertexNormals();
-    const me = new THREE.Mesh(g, M({ color: "#ffffff", vertexColors: true, roughness: 1, flatShading: true, side: THREE.DoubleSide }));
-    me.receiveShadow = Q;
-    world.add(me);
   }
-  // puut alarinteillä (taustalla, ei peitä pelaajaa)
-  const trees = new THREE.Group();
+  // luolan tippukivet ja kristallit (koriste)
+  const deco = [];
+  for (let cx = IN0(); cx <= IN1(); cx++) for (let cy = 2; cy < TH - 1; cy++) {
+    if (zr(cy) !== Z.cave) continue;
+    if (grid[cy * W + cx] === ROCK && isAir(cx, cy - 1) && hash(cx * 1.7, cy * 2.1) > (Q ? 0.55 : 0.8)) deco.push([cx, cy, 0]);
+    if (grid[cy * W + cx] === ROCK && isAir(cx, cy + 1) && hash(cx * 3.1, cy * 0.7) > (Q ? 0.8 : 0.93)) deco.push([cx, cy, 1]);
+  }
+  if (deco.length) {
+    const st = new THREE.InstancedMesh(new THREE.ConeGeometry(5, 26, 5), MM({ color: "#ffffff", roughness: 0.8 }), deco.length);
+    deco.forEach(([cx, cy, up], i) => {
+      const n = hash(cx, cy);
+      if (up) { tmp.position.set(cx * T + n * T, (cy + 1) * T + 8, -20 + n * 40); tmp.rotation.set(0, 0, 0); tmp.scale.set(0.8 + n, 0.6 + n * 0.5, 0.8 + n); col.setHSL(0.52 + n * 0.1, 0.7, 0.62); }
+      else { tmp.position.set(cx * T + n * T, cy * T - 10, -20 + n * 40); tmp.rotation.set(Math.PI, 0, 0); tmp.scale.set(0.7 + n, 0.7 + n, 0.7 + n); col.setHSL(0.08, 0.12, 0.3 + n * 0.1); }
+      tmp.updateMatrix(); st.setMatrixAt(i, tmp.matrix); st.setColorAt(i, col);
+    });
+    tmp.rotation.set(0, 0, 0);
+    world.add(st);
+  }
+  // puut ja pensaat juurella
   const R = mulberry32(G.seed + 3);
+  const trees = new THREE.Group();
   const trunkG = new THREE.CylinderGeometry(2, 3, 34, 5), birchG = new THREE.IcosahedronGeometry(15, 0), pineG = new THREE.ConeGeometry(16, 34, 7);
-  for (let cx = 2; cx < W; cx += 2) {
-    const r = topOf[cx] / F.top;
-    if (r > 0.42 || R() > (Q ? 0.5 : 0.18)) continue;
+  for (const [cx, cy] of caps) {
+    if (zr(cy) !== Z.foot || R() > (Q ? 0.35 : 0.12) || cx < 2 || cx > W - 3) continue;
     const tr = new THREE.Group();
-    if (r < 0.2 && R() < 0.6) {
-      add(tr, trunkG, mat("#ebe5da"), 0, 17, 0);
-      add(tr, birchG, mat(R() < 0.3 ? "#c8a23a" : "#5d8a3e", { flatShading: true }), 0, 40, 0);
-    } else {
-      add(tr, trunkG, mat("#5a4030"), 0, 10, 0).scale.set(1, 0.6, 1);
-      for (let q = 0; q < 3; q++) add(tr, pineG, mat("#2f5a3c", { flatShading: true }), 0, 24 + q * 14, 0).scale.setScalar(1 - q * 0.25);
-    }
-    tr.position.set(cx * T + R() * T, topOf[cx] * T, -70 - R() * 110); tr.scale.setScalar(0.7 + R() * 0.7); tr.rotation.y = R() * 3;
+    if (R() < 0.6) { add(tr, trunkG, mat("#ebe5da"), 0, 17, 0); add(tr, birchG, mat(R() < 0.3 ? "#c8a23a" : "#5d8a3e", { flatShading: true }), 0, 40, 0); }
+    else { add(tr, trunkG, mat("#5a4030"), 0, 10, 0).scale.set(1, 0.6, 1); for (let q = 0; q < 3; q++) add(tr, pineG, mat("#2f5a3c", { flatShading: true }), 0, 24 + q * 14, 0).scale.setScalar(1 - q * 0.25); }
+    tr.position.set(cx * T + R() * T, (cy + 1) * T, -30 - R() * 14); tr.scale.setScalar(0.55 + R() * 0.45); tr.rotation.y = R() * 3;
     trees.add(tr);
   }
   world.add(trees);
-  // laakso edessä: kiviä ja pensaita matalalla (eivät peitä pelaajaa)
-  const nB = Math.floor(W / (Q ? 2 : 6));
-  const bush = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), M({ color: "#ffffff", roughness: 1, flatShading: true }), nB * 2);
-  let kb2 = 0;
+  // laakso alhaalla
+  const nB = Q ? 160 : 50;
+  const bush = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), MM({ color: "#ffffff", roughness: 1, flatShading: true }), nB);
   for (let i = 0; i < nB; i++) {
-    const x = -400 + R() * (W * T + 800), z = 90 + R() * 420, rock = R() < 0.4, s = rock ? 10 + R() * 18 : 12 + R() * 14;
-    tmp.position.set(x, s * 0.4, z); tmp.scale.set(s * (rock ? 1.4 : 1.2), s * (rock ? 0.8 : 0.9), s); tmp.rotation.set(0, R() * 3, 0); tmp.updateMatrix();
-    bush.setMatrixAt(kb2, tmp.matrix);
+    const x = -1600 + R() * (W * T + 3200), z = 80 + R() * 700, rock = R() < 0.4, s = rock ? 12 + R() * 22 : 14 + R() * 16;
+    tmp.position.set(x, s * 0.4, z); tmp.scale.set(s * 1.3, s * 0.85, s); tmp.rotation.set(0, R() * 3, 0); tmp.updateMatrix();
+    bush.setMatrixAt(i, tmp.matrix);
     if (rock) col.setHSL(0.08, 0.05, 0.32 + R() * 0.1); else col.setHSL(R() < 0.25 ? 0.08 : 0.27, R() < 0.25 ? 0.5 : 0.4, 0.18 + R() * 0.08);
-    bush.setColorAt(kb2++, col);
+    bush.setColorAt(i, col);
   }
-  bush.count = kb2; bush.receiveShadow = Q; bush.castShadow = Q;
+  bush.receiveShadow = Q; bush.castShadow = Q;
   world.add(bush);
 }
+const IN0 = () => CC.IN0, IN1 = () => CC.IN1;
 
 function signTex(text) {
   const [a, b] = text.split("|");
@@ -1048,24 +630,22 @@ function signTex(text) {
     g.fillStyle = "#e7d6b0"; g.fillRect(0, 0, w, h);
     g.strokeStyle = "#8a6a40"; g.lineWidth = 10; g.strokeRect(5, 5, w - 10, h - 10);
     g.fillStyle = "#2a1a0b"; g.textAlign = "center";
-    g.font = "900 46px Segoe UI, Arial, sans-serif"; g.fillText(a, w / 2, 66);
-    g.font = "700 34px Segoe UI, Arial, sans-serif"; g.fillText(b || "", w / 2, 122);
+    g.font = "900 44px Segoe UI, Arial, sans-serif"; g.fillText(a, w / 2, 64);
+    g.font = "700 30px Segoe UI, Arial, sans-serif"; g.fillText(b || "", w / 2, 118);
   });
 }
 function buildProps() {
-  // opastekyltit
-  for (const s of signs) {
+  for (const s of MAP.signs) {
     const g = new THREE.Group();
     add(g, BOX, mat("#6a4a2c"), 0, 22, 0).scale.set(4, 44, 4);
-    add(g, BOX, mat("#8a6a40"), 0, 52, -1.5).scale.set(104, 36, 3);
-    const pl = add(g, new THREE.PlaneGeometry(100, 31), new THREE.MeshBasicMaterial({ map: signTex(s.t) }), 0, 52, 0.2);
+    add(g, BOX, mat("#8a6a40"), 0, 52, -1.5).scale.set(110, 36, 3);
+    const pl = add(g, new THREE.PlaneGeometry(106, 31), new THREE.MeshBasicMaterial({ map: signTex(s.t) }), 0, 52, 0.2);
     pl.castShadow = false;
-    g.position.set(s.x, s.y, -16);
+    g.position.set(clamp(s.x, 3 * T, (W - 3) * T), s.y, -18);
     world.add(g);
   }
-  // makkarat
   const sg = new THREE.CylinderGeometry(4, 4, 20, 10);
-  sausMeshes = saus.map((s) => {
+  sausMeshes = MAP.saus.map((s) => {
     const g = new THREE.Group();
     add(g, sg, mat("#b5523b", { roughness: 0.45 }), 0, 0, 0).rotation.z = Math.PI / 2;
     for (const sx of [-8, 0, 8]) add(g, BOX, mat("#7a2f22"), sx, 4.2, 0).scale.set(1.2, 0.6, 7);
@@ -1073,25 +653,37 @@ function buildProps() {
     world.add(g);
     return g;
   });
-  // lakat (hillat)
-  berMeshes = bers.map((b) => {
+  berMeshes = MAP.bers.map((b) => {
     const g = new THREE.Group();
     const bm = mat("#f39a2e", { roughness: 0.35, emissive: "#7a3a00", emissiveIntensity: 0.6 });
     for (let i = 0; i < 6; i++) add(g, SPH, bm, Math.cos(i) * 3.2, Math.sin(i * 1.7) * 2.6, Math.sin(i) * 3).scale.setScalar(3);
     add(g, SPH, bm, 0, 0, 0).scale.setScalar(3.4);
-    const lf = add(g, BOX, mat("#3f7a3a"), 0, -6, 0); lf.scale.set(14, 1.2, 8);
+    add(g, BOX, mat("#3f7a3a"), 0, -6, 0).scale.set(14, 1.2, 8);
     g.position.set(b.x, b.y, 18);
     world.add(g);
     return g;
   });
-  // kodat ja lähtöpaikka
-  cpMeshes = cps.map((cp) => {
+  // lyhdyt luolassa
+  lampPos = MAP.lanterns.map((l) => ({ x: l.x, y: l.y }));
+  const lg = new THREE.Group();
+  for (const l of MAP.lanterns) {
+    const g = new THREE.Group();
+    add(g, BOX, mat("#2a2a2a", { metalness: 0.5 }), 0, 8, 0).scale.set(9, 2, 9);
+    add(g, BOX, mat("#ffcf6a", { emissive: "#ff9a2a", emissiveIntensity: 1.6 }), 0, 0, 0).scale.set(7, 12, 7);
+    add(g, BOX, mat("#2a2a2a", { metalness: 0.5 }), 0, -7, 0).scale.set(9, 2, 9);
+    add(g, BOX, mat("#3a3a3a"), 0, 16, 0).scale.set(1.2, 14, 1.2);
+    g.position.set(l.x, l.y, 20);
+    lg.add(g);
+  }
+  world.add(lg);
+  // majat
+  cpMeshes = MAP.cps.map((cp) => {
     const g = new THREE.Group();
     if (cp.start) {
       add(g, BOX, mat("#6a4a2c"), 0, 26, 0).scale.set(4, 52, 4);
-      add(g, BOX, mat("#c0392b"), 0, 50, 1).scale.set(70, 22, 3);
-      const pl = add(g, new THREE.PlaneGeometry(66, 19), new THREE.MeshBasicMaterial({ map: signTex("TRAIL|" + F.n) }), 0, 50, 2.7); pl.castShadow = false;
-      g.position.set(cp.x - 95, cp.y, -24);
+      add(g, BOX, mat("#c0392b"), 0, 50, 1).scale.set(80, 22, 3);
+      const pl = add(g, new THREE.PlaneGeometry(76, 19), new THREE.MeshBasicMaterial({ map: signTex("TRAIL|" + MT().n) }), 0, 50, 2.7); pl.castShadow = false;
+      g.position.set(cp.x - 150, cp.y, -24);
       world.add(g);
       return g;
     }
@@ -1101,7 +693,6 @@ function buildProps() {
     add(g, BOX, mat("#1c140e"), 0, 13, 30).scale.set(16, 24, 2);
     const fl = add(g, BOX, mat("#c0392b", { emissive: "#000000" }), 24, 58, 0); fl.scale.set(20, 12, 1);
     add(g, new THREE.CylinderGeometry(1, 1, 64, 4), mat("#dddddd"), 14, 32, 0);
-    // tulipaikka
     for (let i = 0; i < 7; i++) add(g, DOD, mat("#6b6b6b", { flatShading: true }), 52 + Math.cos(i) * 11, 3, 26 + Math.sin(i) * 8).scale.setScalar(4.5);
     const fire = add(g, new THREE.ConeGeometry(7, 18, 6), mat("#ff8a2a", { emissive: "#ff6a00", emissiveIntensity: 1.8 }), 52, 10, 26);
     fire.castShadow = false;
@@ -1110,31 +701,47 @@ function buildProps() {
     world.add(g);
     return g;
   });
-  // huippu: kivikasa, kyltti, lippu ja grilli
-  const top = new THREE.Group();
-  for (let i = 0; i < 9; i++) add(top, DOD, mat("#77787c", { flatShading: true }), -60 + Math.cos(i * 2.1) * (14 - i), 6 + i * 6, Math.sin(i * 2.1) * (14 - i)).scale.setScalar(10 - i * 0.7);
-  add(top, BOX, mat("#5a3d25"), 0, 22, 0).scale.set(4, 44, 4);
-  add(top, BOX, mat("#e9dcc0"), 0, 46, 3).scale.set(74, 24, 2);
-  const tp = add(top, new THREE.PlaneGeometry(72, 22), new THREE.MeshBasicMaterial({ map: signTex(F.n.toUpperCase() + "|" + F.m + " m") }), 0, 46, 4.2); tp.castShadow = false;
-  add(top, new THREE.CylinderGeometry(1.4, 1.4, 120, 5), mat("#dddddd"), -60, 100, 0);
-  const flag = add(top, BOX, mat("#ffffff"), -42, 150, 0); flag.scale.set(36, 22, 1);
-  add(top, BOX, mat("#2a5fb0"), -42, 150, 0.8).scale.set(36, 5, 0.6);
-  add(top, BOX, mat("#2a5fb0"), -50, 150, 0.9).scale.set(5, 22, 0.6);
+  // huippu
+  const sm = MAP.summit, top = new THREE.Group();
+  for (let i = 0; i < 9; i++) add(top, DOD, mat("#77787c", { flatShading: true }), -50 + Math.cos(i * 2.1) * (14 - i), 6 + i * 6, Math.sin(i * 2.1) * (14 - i)).scale.setScalar(10 - i * 0.7);
+  add(top, BOX, mat("#5a3d25"), 20, 22, 0).scale.set(4, 44, 4);
+  add(top, BOX, mat("#e9dcc0"), 20, 46, 3).scale.set(74, 24, 2);
+  const tp = add(top, new THREE.PlaneGeometry(72, 22), new THREE.MeshBasicMaterial({ map: signTex(MT().n.toUpperCase() + "|" + MT().m + " m") }), 20, 46, 4.2); tp.castShadow = false;
+  add(top, new THREE.CylinderGeometry(1.4, 1.4, 120, 5), mat("#dddddd"), -50, 100, 0);
+  add(top, BOX, mat("#ffffff"), -32, 150, 0).scale.set(36, 22, 1);
+  add(top, BOX, mat("#2a5fb0"), -32, 150, 0.8).scale.set(36, 5, 0.6);
+  add(top, BOX, mat("#2a5fb0"), -40, 150, 0.9).scale.set(5, 22, 0.6);
   const grill = new THREE.Group();
   for (let i = 0; i < 8; i++) add(grill, DOD, mat("#6b6b6b", { flatShading: true }), Math.cos(i) * 16, 4, Math.sin(i) * 16).scale.setScalar(6);
   add(grill, BOX, mat("#333333", { metalness: 0.6, roughness: 0.4 }), 0, 16, 0).scale.set(30, 1.2, 22);
   for (const sx of [-8, 0, 8]) add(grill, new THREE.CylinderGeometry(3, 3, 18, 8), mat("#b5523b"), sx, 19, 0).rotation.x = Math.PI / 2;
   grillFire = add(grill, new THREE.ConeGeometry(9, 22, 6), mat("#ff8a2a", { emissive: "#ff6a00", emissiveIntensity: 1.8 }), 0, 10, 0);
   grillFire.visible = false; grillFire.castShadow = false;
-  grill.position.set(70, 0, 10);
+  grill.position.set(80, 0, 10);
   top.add(grill);
-  top.position.set(summit.gx, summit.y, -10);
+  top.position.set(sm.gx, sm.y, -14);
   world.add(top);
-  // putoavat kivet
   rockMeshes = [];
   for (let i = 0; i < 14; i++) { const m = add(world, DOD, mat("#6d6a66", { flatShading: true }), 0, -999, 20); m.scale.setScalar(9); m.visible = false; rockMeshes.push(m); }
   pitonGroup = new THREE.Group();
   world.add(pitonGroup);
+}
+// myrsky: tummat pilvikerrokset, jotka nousevat alhaalta
+function buildStorm() {
+  stormG = new THREE.Group();
+  const m = new THREE.MeshBasicMaterial({ map: TEX.cloud, color: "#4a5468", transparent: true, opacity: 0.9, depthWrite: false, fog: false });
+  const m2 = new THREE.MeshBasicMaterial({ map: TEX.cloud, color: "#2b3242", transparent: true, opacity: 0.95, depthWrite: false, fog: false });
+  for (let i = 0; i < (Q ? 9 : 5); i++) {
+    const me = new THREE.Mesh(new THREE.PlaneGeometry(2600, 520), i % 2 ? m : m2);
+    me.position.set(W * T / 2 + (Math.random() - 0.5) * 300, -i * 70, -250 + i * 70);
+    me.userData.v = (Math.random() < 0.5 ? -1 : 1) * (14 + Math.random() * 20);
+    me.renderOrder = 5;
+    stormG.add(me);
+  }
+  const body = new THREE.Mesh(new THREE.PlaneGeometry(4200, 4000), new THREE.MeshBasicMaterial({ color: "#1f2533", transparent: true, opacity: 0.88, depthWrite: false, fog: false }));
+  body.position.set(W * T / 2, -2150, 120); body.renderOrder = 4;
+  stormG.add(body);
+  scene.add(stormG);
 }
 function syncPitons() {
   if (pitonCount === G.pitons.length) return;
@@ -1151,11 +758,11 @@ function syncPitons() {
   }
 }
 
-function playerModel(i) {
+function playerModel(i, bot) {
   const g = new THREE.Group(), rig = new THREE.Group();
   g.add(rig);
   const c = COLS[i], dark = i ? "#1f6f68" : "#a8461f", skin = "#f2c9a0";
-  const body = add(rig, new THREE.CylinderGeometry(8.5, 10, 17, 10), mat(c, { roughness: 0.7 }), 0, 17, 0);
+  add(rig, new THREE.CylinderGeometry(8.5, 10, 17, 10), mat(c, { roughness: 0.7 }), 0, 17, 0);
   add(rig, SPH, mat(c, { roughness: 0.7 }), 0, 25, 0).scale.set(9, 5, 8.5);
   add(rig, BOX, mat("#f4efe6"), 0, 17, 9.3).scale.set(1.6, 15, 1);
   add(rig, SPH, mat(skin, { roughness: 0.6 }), 0, 33, 0).scale.setScalar(8);
@@ -1164,15 +771,18 @@ function playerModel(i) {
   add(hat, SPH, mat(dark), 0, 4, 0).scale.set(8.3, 5, 8.3);
   add(hat, SPH, mat("#ffffff"), 0, 10, 0).scale.setScalar(3.2);
   add(hat, new THREE.CylinderGeometry(8.9, 8.9, 2.4, 12), mat("#f4efe6"), 0, -2, 0);
+  // otsalamppu
+  add(hat, BOX, mat("#222222"), 0, 0.5, 8.6).scale.set(4, 3, 1.5);
+  add(hat, SPH, mat("#fff6d0", { emissive: "#fff2b0", emissiveIntensity: 1.2 }), 0, 0.5, 9.4).scale.setScalar(1.5);
   for (const s of [-1, 1]) add(rig, SPH, mat("#222222"), s * 3, 34, 7.4).scale.setScalar(1.5);
   add(rig, SPH, mat("#e7a07a"), 0, 32, 8).scale.set(1.6, 1.3, 1.3);
-  // huivi
   const scarf = add(rig, new THREE.TorusGeometry(7.2, 2.2, 6, 14), mat(i ? "#ffd36a" : "#3a7bd5"), 0, 26.5, 0); scarf.rotation.x = Math.PI / 2;
   const tail = add(rig, BOX, mat(i ? "#ffd36a" : "#3a7bd5"), 4, 22, -8); tail.scale.set(3.5, 11, 2);
-  // reppu ja köysi
   add(rig, BOX, mat("#3b4a5f"), 0, 18, -10).scale.set(14, 17, 7);
   add(rig, BOX, mat("#2b3647"), 0, 25, -10.5).scale.set(14.4, 4, 7.4);
-  if (Q) { const rope = add(rig, new THREE.TorusGeometry(5, 1.6, 6, 14), mat("#d9b45a"), 0, 13, -14.5); rope.rotation.y = Math.PI / 2; }
+  // valjaat, joihin ketju kiinnittyy
+  add(rig, BOX, mat("#d23c3c"), 0, 12, 0).scale.set(18, 3, 18);
+  if (bot) { add(hat, new THREE.CylinderGeometry(0.6, 0.6, 9, 5), mat("#888888"), 4, 10, 0); add(hat, SPH, mat("#ff4a4a", { emissive: "#ff2020", emissiveIntensity: 1.5 }), 4, 15, 0).scale.setScalar(1.6); }
   const legs = [-1, 1].map((s) => {
     const piv = new THREE.Group(); piv.position.set(s * 4.2, 9, 0); rig.add(piv);
     add(piv, BOX, mat("#2b3140"), 0, -4, 0).scale.set(6, 9, 6.4);
@@ -1185,51 +795,80 @@ function playerModel(i) {
     add(piv, SPH, mat(dark), 0, -15, 0).scale.setScalar(3.4);
     return piv;
   });
-  g.userData = { rig, arms, legs, hat, tail, body };
+  g.userData = { rig, arms, legs, hat, tail };
   return g;
 }
 
-let skyK = 0, camX = 0, camY = 0, camD = 700, shake = 0, texts = [], fx = [], warns = [], previewT = 0;
+let zoomOverride = 0;
+let skyK = 0, camX = 0, camY = 0, camD = 760, shake = 0, texts = [], fx = [], warns = [], previewT = 0, flashA = 0, caveK = 0;
 function syncPlayer(p, m, tt, dt) {
   const u = m.userData;
   m.position.set(p.x, p.y + 9, 8);
-  const sp = Math.min(1, Math.abs(p.vx) / WALK);
+  const sp = Math.min(1, Math.abs(p.vx) / CC.WALK);
   const walk = p.ground ? Math.sin(tt * 13 + p.i) * sp : 0;
   const wantY = p.cling ? (p.cling > 0 ? Math.PI / 2 + 0.55 : -Math.PI / 2 - 0.55) : p.face > 0 ? 1.0 : -1.0;
   m.rotation.y += (wantY - m.rotation.y) * Math.min(1, 14 * dt);
   u.rig.position.y = p.stun > 0 ? -5 : p.ground && sp < 0.1 ? Math.sin(tt * 3 + p.i) * 0.4 : 0;
-  u.rig.rotation.z = p.stun > 0 ? Math.sin(tt * 20) * 0.18 : 0;
-  m.visible = p.rescue <= 0;
+  u.rig.rotation.z = p.stun > 0 ? Math.sin(tt * 20) * 0.18 : p.hang ? Math.sin(tt * 3 + p.i) * 0.12 : 0;
   u.legs[0].rotation.x = walk * 0.8; u.legs[1].rotation.x = -walk * 0.8;
   if (p.cling) { const c = p.climbing ? Math.sin(tt * 10) * 0.5 : 0.2; u.legs[0].rotation.x = -0.6 + c; u.legs[1].rotation.x = -0.6 - c; }
+  else if (p.brace) { u.legs[0].rotation.x = 0.5; u.legs[1].rotation.x = -0.4; }
   else if (!p.ground) { u.legs[0].rotation.x = -0.5; u.legs[1].rotation.x = 0.3; }
   u.arms.forEach((a, k) => {
     if (p.cling) a.rotation.set(-2.7 + (p.climbing ? Math.sin(tt * 10 + k * Math.PI) * 0.45 : 0), 0, 0);
-    else if (p.hang || (G.link && !p.ground)) a.rotation.set(0, 0, (k ? -1 : 1) * 2.8);
+    else if (p.hang) a.rotation.set(-3 + Math.sin(tt * 6 + k) * 0.2, 0, (k ? -1 : 1) * 0.3);
+    else if (p.brace) a.rotation.set(-1.2, 0, (k ? -1 : 1) * 0.2);
     else if (p.slide) a.rotation.set(-2.2, 0, (k ? -1 : 1) * 0.3);
     else if (!p.ground) a.rotation.set(0, 0, (k ? -1 : 1) * 2.2);
     else a.rotation.set(walk * 0.9 * (k ? 1 : -1), 0, (k ? -1 : 1) * 0.12);
   });
-  u.tail.rotation.x = Math.sin(tt * 8 + p.i) * 0.25 + (windForce(p) ? 0.9 : 0) + Math.min(0.8, Math.abs(p.vx) / 400);
+  u.tail.rotation.x = Math.sin(tt * 8 + p.i) * 0.25 + (CC.windForce(p) ? 0.9 : 0) + Math.min(0.8, Math.abs(p.vx) / 400);
+}
+// ketju: renkaat roikkuvat käyrällä, kun ketju on löysällä
+const cTmp = new THREE.Object3D(), cA = new THREE.Vector3(), cB = new THREE.Vector3(), cC = new THREE.Vector3(), cP = new THREE.Vector3(), cN = new THREE.Vector3(), cQ = new THREE.Quaternion(), cUp = new THREE.Vector3(0, 1, 0);
+function syncChain(tt) {
+  if (!chainMesh || P.length < 2) return;
+  const [A, B] = P;
+  cA.set(A.x, A.y + 21, 14); cB.set(B.x, B.y + 21, 14);
+  const d = cA.distanceTo(cB), len = Math.max(d, G.len || CHAIN);
+  const sag = Math.sqrt(Math.max(0, len * len - d * d)) * 0.5;
+  cC.copy(cA).add(cB).multiplyScalar(0.5); cC.y -= sag; cC.z += 4;
+  const n = chainMesh.count;
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n, it = 1 - t;
+    cP.set(it * it * cA.x + 2 * it * t * cC.x + t * t * cB.x, it * it * cA.y + 2 * it * t * cC.y + t * t * cB.y, it * it * cA.z + 2 * it * t * cC.z + t * t * cB.z);
+    cN.set(2 * it * (cC.x - cA.x) + 2 * t * (cB.x - cC.x), 2 * it * (cC.y - cA.y) + 2 * t * (cB.y - cC.y), 0).normalize();
+    cTmp.position.copy(cP);
+    cQ.setFromUnitVectors(cUp, cN);
+    cTmp.quaternion.copy(cQ);
+    cTmp.rotateY(i % 2 ? Math.PI / 2 : 0);
+    cTmp.rotateX(Math.PI / 2);
+    const s = Math.min(1.25, Math.max(0.6, (len / n) / 6.5));
+    cTmp.scale.set(1, s, 1);
+    cTmp.updateMatrix();
+    chainMesh.setMatrixAt(i, cTmp.matrix);
+  }
+  chainMesh.instanceMatrix.needsUpdate = true;
 }
 const PAL = {
   day: { top: new THREE.Color("#3f7ac0"), mid: new THREE.Color("#b2d0ec"), bot: new THREE.Color("#7c97b4"), sun: new THREE.Color("#fff1d0") },
   eve: { top: new THREE.Color("#384a86"), mid: new THREE.Color("#f4a067"), bot: new THREE.Color("#8a667a"), sun: new THREE.Color("#ffb070") },
-  night: { top: new THREE.Color("#070b22"), mid: new THREE.Color("#243052"), bot: new THREE.Color("#121a33"), sun: new THREE.Color("#3a2a40") },
+  cave: { top: new THREE.Color("#120e0b"), mid: new THREE.Color("#1e1712"), bot: new THREE.Color("#0c0a08"), sun: new THREE.Color("#000000") },
 };
-const tc = new THREE.Color(), tintC = new THREE.Color();
-function skyAt(k) {
-  const a = k < 0.7 ? PAL.day : PAL.eve, b = k < 0.7 ? PAL.eve : PAL.night, f = k < 0.7 ? k / 0.7 : (k - 0.7) / 0.3;
-  skyU.top.value.copy(a.top).lerp(b.top, f); skyU.mid.value.copy(a.mid).lerp(b.mid, f); skyU.bot.value.copy(a.bot).lerp(b.bot, f); skyU.sunCol.value.copy(a.sun).lerp(b.sun, f);
-  scene.fog.color.copy(skyU.mid.value);
-  const ang = lerp(0.62, -0.08, k);
+const tc = new THREE.Color(), tintC = new THREE.Color(), fogC = new THREE.Color();
+function skyAt(k, cave) {
+  const a = PAL.day, b = PAL.eve;
+  skyU.top.value.copy(a.top).lerp(b.top, k); skyU.mid.value.copy(a.mid).lerp(b.mid, k); skyU.bot.value.copy(a.bot).lerp(b.bot, k); skyU.sunCol.value.copy(a.sun).lerp(b.sun, k);
+  fogC.copy(skyU.mid.value).lerp(PAL.cave.mid, cave);
+  scene.fog.color.copy(fogC);
+  scene.fog.near = lerp(900, 500, cave); scene.fog.far = lerp(6500, 2200, cave);
+  const ang = lerp(0.65, 0.12, k);
   skyU.sunDir.value.set(0.35, Math.sin(ang), -Math.cos(ang));
-  sun.intensity = lerp(1.2, 0.18, k); sun.color.copy(tc.set("#fff0d6").lerp(tintC.set("#ff8a4a"), clamp(k * 1.3, 0, 1)));
-  hemi.intensity = lerp(0.8, 0.42, k); hemi.color.copy(tc.set("#d6e6ff").lerp(tintC.set("#8a9cff"), k));
-  rim.intensity = lerp(0.25, 0.45, k);
-  if (backdrop) for (const m of backdrop.userData.mats) m.color.copy(tc.set("#ffffff").lerp(tintC.set("#ffc9a0"), clamp(k / 0.7, 0, 1) * 0.5).lerp(tintC.set("#3a4570"), clamp((k - 0.7) / 0.3, 0, 1)));
-  stars.material.opacity = clamp((k - 0.62) / 0.3, 0, 1) * 0.9;
-  auroraU.op.value = clamp((k - 0.7) / 0.25, 0, 1);
+  sun.intensity = lerp(1.2, 0.75, k) * (1 - cave * 0.85); sun.color.copy(tc.set("#fff0d6").lerp(tintC.set("#ff9a5a"), k));
+  hemi.intensity = lerp(0.82, 0.6, k) * (1 - cave * 0.72) + flashA * 1.8; hemi.color.copy(tc.set("#d6e6ff").lerp(tintC.set("#ffc9a0"), k * 0.5));
+  rim.intensity = lerp(0.25, 0.4, k) * (1 - cave * 0.7);
+  if (backdrop) for (const m of backdrop.userData.mats) m.color.copy(tc.set("#ffffff").lerp(tintC.set("#ffc9a0"), k * 0.5));
+  stars.material.opacity = clamp((k - 0.75) / 0.25, 0, 1) * 0.6;
 }
 function render(dt, now, phase) {
   const tt = now / 1000;
@@ -1237,13 +876,10 @@ function render(dt, now, phase) {
   if (!P.length || !world) { renderer.render(scene, camera); return; }
   if (Coop.mode === "client") for (const p of P) if (p.tx != null) { const k = Math.min(1, 14 * dt); p.x += (p.tx - p.x) * k; p.y += (p.ty - p.y) * k; }
   P.forEach((p, i) => syncPlayer(p, players3[i], tt, dt));
-  if (G.link && P.length === 2) {
-    const [A, B] = P, ax = A.x, ay = A.y + 28, bx = B.x, by = B.y + 28, len = Math.hypot(bx - ax, by - ay);
-    linkMesh.visible = true; linkMesh.position.set((ax + bx) / 2, (ay + by) / 2, 14); linkMesh.scale.set(1, len, 1); linkMesh.rotation.set(0, 0, Math.atan2(by - ay, bx - ax) - Math.PI / 2);
-  } else linkMesh.visible = false;
-  saus.forEach((s, i) => { const m = sausMeshes[i]; m.visible = !s.e; if (m.visible) { m.rotation.y = tt * 1.5 + i; m.position.y = s.y + Math.sin(tt * 3 + i) * 3; } });
-  bers.forEach((b, i) => { const m = berMeshes[i]; m.visible = !b.got; if (m.visible) { m.rotation.y = tt * 2 + i; m.position.y = b.y + Math.sin(tt * 2.5 + i) * 4; } });
-  // kodat: aktiivinen tuli palaa
+  syncChain(tt);
+  MAP.saus.forEach((s, i) => { const m = sausMeshes[i]; m.visible = !s.e; if (m.visible) { m.rotation.y = tt * 1.5 + i; m.position.y = s.y + Math.sin(tt * 3 + i) * 3; } });
+  MAP.bers.forEach((b, i) => { const m = berMeshes[i]; m.visible = !b.got; if (m.visible) { m.rotation.y = tt * 2 + i; m.position.y = b.y + Math.sin(tt * 2.5 + i) * 4; } });
+  // majat
   let fireAt = null;
   cpMeshes.forEach((m, i) => {
     const u = m.userData;
@@ -1251,11 +887,10 @@ function render(dt, now, phase) {
     u.flag.material = mat(i <= G.cp ? "#3fbf5f" : "#c0392b");
     u.flag.rotation.y = Math.sin(tt * 3 + i) * 0.3;
     u.fire.visible = i <= G.cp;
-    if (u.fire.visible) { u.fire.scale.set(1, 1 + Math.sin(tt * 17 + i) * 0.22, 1); if (i === G.cp) fireAt = [cps[i].x + 52, cps[i].y + 12, 2]; }
+    if (u.fire.visible) { u.fire.scale.set(1, 1 + Math.sin(tt * 17 + i) * 0.22, 1); if (i === G.cp) fireAt = [MAP.cps[i].x + 52, MAP.cps[i].y + 12, 2]; }
   });
   const grillOn = phase === "end" || G.topT > 0;
-  if (grillFire) { grillFire.visible = grillOn; grillFire.scale.y = 1 + Math.sin(tt * 18) * 0.2; if (grillOn) fireAt = [summit.gx + 70, summit.y + 12, 0]; }
-  // valo ja savu lähimmältä tulelta
+  if (grillFire) { grillFire.visible = grillOn; grillFire.scale.y = 1 + Math.sin(tt * 18) * 0.2; if (grillOn) fireAt = [MAP.summit.gx + 80, MAP.summit.y + 12, 0]; }
   fireLight.intensity = Q && fireAt ? 1.6 + Math.sin(tt * 13) * 0.25 : 0;
   if (fireAt) fireLight.position.set(fireAt[0], fireAt[1] + 20, fireAt[2] + 30);
   if (smoke) {
@@ -1271,55 +906,72 @@ function render(dt, now, phase) {
   // murenevat kivet
   if (crumMesh) {
     const tmp = syncPlayer.tmp || (syncPlayer.tmp = new THREE.Object3D());
-    let any = crumMesh.userData.dirty;
-    crumMesh.userData.dirty = false;
-    for (const c of crumList) if (c.st === 1) any = true;
-    if (any || crumMesh.userData.prev !== crumList.map((c) => c.st).join("")) {
-      crumMesh.userData.prev = crumList.map((c) => c.st).join("");
-      crumList.forEach((c, i) => {
+    const st = MAP.crumList.map((c) => c.st).join("");
+    if (crumMesh.userData.dirty || st.includes("1") || crumMesh.userData.prev !== st) {
+      crumMesh.userData.dirty = false; crumMesh.userData.prev = st;
+      MAP.crumList.forEach((c, i) => {
         const sh = c.st === 1 ? Math.sin(tt * 70 + i) * 1.6 : 0;
         tmp.position.set(c.cx * T + T / 2 + sh, c.cy * T + T / 2, 2);
         const s = c.st === 2 ? 0.001 : 1;
-        tmp.scale.set((T - 1) * s, (T - 1) * s, 100 * s); tmp.updateMatrix(); crumMesh.setMatrixAt(i, tmp.matrix);
+        tmp.scale.set((T - 1) * s, (T - 1) * s, 96 * s); tmp.updateMatrix(); crumMesh.setMatrixAt(i, tmp.matrix);
       });
       crumMesh.instanceMatrix.needsUpdate = true;
     }
   }
-  rockMeshes.forEach((m, i) => { const r = G.rocks[i]; m.visible = !!r; if (r) { m.position.set(r.x, r.y, 20); m.rotation.x += dt * 6; m.rotation.z += dt * 4; } });
+  rockMeshes.forEach((m, i) => { const r = G.rocks[i]; m.visible = !!r; if (r) { m.position.set(r.x, r.y, 20); m.rotation.x += dt * 6; m.rotation.z += dt * 4; m.scale.setScalar(r.drip ? 6 : 9); } });
   syncPitons();
-  // auringonlasku
-  const k = phase === "menu" ? 0.5 + Math.sin(tt * 0.05) * 0.1 : clamp(1 - G.time / F.time, 0, 1);
-  skyK += (k - skyK) * Math.min(1, dt * 2);
-  skyAt(skyK);
-  auroraU.time.value = tt;
   // kamera
-  const vis = P.filter((p) => p.rescue <= 0);
-  const focus = vis.length ? vis : P;
-  let mx = focus.reduce((s, p) => s + p.x, 0) / focus.length, my = focus.reduce((s, p) => s + p.y, 0) / focus.length + 70;
-  let want = 640;
-  if (phase === "menu") { previewT += dt; mx = W * T * 0.25 + Math.sin(previewT * 0.07) * 600; my = (topOf[Math.floor(clamp(mx / T, 0, W - 1))] + 4) * T; want = 1250; }
-  else if (focus.length === 2) { const [A, B] = focus; const span = Math.max(Math.abs(A.x - B.x) * 0.9, Math.abs(A.y - B.y) * 1.4); want = clamp(620 + span, 620, 1700); }
-  else { const p = focus[0]; mx += p.face * 50; if (p.cling) { my += 50; want = 720; } }
+  const focusP = P.filter((p) => !p.bot || P.length === 1);
+  const loc = P.filter((p) => Coop.localPlayers.includes(p.i));
+  let mx, my, want = 760;
+  if (phase === "menu") { previewT += dt; mx = W * T / 2 + Math.sin(previewT * 0.1) * 120; my = clamp(MAP.summit.y * (0.08 + (0.5 + Math.sin(previewT * 0.05) * 0.5) * 0.25), 300, MAP.summit.y); want = 900; }
+  else {
+    const main = loc[0] || P[0], other = P.find((p) => p !== main);
+    mx = main.x; my = main.y + 110;
+    if (other) { const w = 0.35; mx = lerp(mx, other.x, w); my = lerp(my, other.y + 110, w); const span = Math.max(Math.abs(main.x - other.x) * 0.8, Math.abs(main.y - other.y) * 1.2); want = clamp(720 + span * 0.8, 720, 1150); }
+  }
+  if (zoomOverride) want = zoomOverride;
+  const viewHalfW = camD * Math.tan((21 * Math.PI) / 180) * camera.aspect;
+  mx = clamp(mx, W * T / 2 - Math.max(0, W * T / 2 - viewHalfW + 120), W * T / 2 + Math.max(0, W * T / 2 - viewHalfW + 120));
   const kc = Math.min(1, (phase === "menu" ? 1 : 3) * dt);
   camX += (mx - camX) * kc; camY += (my - camY) * kc; camD += (want - camD) * kc;
   shake = Math.max(0, shake - dt * 30);
   const sx = (Math.random() - 0.5) * shake, sy = (Math.random() - 0.5) * shake;
-  camera.position.set(camX + sx, camY + 140 + sy, camD);
-  camera.lookAt(camX + sx, camY + sy, 0);
+  camera.position.set(camX + sx, camY - 30 + sy, camD);
+  camera.lookAt(camX + sx, camY + 20 + sy, 0);
   sky.position.copy(camera.position); stars.position.copy(camera.position);
-  for (const a of aurora) a.position.x = camX;
-  sun.position.set(camX + 900 - skyK * 1400, camY + 1000 - skyK * 800, 800); sun.target.position.set(camX, camY, 0);
-  for (const c of clouds) { c.position.x += c.userData.v * dt; if (c.position.x > camX + 7000) c.position.x -= 14000; if (c.position.x < camX - 7000) c.position.x += 14000; }
-  // lumi: tuulenpuuska puhaltaa sivulle
+  // valaistus: korkeus ja luola
+  const cz = CC.zoneAt(camY);
+  caveK += ((cz === Z.cave ? 1 : 0) - caveK) * Math.min(1, dt * 2.5);
+  const k = phase === "menu" ? 0.15 : clamp(camY / MAP.summit.y, 0, 1);
+  skyK += (k - skyK) * Math.min(1, dt * 2);
+  flashA = Math.max(0, flashA - dt * 3);
+  skyAt(skyK * 0.85, caveK);
+  sun.position.set(camX + 700, camY + 1000, 900); sun.target.position.set(camX, camY, 0);
+  rim.position.set(camX - 700, camY + 500, -900);
+  // lyhdyt ja otsalamput
+  const near = lampPos.map((l) => [l, Math.hypot(l.x - camX, l.y - camY)]).sort((a, b) => a[1] - b[1]);
+  lampLights.forEach((L, i) => { const e = near[i]; const on = e && e[1] < 900 && (Q || i === 0); L.intensity = on ? (1.3 + Math.sin(tt * 9 + i) * 0.08) * caveK : 0; if (e) L.position.set(e[0].x, e[0].y, 60); });
+  headLights.forEach((L, i) => { const p = P[i]; const on = p && caveK > 0.05 && (Q || Coop.localPlayers.includes(i)); L.intensity = on ? 1.1 * caveK : 0; if (p) L.position.set(p.x + p.face * 20, p.y + 40, 50); });
+  for (const c of clouds) { c.position.x += c.userData.v * dt; if (c.position.x > camX + 9000) c.position.x -= 18000; if (c.position.x < camX - 9000) c.position.x += 18000; }
+  // myrsky
+  if (stormG) {
+    const sy2 = phase === "menu" ? -9999 : G.storm;
+    stormG.position.y = sy2;
+    stormG.visible = phase !== "menu" && sy2 > camY - 1400;
+    for (const c of stormG.children) if (c.userData.v) { c.position.x += c.userData.v * dt; if (Math.abs(c.position.x - W * T / 2) > 500) c.userData.v *= -1; }
+    if (phase === "play" && G.stormOn && Math.random() < dt * 0.25 && P.some((p) => p.y - G.storm < 6 * T)) { flashA = 0.6; Coop.noise(0.18, 0.9, 120); T_(70, 0.8, "sine", 0.12, 40); }
+  }
+  // lumi: tuuli puhaltaa, luolassa ei sada
   if (snow) {
     const a = snow.geometry.attributes.position;
     const gust = G.wind && G.wind.s === 2 ? G.wind.dir * 520 : 0;
-    const high = camY / T > F.top * 0.45;
-    snow.material.opacity = high || gust ? 0.85 : 0.35;
+    snow.visible = caveK < 0.6;
+    snow.material.opacity = (cz === Z.ridge || cz === Z.ice || gust ? 0.85 : 0.35) * (1 - caveK);
     for (let i = 0; i < a.count; i++) {
       let x = a.getX(i) + (gust + Math.sin(tt * 0.7 + i) * 18) * dt, y = a.getY(i) - (45 + (i % 7) * 6) * dt;
       if (y < camY - 850) y += 1700; if (y > camY + 850) y -= 1700;
-      if (x < camX - 1300) x += 2600; if (x > camX + 1300) x -= 2600;
+      if (x < camX - 1200) x += 2400; if (x > camX + 1200) x -= 2400;
       a.setXYZ(i, x, y, a.getZ(i));
     }
     a.needsUpdate = true;
@@ -1330,11 +982,11 @@ function render(dt, now, phase) {
   texts = texts.filter((t) => t.t < t.life);
   for (const w of warns) w.t -= dt;
   warns = warns.filter((w) => w.t > 0);
-  // hengitys pakkasessa
-  if (phase === "play" && Math.random() < dt * 2) for (const p of P) if (p.rescue <= 0 && (p.tired || p.st < 40)) fx.push({ x: p.x + p.face * 10, y: p.y + PH, vx: p.face * 30, vy: 20, g: -10, c: "rgba(255,255,255,.6)", t: 0, life: 0.9, r: 5 });
+  if (phase === "play" && Math.random() < dt * 2) for (const p of P) if (p.tired || p.st < 40 || p.cold > 0) fx.push({ x: p.x + p.face * 10, y: p.y + PH, vx: p.face * 30, vy: 20, g: -10, c: "rgba(255,255,255,.6)", t: 0, life: 0.9, r: 5 });
   renderer.render(scene, camera);
   drawOverlay(phase, tt);
-  if (phase === "play" || phase === "pause") updateHud();
+  $("flash").style.opacity = (flashA * 0.5).toFixed(3);
+  if (phase === "play" || phase === "pause") { updateHud(); achTick(dt); }
 }
 const pv = new THREE.Vector3();
 function project(x, y, z = 10) { pv.set(x, y, z).project(camera); return [(pv.x + 1) / 2 * vw, (1 - pv.y) / 2 * vh, pv.z]; }
@@ -1345,37 +997,50 @@ function drawOverlay(phase, tt) {
   og.textAlign = "center";
   for (const f of fx) { const [x, y] = project(f.x, f.y, 20); og.globalAlpha = Math.max(0, 1 - f.t / f.life); og.fillStyle = f.c; og.beginPath(); og.arc(x, y, (f.r || 3) * (1 + f.t), 0, 7); og.fill(); }
   og.globalAlpha = 1;
-  // putoavan kiven varoitus
   for (const w of warns) {
     const [x, y] = project(w.x, w.gy + 4, 20);
     const a = 0.55 + 0.45 * Math.sin(tt * 18);
     og.globalAlpha = a; og.fillStyle = "#ff5a4a";
     og.beginPath(); og.moveTo(x, y - 34); og.lineTo(x - 15, y - 8); og.lineTo(x + 15, y - 8); og.closePath(); og.fill();
     og.fillStyle = "#fff"; og.font = "900 16px Segoe UI, sans-serif"; og.fillText("!", x, y - 13);
-    og.strokeStyle = "rgba(255,90,74,.5)"; og.setLineDash([6, 6]); og.lineWidth = 2; og.beginPath(); og.moveTo(x, y - 40); og.lineTo(x, y - 260); og.stroke(); og.setLineDash([]);
+    og.strokeStyle = "rgba(255,90,74,.5)"; og.setLineDash([6, 6]); og.lineWidth = 2; og.beginPath(); og.moveTo(x, y - 40); og.lineTo(x, y - 300); og.stroke(); og.setLineDash([]);
   }
   og.globalAlpha = 1;
-  const duo = P.length === 2;
+  // myrskyn yläreuna ruudun alalaidassa
+  if (G.stormOn || G.storm > camY - 900) {
+    const [, sy] = project(W * T / 2, G.storm, 0);
+    if (sy < vh) {
+      const gr = og.createLinearGradient(0, Math.max(0, sy - 40), 0, Math.min(vh, sy + 160));
+      gr.addColorStop(0, "rgba(30,36,52,0)"); gr.addColorStop(0.3, "rgba(30,36,52,.55)"); gr.addColorStop(1, "rgba(18,22,34,.85)");
+      og.fillStyle = gr; og.fillRect(0, Math.max(0, sy - 40), vw, vh - Math.max(0, sy - 40));
+    }
+  }
+  const lp = P.map((p) => project(p.x, p.y + 70));
+  if (lp.length === 2 && Math.abs(lp[0][0] - lp[1][0]) < 90 && Math.abs(lp[0][1] - lp[1][1]) < 30) { const hi = lp[0][1] <= lp[1][1] ? 1 : 0; lp[hi][1] = Math.min(lp[0][1], lp[1][1]) - 34; }
   for (const p of P) {
-    if (p.rescue > 0) continue;
-    const [x, y] = project(p.x, p.y + 70);
-    if (duo) {
-      og.font = "900 13px Segoe UI, sans-serif"; og.lineWidth = 3; og.strokeStyle = "rgba(0,0,0,.6)";
-      const name = NAMES[p.i] + (Coop.me === p.i ? " (you)" : "");
-      og.strokeText(name, x, y - 2); og.fillStyle = COLS[p.i]; og.fillText(name, x, y - 2);
-    }
-    // kestävyys
-    if (duo || p.st < 99 || p.cling) {
-      const w = 48, st = p.st / 100;
-      og.fillStyle = "rgba(0,0,0,.55)"; og.fillRect(x - w / 2 - 1, y + 4, w + 2, 7);
-      og.fillStyle = p.resting ? "#7ec8ff" : st > 0.5 ? "#7ee081" : st > 0.25 ? "#ffd36a" : "#ff6b5e"; og.fillRect(x - w / 2, y + 5, w * st, 5);
-    }
+    const [x, y] = lp[p.i];
+    const local = Coop.localPlayers.includes(p.i);
+    og.font = "900 13px Segoe UI, sans-serif"; og.lineWidth = 3; og.strokeStyle = "rgba(0,0,0,.6)";
+    const name = NAMES[p.i] + (p.bot ? " (bot)" : Coop.mode !== "solo" && Coop.me === p.i ? " (you)" : "");
+    og.strokeText(name, x, y - 2); og.fillStyle = COLS[p.i]; og.fillText(name, x, y - 2);
+    const w = 48, st = p.st / 100;
+    og.fillStyle = "rgba(0,0,0,.55)"; og.fillRect(x - w / 2 - 1, y + 4, w + 2, 7);
+    og.fillStyle = p.atPiton && p.cling ? "#7ec8ff" : st > 0.5 ? "#7ee081" : st > 0.25 ? "#ffd36a" : "#ff6b5e"; og.fillRect(x - w / 2, y + 5, w * st, 5);
     og.font = "800 14px Segoe UI, sans-serif";
-    if (p.stun > 0) { og.fillStyle = "#fff"; og.fillText("Oof…", x, y - 16); }
-    else if (p.tired) { og.fillStyle = "#ffd36a"; og.fillText("Panting…", x, y - 16); }
-    else if (p.resting) { og.fillStyle = "#7ec8ff"; og.fillText("Resting on piton", x, y - 16); }
-    else if (p.cling && p.st < 25) { og.fillStyle = "#ff8c6a"; og.fillText("Losing grip!", x, y - 16); }
-    else if (p.autoGrip > 0 && Coop.localPlayers.includes(p.i)) { og.fillStyle = "#ffd36a"; og.fillText("Hold SHIFT!", x, y - 16); }
+    let msg = null, c = "#fff";
+    if (p.stun > 0) msg = "Oof…";
+    else if (p.cold > 0.4) { msg = "FREEZING!"; c = "#9fd8ff"; }
+    else if (p.tired) { msg = "Panting…"; c = "#ffd36a"; }
+    else if (p.hang && local) { msg = "W = climb chain · A/D swing · SPACE leap"; c = "#ffd36a"; }
+    else if (p.cling && p.atPiton) { msg = "Resting on piton"; c = "#7ec8ff"; }
+    else if (p.cling && p.st < 25) { msg = "Losing grip!"; c = "#ff8c6a"; }
+    else if (local && P.length === 2) {
+      const o = P[1 - p.i];
+      if ((o.hang || (!o.ground && !o.cling && o.vy < -250)) && !p.cling && !p.brace) { msg = "Hold SHIFT to hold the chain!"; c = "#ffd36a"; }
+      else if (p.ground && CC.anchoredW(o) === 0 && o.y - p.y > 1.5 * T && Math.hypot(o.x - p.x, o.y - p.y) > 2.2 * T && !CC.wallInfo(p, p.face).grip) { msg = "W = climb the chain"; c = "#bfe3ff"; }
+    }
+    if (p.say && p.say.t > 0) { msg = p.say.m; c = "#bfe3ff"; }
+    if (msg) { og.lineWidth = 3; og.strokeStyle = "rgba(0,0,0,.55)"; og.strokeText(msg, x, y - 18); og.fillStyle = c; og.fillText(msg, x, y - 18); }
   }
   for (const t of texts) {
     const k = t.t / t.life, [x, y] = project(t.x, t.y + 70 + k * 50);
@@ -1383,113 +1048,351 @@ function drawOverlay(phase, tt) {
     og.fillStyle = "rgba(0,0,0,.5)"; og.fillText(t.m, x + 2, y + 2); og.fillStyle = t.c; og.fillText(t.m, x, y);
   }
   og.globalAlpha = 1;
-  if (phase === "play") {
-    const [x, y] = project(summit.gx, summit.y + 80);
-    if (x < 30 || x > vw - 30 || y < 30) {
-      const ax = clamp(x, 40, vw - 40), ay = clamp(y, 80, vh - 60);
-      og.fillStyle = "rgba(12,14,24,.72)"; og.beginPath(); og.arc(ax, ay, 24, 0, 7); og.fill();
-      og.fillStyle = "#ffd36a"; og.font = "900 11px Segoe UI, sans-serif"; og.fillText("SUMMIT", ax, ay + 4);
-    }
-  }
 }
 let hudKey = "";
 function updateHud() {
-  const s = Math.max(0, Math.ceil(G.time));
-  const maxY = Math.max(...P.map((p) => p.y)) / T;
-  const alt = Math.round(F.base + (F.m - F.base) * clamp(maxY / F.top, 0, 1));
+  const loc = P.find((p) => Coop.localPlayers.includes(p.i)) || P[0];
+  const alt = meters(Math.max(...P.filter((p) => !p.bot).map((p) => p.y)));
+  const low = Math.min(...P.map((p) => p.y));
+  const sd = Math.round((low - G.storm) * mPerPx());
+  const stormTxt = !G.stormOn ? (G.storm < low - 8 * T ? "resting" : "waiting") : sd < 0 ? "IN THE STORM" : sd + " m below";
+  const near = G.stormOn && sd < 12;
   const keysTxt = "WASD move · Shift grip · Space jump · E piton";
-  const ctl = (i) => (Coop.mode === "solo" ? keysTxt : Coop.me === i ? "You · " + keysTxt : "Friend online · ping " + Coop.net.ping + " ms");
-  const key = [s, alt, G.ber, G.pitLeft, ctl(0), ctl(1), P.length].join("|");
+  const ctl = (i) => {
+    const p = P[i];
+    if (!p) return "";
+    if (p.bot) return p.hang ? "Climbing the chain…" : G.bot && G.bot.lead ? "Showing the way" : p.cling ? "Holding on" : "Following you";
+    return Coop.mode === "solo" ? keysTxt : Coop.me === i ? "You · " + keysTxt : "Friend online · ping " + Coop.net.ping + " ms";
+  };
+  const key = [Math.floor(G.t), alt, stormTxt, G.ber, G.pitLeft, ctl(0), ctl(1), CC.zoneAt(loc.y)].join("|");
   if (key === hudKey) return;
   hudKey = key;
-  $("time").textContent = mmss(s); $("time").classList.toggle("low", s <= 30);
-  $("sunFill").style.width = clamp(G.time / F.time, 0, 1) * 100 + "%";
-  $("alt").textContent = alt + " / " + F.m + " m";
+  $("time").textContent = mmss(G.t);
+  $("alt").textContent = alt + " / " + MT().m + " m";
+  $("altFill").style.width = clamp((alt - MT().base) / (MT().m - MT().base), 0, 1) * 100 + "%";
+  $("storm").textContent = stormTxt;
+  $("stormPill").classList.toggle("near", near);
   $("ber").textContent = G.ber + " / 3";
   $("pit").textContent = G.pitLeft;
-  $("lvName").textContent = F.n;
+  $("lvName").textContent = MT().n;
+  $("zone").textContent = ZNAME[CC.zoneAt(loc.y)];
+  $("n2").textContent = isBotGame() ? "MASA (bot)" : "MASA";
   $("k1").textContent = ctl(0); $("k2").textContent = ctl(1);
   $("pp2").hidden = P.length < 2;
 }
-function showHud(on) { for (const id of ["hud", "pp1", "pp2"]) $(id).hidden = !on; if (on) $("pp2").hidden = P.length < 2; }
+function showHud(on) { for (const id of ["hud", "pp1", "pp2"]) $(id).hidden = !on; if (on) $("pp2").hidden = P.length < 2; if (!on) $("frost").style.opacity = 0; }
 let windT = 0;
 function windUi(txt, cls, dur) {
   const el = $("wind");
   el.textContent = txt; el.className = "on " + (cls || "");
   clearTimeout(windT); windT = setTimeout(() => (el.className = ""), dur);
 }
-const localHigh = () => P.some((p) => Coop.localPlayers.includes(p.i) && p.y / T > windRow - 4);
+const localWindy = () => P.some((p) => Coop.localPlayers.includes(p.i) && CC.windy(p.y));
 
-// ---------- efektit ----------
+// ---------- efektit ja äänet ----------
 function text(x, y, m, c = "#fff", s = 18, life = 1.2) { texts.push({ x, y, m, c, s, life, t: 0 }); }
 function burst(x, y, c, n = 10, sp = 160, r) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, v = sp * (0.3 + Math.random()); fx.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v + 100, c, t: 0, life: 0.6 + Math.random() * 0.5, r }); } }
-const T_ = Coop.tone;
+const T_ = (...a) => Coop.tone(...a);
+const isLocal = (i) => Coop.localPlayers.includes(i);
 function onEvent(name, a) {
+  sync();
   switch (name) {
     case "jump": T_(330, 0.12, "triangle", 0.06, 520); break;
-    case "kick": T_(420, 0.1, "triangle", 0.07, 700); burst(a[1], a[2], "#e8f4ff", 6, 90, 2); break;
-    case "lunge": T_(300, 0.2, "triangle", 0.07, 900); text(a[1], a[2], "LUNGE!", "#7ec8ff", 16, 0.8); break;
+    case "kick": T_(420, 0.1, "triangle", 0.07, 700); burst(a[1], a[2], "#e8f4ff", 6, 90, 2); if (isLocal(a[0])) ach("kick"); break;
+    case "lunge": T_(300, 0.2, "triangle", 0.07, 900); text(a[1], a[2], "LUNGE!", "#7ec8ff", 16, 0.8); if (isLocal(a[0])) ach("lunge"); break;
     case "mantle": T_(260, 0.12, "triangle", 0.06, 420); break;
     case "land": burst(a[0], a[1], "rgba(220,214,200,.8)", 5, 70, 2); break;
-    case "eat": T_(880, 0.08, "square", 0.05); T_(1180, 0.12, "square", 0.05, null, 0.08); text(a[1], a[2], "YUM! +stamina", "#ffd36a", 16); burst(a[1], a[2], "#b5523b", 8, 120); break;
-    case "berry": [784, 988, 1318].forEach((f, i) => T_(f, 0.14, "triangle", 0.07, null, i * 0.07)); text(a[1], a[2], "CLOUDBERRY " + a[3] + "/3!", "#ffb347", 20, 1.6); burst(a[1], a[2], "#f39a2e", 14, 170, 3); break;
+    case "eat": T_(880, 0.08, "square", 0.05); T_(1180, 0.12, "square", 0.05, null, 0.08); text(a[1], a[2], "YUM! +stamina", "#ffd36a", 16); burst(a[1], a[2], "#b5523b", 8, 120); if (isLocal(a[0])) ach("saus"); break;
+    case "berry": [784, 988, 1318].forEach((f, i) => T_(f, 0.14, "triangle", 0.07, null, i * 0.07)); text(a[1], a[2], "CLOUDBERRY " + a[3] + "/3!", "#ffb347", 20, 1.6); burst(a[1], a[2], "#f39a2e", 14, 170, 3); ach("berry", { n: a[3] }); break;
     case "slip": T_(500, 0.35, "sawtooth", 0.06, 180); text(a[1], a[2], "SLIPPED!", "#ff8c6a", 20); break;
-    case "thud": Coop.noise(0.35, 0.25, 300); T_(90, 0.25, "sine", 0.12, 50); shake = Math.max(shake, a[3]); text(a[1], a[2], pick(["THUD!", "OUCH!", "OOPS!"]), "#fff", 22); burst(a[1], a[2] + 4, "#d8d2c4", 12, 140); break;
-    case "rescue": Coop.noise(0.3, 0.3, 500); text(a[1], a[2], a[3] === "pit" ? "Into the crevasse!" : "Long way down!", "#ff8c6a", 20, 1.4); text(a[1], a[2] - 30, "The reindeer is on its way…", "#e9dcc0", 15, 1.6); break;
-    case "respawn": Coop.toast(NAMES[a[0]] + (a[1] ? " BACK ON THE PITON" : " BACK AT THE HUT") + "<small>The reindeer handled it. −8 seconds</small>", 1800, true); T_(200, 0.3, "sawtooth", 0.05, 120); break;
-    case "piton": [1800, 1500, 1800].forEach((f, i) => T_(f, 0.05, "square", 0.05, null, i * 0.09)); burst(a[0], a[1], "#c9ccd1", 6, 80, 2); text(a[0], a[1] - 40, "PITON IN!", "#c9ccd1", 15, 0.9); break;
-    case "say": { const p = P[a[0]]; if (p && Coop.localPlayers.includes(a[0])) text(p.x, p.y, a[1], a[2], 15, 1.1); break; }
+    case "thud": Coop.noise(0.35, 0.25, 300); T_(90, 0.25, "sine", 0.12, 50); if (isLocal(a[0])) shake = Math.max(shake, a[3]); text(a[1], a[2], a[3] > 10 ? "KNOCKED OUT!" : pick(["THUD!", "OUCH!", "OOPS!"]), "#fff", 22); burst(a[1], a[2] + 4, "#d8d2c4", 12, 140); if (isLocal(a[0])) ach("fall", { m: a[4] * mPerPx(), big: a[3] > 10 }); break;
+    case "piton": [1800, 1500, 1800].forEach((f, i) => T_(f, 0.05, "square", 0.05, null, i * 0.09)); burst(a[0], a[1], "#c9ccd1", 6, 80, 2); text(a[0], a[1] - 40, "PITON IN!", "#c9ccd1", 15, 0.9); if (isLocal(a[3])) ach("piton"); break;
+    case "say": { const p = P[a[0]]; if (p && isLocal(a[0])) text(p.x, p.y, a[1], a[2], 15, 1.1); break; }
     case "shake": T_(140, 0.15, "sawtooth", 0.03, 90); break;
-    case "crumble": Coop.noise(0.25, 0.3, 400); burst(a[0], a[1], "#b08060", 12, 120, 3); break;
-    case "warn": warns.push({ x: a[0], gy: a[1], t: 0.9 }); if (P.some((p) => Coop.localPlayers.includes(p.i) && Math.abs(p.x - a[0]) < 500)) T_(980, 0.08, "square", 0.04); break;
+    case "crumble": Coop.noise(0.25, 0.3, 400); burst(a[0], a[1], "#b08060", 12, 120, 3); ach("crum"); break;
+    case "warn": warns.push({ x: a[0], gy: a[1], t: 1.4 }); if (P.some((p) => isLocal(p.i) && Math.abs(p.x - a[0]) < 500)) T_(980, 0.08, "square", 0.04); break;
     case "rock": Coop.noise(0.2, 0.2, 700); burst(a[0], a[1], "#8d8a86", 9, 140, 3); break;
-    case "bonk": Coop.noise(0.35, 0.2, 600); T_(150, 0.2, "sine", 0.1, 60); shake = Math.max(shake, 8); text(a[1], a[2], "BONK!", "#ff8c6a", 22); break;
-    case "windWarn": if (localHigh()) { windUi((a[0] > 0 ? "GUST INCOMING  →" : "←  GUST INCOMING") , "", 1500); T_(600, 0.3, "sine", 0.03, 400); } break;
-    case "gust": if (localHigh()) { windUi(a[0] > 0 ? "WIND!  →→→" : "←←←  WIND!", "gust", 1900); Coop.noise(0.25, 1.6, 500); } break;
-    case "calm": break;
-    case "link": T_(660, 0.08, "triangle", 0.06); T_(990, 0.1, "triangle", 0.06, null, 0.07); text(a[0], a[1], "HOLDING HANDS!", "#7ee081", 16); break;
-    case "snap": T_(300, 0.15, "square", 0.05, 150); break;
-    case "toss": T_(400, 0.25, "triangle", 0.07, 900); text(a[1], a[2], "THROW!", "#ffd36a", 22); shake = Math.max(shake, 5); break;
-    case "cp": [523, 659, 784].forEach((f, i) => T_(f, 0.18, "triangle", 0.08, null, i * 0.1)); Coop.toast("HUT REACHED<small>Game saved · stamina refilled · +1 piton</small>", 2600, true); break;
+    case "bonk": Coop.noise(0.35, 0.2, 600); T_(150, 0.2, "sine", 0.1, 60); if (isLocal(a[0])) shake = Math.max(shake, 8); text(a[1], a[2], "BONK!", "#ff8c6a", 22); if (isLocal(a[0])) ach("bonk"); break;
+    case "windWarn": if (localWindy()) { windUi(a[0] > 0 ? "GUST INCOMING  →" : "←  GUST INCOMING", "", 1500); T_(600, 0.3, "sine", 0.03, 400); } break;
+    case "gust": if (localWindy()) { windUi(a[0] > 0 ? "WIND!  →→→" : "←←←  WIND!", "gust", 1800); Coop.noise(0.25, 1.6, 500); } break;
+    case "catch": T_(220, 0.12, "square", 0.07, 120); Coop.noise(0.2, 0.12, 900); { const p = P[a[0]]; if (p) { text(p.x, p.y + 10, "GOT YOU!", "#7ee081", 18); burst(p.x, p.y + 30, "#c9ccd1", 6, 90, 2); } } if (isLocal(a[0])) ach("catch"); shake = Math.max(shake, 4); break;
+    case "ripped": T_(300, 0.3, "sawtooth", 0.08, 90); text(a[1], a[2], "PULLED OFF!", "#ff8c6a", 20); shake = Math.max(shake, 6); break;
+    case "yank": T_(260, 0.2, "sawtooth", 0.06, 120); text(a[1], a[2], "YANKED!", "#ff8c6a", 18); break;
+    case "leap": T_(400, 0.25, "triangle", 0.07, 1000); text(a[1], a[2], "LEAP!", "#ffd36a", 22); if (isLocal(a[0])) ach("leap"); break;
+    case "toss": T_(400, 0.25, "triangle", 0.07, 900); text(a[1], a[2], "UP YOU GO!", "#ffd36a", 20); shake = Math.max(shake, 4); if (isLocal(a[0])) ach("toss"); break;
+    case "grabChain": T_(500, 0.08, "square", 0.04, 700); break;
+    case "pulled": [660, 880].forEach((f, i) => T_(f, 0.08, "triangle", 0.06, null, i * 0.07)); burst(a[1], a[2] + 10, "#c9ccd1", 6, 80, 2); if (isLocal(a[0])) ach("pulled"); break;
+    case "botSay": { const b = P[1]; if (b) b.say = { m: a[0], t: 3.2 }; T_(1200, 0.05, "sine", 0.04); T_(1500, 0.05, "sine", 0.04, null, 0.07); break; }
+    case "up": if (isLocal(a[0])) ach("up", { m: a[1] * mPerPx() }); break;
+    case "stormGo": Coop.toast("THE STORM IS RISING<small>Keep climbing – don't let it catch you</small>", 2200, true); T_(110, 1.2, "sawtooth", 0.05, 60); break;
+    case "stormCaught": Coop.noise(0.4, 1.4, 200); flashA = 1; Coop.toast("CAUGHT BY THE STORM<small>Back to the hut. The storm settles below again.</small>", 2600, true); [392, 330, 262].forEach((f, i) => T_(f, 0.3, "triangle", 0.09, null, i * 0.15)); ach("storm"); break;
+    case "cp": {
+      [523, 659, 784].forEach((f, i) => T_(f, 0.18, "triangle", 0.08, null, i * 0.1));
+      Coop.toast("HUT REACHED<small>Game saved · stamina refilled · +1 piton</small>", 2600, true);
+      const seg = MAP.segs[a[0] - 1];
+      ach("hut", { close: !!a[3], cave: seg && seg.zone === Z.cave });
+      break;
+    }
+    case "ach": achApply(a[0], a[1]); break;
   }
 }
 
-// ---------- Coop ----------
-function newG(seed) {
-  return { seed, time: 0, t: 0, link: false, linkLen: 50, saus: 0, ber: 0, cp: 0, falls: 0, topT: 0, pitLeft: 3, pitUsed: 0, pitons: [], rocks: [], wind: { s: 0, t: 6, dir: 1 }, resp: null, wantSave: false };
+// ---------- saavutukset ----------
+const ACHS = [
+  { id: "hut", n: "Base Camp", d: "Reach your first hut.", t: 1 },
+  { id: "cave", n: "Into the Mountain", d: "Make it through the cave inside the mountain.", t: 1 },
+  { id: "sum1", n: "Saana Summit", d: "Reach the top of Saana.", t: 1 },
+  { id: "sum2", n: "Pallas Summit", d: "Reach the top of Pallas.", t: 1 },
+  { id: "sum3", n: "Ylläs Summit", d: "Reach the top of Ylläs.", t: 2 },
+  { id: "sum4", n: "Pyhä Summit", d: "Reach the top of Pyhä.", t: 2 },
+  { id: "sum5", n: "Halti Summit", d: "Reach the top of Halti.", t: 3 },
+  { id: "sum6", n: "Kebnekaise Summit", d: "Reach the top of Kebnekaise.", t: 3 },
+  { id: "catch1", n: "Got You!", d: "Hold the chain when your partner falls.", t: 1 },
+  { id: "catch25", n: "Human Anchor", d: "Catch your falling partner 25 times.", t: 2, s: "catch", g: 25 },
+  { id: "leap", n: "Tarzan", d: "Leap off a chain swing.", t: 1 },
+  { id: "toss", n: "Up You Go", d: "Get thrown upward while hanging on the chain.", t: 1 },
+  { id: "pulled10", n: "Rope Rat", d: "Climb the chain all the way up 10 times.", t: 2, s: "pulled", g: 10 },
+  { id: "piton10", n: "Hammer Time", d: "Hammer in 10 pitons.", t: 1, s: "piton", g: 10 },
+  { id: "rest", n: "Hang Loose", d: "Rest on a piton until your stamina is full.", t: 1 },
+  { id: "storm", n: "Swallowed", d: "Get caught by the storm.", t: 1 },
+  { id: "close", n: "Just Ahead of It", d: "Reach a hut with the storm right below you.", t: 2 },
+  { id: "fair", n: "Fair Weather", d: "Reach a summit without the storm catching you.", t: 2 },
+  { id: "fall20", n: "Long Way Down", d: "Fall 20 metres in one go.", t: 1 },
+  { id: "fall500", n: "Gravity Fan", d: "Fall 500 metres in total.", t: 2, s: "fallm", g: 500 },
+  { id: "ber3", n: "Berry Picker", d: "Find all 3 cloudberries on one mountain.", t: 2 },
+  { id: "ber30", n: "Cloudberry Jam", d: "Find 30 cloudberries in total.", t: 3, s: "ber", g: 30 },
+  { id: "saus20", n: "Sausage Party", d: "Eat 20 sausages.", t: 1, s: "saus", g: 20 },
+  { id: "lunge10", n: "Ice Breaker", d: "Lunge over ice 10 times.", t: 1, s: "lunge", g: 10 },
+  { id: "kick100", n: "Wall Kicker", d: "Kick off walls 100 times.", t: 2, s: "kick", g: 100 },
+  { id: "m1000", n: "Vertical Kilometre", d: "Climb 1000 metres in total.", t: 2, s: "climbm", g: 1000 },
+  { id: "m5000", n: "Sky Walker", d: "Climb 5000 metres in total.", t: 3, s: "climbm", g: 5000 },
+  { id: "free", n: "Free Solo", d: "Reach a summit without using any pitons.", t: 3 },
+  { id: "soft", n: "Soft Landings", d: "Reach a summit without getting knocked out.", t: 2 },
+  { id: "bonk", n: "Hard Hat Needed", d: "Get hit by a falling rock.", t: 1 },
+  { id: "crum25", n: "Rubble Maker", d: "Make 25 rocks crumble.", t: 1, s: "crum", g: 25 },
+  { id: "online", n: "Rope Team", d: "Reach a summit online with a friend.", t: 2 },
+  { id: "bot", n: "Trusty Masa", d: "Reach a summit with Masa the bot.", t: 1 },
+  { id: "fast", n: "Speed Climber", d: "Reach the top of Saana in under 6 minutes.", t: 3 },
+];
+const ACH_KEY = "cc_ach_v1";
+const AS = (() => { try { const a = JSON.parse(localStorage.getItem(ACH_KEY)); if (a && a.u && a.s) return a; } catch {} return { u: {}, s: {} }; })();
+const achSave = () => { try { localStorage.setItem(ACH_KEY, JSON.stringify(AS)); } catch {} };
+const achVal = (k) => AS.s[k] || 0;
+const achAdd = (k, v) => { AS.s[k] = Math.min(1e9, (AS.s[k] || 0) + (v == null ? 1 : v)); };
+function trophySvg(tier, locked) {
+  const f = locked ? "rgba(255,255,255,.12)" : "url(#" + (tier === 3 ? "ccGold" : tier === 2 ? "ccSilver" : "ccBronze") + ")";
+  const st = locked ? "rgba(255,255,255,.25)" : "#5a3608";
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M19 13H9c0 10 5 15 11 16M45 13h10c0 10-5 15-11 16" fill="none" stroke="${f}" stroke-width="5" stroke-linecap="round"/>` +
+    `<path d="M18 7h28v12c0 10-6 17-14 18-8-1-14-8-14-18z" fill="${f}" stroke="${st}" stroke-width="2"/>` +
+    `<rect x="28.5" y="36" width="7" height="9" fill="${f}" stroke="${st}" stroke-width="1.5"/>` +
+    `<rect x="20" y="45" width="24" height="7" rx="1.5" fill="${f}" stroke="${st}" stroke-width="2"/><rect x="16" y="52" width="32" height="6" rx="1.5" fill="${locked ? "rgba(255,255,255,.15)" : "#6b3f12"}"/>` +
+    (locked ? `<rect x="26" y="20" width="12" height="10" rx="2" fill="rgba(255,255,255,.3)"/><path d="M28.5 20v-3a3.5 3.5 0 0 1 7 0v3" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5"/>`
+      : `<path d="M32 13l2.4 5 5.4.7-4 3.7 1.1 5.3L32 25l-4.9 2.7 1.1-5.3-4-3.7 5.4-.7z" fill="#fff8d8" opacity=".9"/><path d="M23 11v6c0 5 2 9 5 12" stroke="#fff" stroke-opacity=".55" stroke-width="2.5" fill="none" stroke-linecap="round"/>`) +
+    `</svg>`;
 }
+const achQueue = []; let achShowing = 0;
+function achPop(a) { achQueue.push(a); achNext(); }
+function achNext() {
+  if (achShowing >= 3 || !achQueue.length) return;
+  const a = achQueue.shift(); achShowing++;
+  const el = document.createElement("div"); el.className = "achpop";
+  el.innerHTML = trophySvg(a.t, false) + "<div><em>Achievement unlocked!</em><b></b><span></span></div>";
+  el.querySelector("b").textContent = a.n; el.querySelector("span").textContent = a.d;
+  $("achPops").appendChild(el);
+  try { [784, 988, 1318, 1568].forEach((f, i) => T_(f, 0.16, "triangle", 0.07, null, i * 0.08)); } catch {}
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => { el.remove(); achShowing--; achNext(); }, 350); }, 4600);
+}
+function unlock(id) {
+  if (AS.u[id]) return;
+  const a = ACHS.find((x) => x.id === id); if (!a) return;
+  AS.u[id] = Date.now(); achSave(); achPop(a); achLabel();
+}
+function achCounters() { for (const a of ACHS) if (a.s && !AS.u[a.id] && achVal(a.s) >= a.g) unlock(a.id); }
+let achDirty = 0;
+function achApply(n, d) {
+  d = d || {};
+  switch (n) {
+    case "hut": unlock("hut"); if (d.close) unlock("close"); if (d.cave) unlock("cave"); break;
+    case "catch": achAdd("catch"); unlock("catch1"); break;
+    case "leap": unlock("leap"); break;
+    case "toss": unlock("toss"); break;
+    case "pulled": achAdd("pulled"); break;
+    case "piton": achAdd("piton"); break;
+    case "rest": unlock("rest"); break;
+    case "storm": unlock("storm"); break;
+    case "fall": achAdd("fallm", Math.max(0, d.m || 0)); if (d.m >= 20) unlock("fall20"); break;
+    case "berry": achAdd("ber"); if (d.n >= 3) unlock("ber3"); break;
+    case "saus": achAdd("saus"); break;
+    case "lunge": achAdd("lunge"); break;
+    case "kick": achAdd("kick"); break;
+    case "crum": achAdd("crum"); break;
+    case "bonk": unlock("bonk"); break;
+    case "up": achAdd("climbm", Math.max(0, d.m || 0)); break;
+    case "summit":
+      unlock("sum" + (d.idx + 1));
+      if (!d.resets) unlock("fair");
+      if (!d.pitons) unlock("free");
+      if (!d.big) unlock("soft");
+      if (d.online) unlock("online");
+      if (d.bot) unlock("bot");
+      if (d.idx === 0 && d.t < 360) unlock("fast");
+      break;
+  }
+  achCounters();
+  achDirty = 1;
+}
+// tilastot tallennetaan harvemmin (putoamiset, metrit…)
+setInterval(() => { if (achDirty) { achDirty = 0; achSave(); } }, 3000);
+addEventListener("beforeunload", () => achSave());
+function ach(n, d) { achApply(n, d); }
+let restT = 0;
+function achTick(dt) {
+  const p = P.find((p) => isLocal(p.i));
+  if (p && p.cling && p.atPiton && p.st >= 99.5) { restT += dt; if (restT > 0.3) { restT = -99; ach("rest"); } } else if (restT > 0) restT = 0;
+  $("frost").style.opacity = p ? clamp(p.cold / 2.5, 0, 1).toFixed(2) : 0;
+  for (const q of P) if (q.say && q.say.t > 0) q.say.t -= dt;
+}
+let achFilter = "all";
+function achLabel() {
+  const n = ACHS.filter((a) => AS.u[a.id]).length, pct = Math.round((n / ACHS.length) * 100);
+  const html = trophySvg(3, false) + "<span>Achievements · " + n + " / " + ACHS.length + " (" + pct + " %)</span>";
+  document.querySelectorAll(".achbtn").forEach((b) => (b.innerHTML = html));
+}
+function achRender() {
+  const n = ACHS.filter((a) => AS.u[a.id]).length, pct = Math.round((n / ACHS.length) * 100);
+  $("achPct").textContent = pct + " %"; $("achCount").textContent = n + " / " + ACHS.length + " unlocked"; $("achBar").style.width = pct + "%";
+  document.querySelectorAll("[data-af]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.af === achFilter)));
+  const g = $("achGrid"); g.innerHTML = "";
+  const list = ACHS.filter((a) => achFilter === "all" || (achFilter === "done") === !!AS.u[a.id]);
+  for (const a of list) {
+    const done = !!AS.u[a.id], el = document.createElement("div");
+    el.className = "ach" + (done ? " done" : "");
+    el.innerHTML = trophySvg(a.t, !done) + "<div><b></b><span></span><small></small></div>";
+    el.querySelector("b").textContent = a.n; el.querySelector("span").textContent = a.d;
+    const sm = el.querySelector("small");
+    if (done) sm.textContent = (a.t === 3 ? "Gold" : a.t === 2 ? "Silver" : "Bronze") + " · " + new Date(AS.u[a.id]).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    else if (a.s && a.g > 1) { const v = Math.min(a.g, Math.floor(achVal(a.s))); sm.textContent = v.toLocaleString("en-GB") + " / " + a.g.toLocaleString("en-GB"); const pb = document.createElement("div"); pb.className = "pb"; pb.innerHTML = '<i style="width:' + (v / a.g) * 100 + '%"></i>'; el.querySelector("div").appendChild(pb); }
+    else sm.textContent = a.t === 3 ? "Gold" : a.t === 2 ? "Silver" : "Bronze";
+    g.appendChild(el);
+  }
+  if (!list.length) { const e = document.createElement("div"); e.className = "achempty"; e.textContent = achFilter === "done" ? "No achievements yet. Go climb something!" : "Everything unlocked. Legendary climbers!"; g.appendChild(e); }
+}
+let achFrom = null;
+function openAch(btn) { achFrom = btn; achRender(); $("achv").hidden = false; $("achClose").focus(); }
+function closeAch() { $("achv").hidden = true; if (achFrom) achFrom.focus(); }
+$("achClose").onclick = closeAch;
+document.querySelectorAll("[data-af]").forEach((b) => (b.onclick = () => { achFilter = b.dataset.af; achRender(); }));
+addEventListener("keydown", (e) => { if (e.code === "Escape" && !$("achv").hidden) { e.stopImmediatePropagation(); e.preventDefault(); closeAch(); } }, true);
+$("achv").addEventListener("click", (e) => { if (e.target === $("achv")) closeAch(); });
+
+// ---------- pelin kulku ----------
+function finish() {
+  const mt = MT();
+  ach("summit", { idx: mt.idx, resets: G.resets, pitons: G.pitUsed, big: G.bigFalls, online: Coop.mode !== "solo", bot: isBotGame(), t: G.t });
+  if (Coop.mode === "host") Coop.emit("ach", "summit", { idx: mt.idx, resets: G.resets, pitons: G.pitUsed, big: G.bigFalls, online: true, bot: false, t: G.t });
+  let best = null;
+  try { const b = JSON.parse(localStorage.getItem("climbers:best") || "{}"); best = b[mt.n]; if (!best || G.t < best) { b[mt.n] = Math.round(G.t); localStorage.setItem("climbers:best", JSON.stringify(b)); } } catch {}
+  Coop.end({
+    ok: true,
+    kicker: mt.n + " · " + mt.m + " m",
+    title: "Summit! Fire up the grill.",
+    text: pick(["The sausages are sizzling and the view looks like a postcard. Next up: higher.", "The summit wind nearly blows the grill out, but the sausages cook anyway.", "Still chained together, still friends. Great climbing!"]),
+    stamp: "SUMMIT",
+    stats: [["Time", mmss(G.t) + (best && best < G.t ? " (best " + mmss(best) + ")" : "")], ["Cloudberries", G.ber + " / 3"], ["Storm caught you", G.resets + "×"], ["Falls", G.falls], ["Pitons used", G.pitUsed]],
+    next: "Next mountain: " + CC.mountain(Coop.level + 1).n,
+    retry: "Climb again",
+  });
+}
+
+// ---------- tallennus ----------
+const mask = (a, k) => a.map((s) => (s[k] ? 1 : 0)).join("");
+function saveData() {
+  return { v: 2, cp: G.cp, t: Math.round(G.t), e: mask(MAP.saus, "e"), b: mask(MAP.bers, "got"), f: G.falls, bf: G.bigFalls, pl: G.pitLeft, pu: G.pitUsed, rs: G.resets, pt: G.pitons.map((q) => [q.x, q.y, q.s]) };
+}
+function loadData(d) {
+  if (!d || typeof d !== "object" || d.v !== 2) return;
+  const num = (v, a, b, def) => (Number.isFinite(+v) ? clamp(+v, a, b) : def);
+  G.cp = num(d.cp, 0, MAP.cps.length - 1, 0) | 0;
+  G.t = num(d.t, 0, 1e6, 0);
+  if (typeof d.e === "string") MAP.saus.forEach((s, i) => (s.e = d.e[i] === "1"));
+  if (typeof d.b === "string") MAP.bers.forEach((s, i) => (s.got = d.b[i] === "1"));
+  G.saus = MAP.saus.filter((s) => s.e).length; G.ber = MAP.bers.filter((b) => b.got).length;
+  G.falls = num(d.f, 0, 1e5, 0) | 0; G.bigFalls = num(d.bf, 0, 1e5, 0) | 0; G.pitLeft = num(d.pl, 0, 5, 3) | 0; G.pitUsed = num(d.pu, 0, 999, 0) | 0; G.resets = num(d.rs, 0, 1e5, 0) | 0;
+  if (Array.isArray(d.pt)) G.pitons = d.pt.slice(0, 60).filter((q) => Array.isArray(q) && q.every(Number.isFinite)).map((q) => ({ x: q[0], y: q[1], s: q[2] > 0 ? 1 : -1 }));
+  const cp = MAP.cps[G.cp];
+  G.resp = { x: cp.x, y: cp.y };
+}
+
+// ---------- nettipeli: tilannekuva ----------
+const r1 = (v) => Math.round(v * 10) / 10;
+function snapshot() {
+  return {
+    t: r1(G.t), cp: G.cp, ln: r1(G.len), tu: G.taut ? 1 : 0, sa: G.saus, be: G.ber, f: G.falls, pl: G.pitLeft, pu: G.pitUsed, tt: r1(G.topT), sm: r1(G.storm), so: G.stormOn ? 1 : 0, rs: G.resets,
+    e: mask(MAP.saus, "e"), b: mask(MAP.bers, "got"), cr: MAP.crumList.map((c) => c.st).join(""),
+    pt: G.pitons.map((q) => [q.x, q.y, q.s]), rk: G.rocks.map((r) => [Math.round(r.x), Math.round(r.y), r.drip ? 1 : 0]), w: [G.wind.s, G.wind.dir],
+    P: P.map((p) => [r1(p.x), r1(p.y), r1(p.vx), r1(p.vy), Math.round(p.st), p.cling, p.face, r1(p.stun), r1(p.cold), p.ground ? 1 : 0, p.climbing ? 1 : 0, p.hang ? 1 : 0, p.tired ? 1 : 0, p.atPiton ? 1 : 0, p.slide ? 1 : 0, p.brace ? 1 : 0]),
+  };
+}
+function apply(s, first) {
+  sync();
+  G.t = s.t; G.cp = s.cp; G.len = s.ln; G.taut = !!s.tu; G.saus = s.sa; G.ber = s.be; G.falls = s.f; G.pitLeft = s.pl; G.pitUsed = s.pu; G.topT = s.tt; G.storm = s.sm; G.stormOn = !!s.so; G.resets = s.rs;
+  for (let i = 0; i < MAP.saus.length; i++) MAP.saus[i].e = s.e[i] === "1";
+  for (let i = 0; i < MAP.bers.length; i++) MAP.bers[i].got = s.b[i] === "1";
+  for (let i = 0; i < MAP.crumList.length; i++) { const c = MAP.crumList[i], st = +s.cr[i] || 0; if (st !== c.st) { c.st = st; MAP.grid[c.idx] = st === 2 ? AIR : CRUM; } }
+  G.pitons = s.pt.map((q) => ({ x: q[0], y: q[1], s: q[2] }));
+  G.rocks = s.rk.map((q) => ({ x: q[0], y: q[1], drip: !!q[2] }));
+  G.wind.s = s.w[0]; G.wind.dir = s.w[1];
+  s.P.forEach((a, i) => {
+    const p = P[i];
+    if (!p) return;
+    p.tx = a[0]; p.ty = a[1]; p.vx = a[2]; p.vy = a[3]; p.st = a[4]; p.cling = a[5]; p.face = a[6]; p.stun = a[7]; p.cold = a[8];
+    p.ground = !!a[9]; p.climbing = !!a[10]; p.hang = !!a[11]; p.tired = !!a[12]; p.atPiton = !!a[13]; p.slide = !!a[14]; p.brace = !!a[15];
+    if (first || Math.hypot(p.x - a[0], p.y - a[1]) > 200) { p.x = a[0]; p.y = a[1]; }
+  });
+}
+
+// ---------- Coop ----------
+S.emit = (n, ...a) => Coop.emit(n, ...a);
+S.save = () => Coop.save();
+S.finish = () => finish();
 function init(seed, lv, data) {
-  G = newG(seed);
-  buildMap(seed, lv);
-  G.time = F.time;
-  G.resp = { x: cps[0].x, y: cps[0].y, cl: 0 };
+  CC.buildMap(seed, lv);
+  S.G = CC.newG(seed);
+  sync();
+  G.resp = { x: MAP.cps[0].x, y: MAP.cps[0].y };
   if (data) loadData(data);
-  P = [];
-  for (let i = 0; i < Coop.players; i++) { const p = mkP(i); placeAt(p, G.resp, i); P.push(p); }
+  S.P = [];
+  const n = Coop.mode === "solo" ? 2 : Coop.players;
+  for (let i = 0; i < n; i++) { const p = CC.mkP(i, Coop.mode === "solo" && i === 1); CC.placeAt(p, G.resp, i); p.maxY = p.y; S.P.push(p); }
+  sync();
+  CC.startSegment();
+  if (G.cp > 0 && G.bot) G.bot = null;
   texts = []; fx = []; warns = [];
   buildWorld();
-  camX = P[0].x; camY = P[0].y + 70; camD = 700; skyK = clamp(1 - G.time / F.time, 0, 1);
+  camX = P[0].x; camY = P[0].y + 110; camD = 760; skyK = clamp(camY / MAP.summit.y, 0, 1); caveK = 0;
   hudKey = "";
   showHud(true);
-  Coop.toast(F.n.toUpperCase() + "<small>" + F.m + " m · " + (data && G.cp ? "continuing from hut " + G.cp : "reach the summit before sunset") + "</small>", 2600, true);
+  Coop.toast(MT().n.toUpperCase() + "<small>" + MT().m + " m · " + (data && G.cp ? "continuing from hut " + G.cp : "climb to the summit together") + "</small>", 2600, true);
 }
+function step(dt, inputs) { sync(); CC.step(dt, inputs); }
 function preview() {
-  G = newG(4321);
-  buildMap(4321, 2);
-  G.time = F.time * 0.5;
-  P = [mkP(0), mkP(1)];
-  const cx = Math.floor(W * 0.25);
-  P[0].x = cx * T; P[0].y = topOf[cx] * T; P[1].x = (cx + 2) * T; P[1].y = topOf[cx + 2] * T; P[1].face = -1;
+  CC.buildMap(4321, 2);
+  S.G = CC.newG(4321);
+  S.P = [CC.mkP(0), CC.mkP(1)];
+  sync();
+  const n = MAP.route[Math.min(8, MAP.route.length - 1)];
+  P[0].x = n.x; P[0].y = n.y; P[1].x = n.x + 60; P[1].y = n.y; P[1].face = -1;
+  G.storm = -9999;
   buildWorld();
   previewT = 0;
-  camX = W * T * 0.25; camY = (topOf[cx] + 4) * T; camD = 1250;
+  camX = W * T / 2; camY = n.y; camD = 900;
 }
 function setGfx(v) {
   Q = v === "quality";
-  try { localStorage.setItem("tunturiin:gfx", Q ? "quality" : "performance"); } catch {}
+  try { localStorage.setItem("climbers:gfx", Q ? "quality" : "performance"); } catch {}
   MATS = {};
   makeRenderer();
-  if (F) { const keep = players3.map((m) => m.rotation.y); buildWorld(); players3.forEach((m, i) => (m.rotation.y = keep[i] || 0)); }
+  if (MAP.grid) { const keep = players3.map((m) => m.rotation.y); buildWorld(); players3.forEach((m, i) => (m.rotation.y = keep[i] || 0)); }
   Coop.refreshSettings();
 }
 addEventListener("keydown", (e) => {
@@ -1498,38 +1401,35 @@ addEventListener("keydown", (e) => {
   Coop.toast(Q ? "HIGH QUALITY" : "HIGH PERFORMANCE", 1100, true);
 });
 makeRenderer();
-// automaattitestejä varten (vain osoitteella #test)
-if (location.hash === "#test") window.__g = { get P() { return P; }, get G() { return G; }, get F() { return F; }, get W() { return W; }, get TH() { return TH; }, get cps() { return cps; }, get bers() { return bers; }, get saus() { return saus; }, get summit() { return summit; }, get spawners() { return spawners; }, get crumList() { return crumList; }, get signs() { return signs; }, get Q() { return Q; },
-  tile, solid, topOf: (x) => topOf[x], T, PH, step, buildMap, saveData, setGfx, mkP, placeAt, wallInfo,
-  snapCam: (d) => { const p = P[0]; camX = p.x; camY = p.y + 70; camD = d || 640; } };
+if (location.hash === "#test") window.__g = { CC, get P() { return S.P; }, get G() { return S.G; }, MAP, get Q() { return Q; }, setGfx, AS, ACHS, ach, unlock, snapCam: () => { const p = S.P[0]; camX = p.x; camY = p.y + 110; }, setCam: (x, y, d) => { camX = x; camY = y; camD = d; }, setZoom: (d) => { zoomOverride = d; } };
 Coop.start({
   id: "tunturiin",
-  title: "Peak Pals",
+  title: "Chained Climbers",
   solo: true,
   saves: true,
-  kicker: "Climbing adventure · singleplayer or online co-op",
-  description: "Pate sets off to conquer the Lapland fells with a pack of sausages – alone or with Masa online. Climb, jump and kick your way up cliffs, ice chimneys and crevasses before the sun sets, then light the grill at the summit.",
+  kicker: "Chained co-op climbing · solo with a bot or online",
+  description: "Pate and Masa are chained together and the storm is coming. Climb cliffs, ice chimneys and caves inside the mountain. If one of you falls, the other has to hold on.",
   rules: [
-    "Hold <b>Shift</b> next to rock to grip it, <b>W</b>/<b>S</b> to climb. Climbing burns stamina: rest on ledges, at huts or on your own pitons.",
-    "<b>Space</b> on a wall jumps away from it, <b>W + Space</b> lunges upward. In the air you can kick off any wall, even ice.",
-    "<b>E</b> hammers a piton into rock. You can rest on it, and if you fall, the reindeer brings you back there.",
-    "Crevasses, crumbling rock, falling stones and wind gusts get tougher on every fell. Find the 3 cloudberries and reach the summit before sunset.",
-    "Co-op: grip next to your friend to hold hands. The one dangling can jump to get thrown up.",
+    "<b>Shift</b> grips rock and holds the chain, <b>W</b>/<b>S</b> climb. Climbing burns stamina: rest on ledges, at huts or on pitons (<b>E</b>).",
+    "<b>Space</b> jumps and kicks off walls. <b>W + Space</b> on a wall lunges past ice.",
+    "Falling drags your partner. Hold <b>Shift</b> to catch them. Dangling: <b>A/D</b> swings, <b>W</b> climbs the chain, <b>Space</b> leaps.",
+    "A storm rises from below. Reach the next hut before it catches you, find 3 cloudberries and light the grill at the summit.",
+    "Singleplayer: Masa the bot climbs with you, holds the chain and shows the way if you get stuck.",
   ],
-  netVersion: "tunturiin-3",
+  netVersion: "climbers-1",
   names: ["Pate", "Masa"],
   colors: COLS,
   labels: { move: "WASD", a: "Shift = grip", b: "Space = jump" },
   help: [
-    "<kbd>A</kbd><kbd>D</kbd> walk · <kbd>W</kbd><kbd>S</kbd> climb · <kbd>Space</kbd> jump / wall jump · <kbd>Shift</kbd> hold to grip · <kbd>E</kbd> hammer a piton",
+    "<kbd>A</kbd><kbd>D</kbd> walk · <kbd>W</kbd><kbd>S</kbd> climb · <kbd>Space</kbd> jump · <kbd>Shift</kbd> grip / hold chain · <kbd>E</kbd> piton",
     "",
   ],
   keys: [{ left: ["KeyA", "ArrowLeft"], right: ["KeyD", "ArrowRight"], up: ["KeyW", "ArrowUp"], down: ["KeyS", "ArrowDown"], a: ["ShiftLeft", "ShiftRight"], b: ["Space"], c: ["KeyE"] }],
   pad: { a: [4, 5, 6, 7], b: [0], c: [2, 3] },
-  levelName: (lv) => fell(lv).n,
+  levelName: (lv) => CC.mountain(lv).n,
   describeSave: (s) => {
-    const f = fell(s.level);
-    return f.n + " (fell " + s.level + ")" + (s.data && s.data.cp ? " · hut " + s.data.cp : "");
+    const m = CC.mountain(s.level);
+    return m.n + " (mountain " + s.level + ")" + (s.data && s.data.v === 2 && s.data.cp ? " · hut " + s.data.cp : "");
   },
   settings: [{ label: "Graphics", options: [["quality", "High quality"], ["performance", "High performance"]], get: () => (Q ? "quality" : "performance"), set: setGfx }],
   footer: "Esc = pause · M = sound · G = switch graphics · gamepads work too",
@@ -1540,6 +1440,16 @@ Coop.start({
     save: () => true,
   },
 });
+// saavutusnappi päävalikkoon ja taukovalikkoon
+for (const id of ["coMenu", "coPause"]) {
+  const row = document.querySelector("#" + id + " .co-row");
+  if (!row) continue;
+  const b = document.createElement("button");
+  b.className = "co-btn ghost achbtn"; b.type = "button";
+  b.onclick = () => openAch(b);
+  row.appendChild(b);
+}
+achLabel();
 })();
 </script>
 </body>
