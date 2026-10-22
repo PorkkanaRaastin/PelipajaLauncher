@@ -10,6 +10,7 @@
 <body class="locked">
   <!-- Peliohjainlogo, käytetään useassa kohdassa -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol><symbol id="ic-library" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16.2 5.2l3.8-1 3.9 15.5-3.8 1z"/></symbol><symbol id="ic-minigames" viewBox="0 0 24 24"><path d="M7 8h10a5 5 0 0 1 4.9 6l-.6 3a2.7 2.7 0 0 1-4.7 1.2L15 16H9l-1.6 2.2a2.7 2.7 0 0 1-4.7-1.2l-.6-3A5 5 0 0 1 7 8zm0 3v1.5H5.5v1.5H7v1.5h1.5V14H10v-1.5H8.5V11zm9 .2a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2zm2.4 2.4a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z"/></symbol><symbol id="ic-updates" viewBox="0 0 24 24"><path d="M12 3v4l3-3M12 3 9 6M5.6 7.6A8 8 0 1 0 12 4v2a6 6 0 1 1-4.9 2.5z"/><path d="M11 9h2v4.3l3 1.8-1 1.7-4-2.4z"/></symbol><symbol id="ic-settings" viewBox="0 0 24 24"><path d="M10.3 2h3.4l.5 2.6 1.9.8 2.2-1.5 2.4 2.4-1.5 2.2.8 1.9 2.6.5v3.4l-2.6.5-.8 1.9 1.5 2.2-2.4 2.4-2.2-1.5-1.9.8-.5 2.6h-3.4l-.5-2.6-1.9-.8-2.2 1.5-2.4-2.4 1.5-2.2-.8-1.9L2 13.7v-3.4l2.6-.5.8-1.9-1.5-2.2 2.4-2.4 2.2 1.5 1.9-.8zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></symbol>
     <symbol id="logo-pad" viewBox="0 0 32 32">
       <path fill="currentColor" d="M9.6 8.5h12.8c3.4 0 6 2.5 6.6 5.8l1.4 8.1c.5 2.9-1.6 5.3-4.4 5.3-1.7 0-3.1-.9-3.9-2.4l-1.1-2.1h-10l-1.1 2.1c-.8 1.5-2.2 2.4-3.9 2.4-2.8 0-4.9-2.4-4.4-5.3l1.4-8.1c.6-3.3 3.2-5.8 6.6-5.8z"/>
       <path fill="var(--pad-detail, #3fbf5f)" d="M9 13.2h2.2v2.2h2.2v2.2h-2.2v2.2H9v-2.2H6.8v-2.2H9z"/>
@@ -43,7 +44,7 @@
     <div class="auth-panel">
       <div class="brand auth-brand">
         <div class="brand-mark"><svg><use href="#logo-pad"/></svg></div>
-        <div class="brand-text"><strong>Pelipaja</strong><span>Rasmus's games</span></div>
+        <div class="brand-text"><strong>Pelipaja</strong><span>Game launcher</span></div>
       </div>
 
       <!-- Kirjaudu sisään -->
@@ -66,7 +67,7 @@
         <h1>Create an account</h1>
         <p class="auth-lead">Pick a username and enter your email. We'll send you a 6-digit verification code.</p>
         <label class="field"><span>Username</span>
-          <input id="suName" autocomplete="username" maxlength="20" spellcheck="false" placeholder="e.g. Rasmus_R" /></label>
+          <input id="suName" autocomplete="username" maxlength="20" spellcheck="false" placeholder="e.g. NightRider" /></label>
         <label class="field"><span>Email</span>
           <input id="suEmail" type="email" autocomplete="email" spellcheck="false" placeholder="name@example.com" /></label>
         <p class="auth-err" id="suErr" role="alert"></p>
@@ -113,16 +114,16 @@
       <div class="brand-mark"><svg><use href="#logo-pad"/></svg></div>
       <div class="brand-text">
         <strong>Pelipaja</strong>
-        <span>Rasmus's games</span>
+        <span>Game launcher</span>
       </div>
     </div>
 
     <nav class="nav">
-      <button class="nav-btn active" data-view="home">Home</button>
-      <button class="nav-btn" data-view="library">Library</button>
-      <button class="nav-btn" data-view="minigames">Minigames</button>
-      <button class="nav-btn" data-view="updates">Updates</button>
-      <button class="nav-btn" data-view="settings">Settings</button>
+      <button class="nav-btn active" data-view="home"><svg class="ni"><use href="#ic-home"/></svg><span>Home</span></button>
+      <button class="nav-btn" data-view="library"><svg class="ni"><use href="#ic-library"/></svg><span>Library</span></button>
+      <button class="nav-btn" data-view="minigames"><svg class="ni"><use href="#ic-minigames"/></svg><span>Minigames</span></button>
+      <button class="nav-btn" data-view="updates"><svg class="ni"><use href="#ic-updates"/></svg><span>Updates</span></button>
+      <button class="nav-btn" data-view="settings"><svg class="ni"><use href="#ic-settings"/></svg><span>Settings</span></button>
     </nav>
 
     <div class="side-label">Games</div>

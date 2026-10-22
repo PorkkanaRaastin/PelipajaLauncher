@@ -43,14 +43,14 @@
 
   function draw(dt) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = "#0c0f14"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#07060d"; ctx.fillRect(0, 0, W, H);
     // ruutupaperi
-    ctx.strokeStyle = "rgba(120,160,255,0.05)"; ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(140,90,255,0.07)"; ctx.lineWidth = 1;
     for (let x = 0.5; x < W; x += 28) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
     for (let y = 0.5; y < H; y += 28) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
     // ahjon hehku alhaalla
     const glow = ctx.createRadialGradient(W * 0.5, H * 1.08, 10, W * 0.5, H * 1.08, Math.max(W, H) * 0.75);
-    glow.addColorStop(0, "rgba(255,138,61,0.42)"); glow.addColorStop(0.35, "rgba(255,90,40,0.12)"); glow.addColorStop(1, "rgba(255,90,40,0)");
+    glow.addColorStop(0, "rgba(255,43,214,0.40)"); glow.addColorStop(0.35, "rgba(139,92,255,0.16)"); glow.addColorStop(1, "rgba(0,240,255,0)");
     ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
     // piirrokset
     ctx.lineCap = "round"; ctx.lineJoin = "round";
@@ -61,7 +61,7 @@
       ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(k.rot); ctx.scale(k.s, k.s);
       ctx.lineWidth = 1.4 / k.s;
       const warm = Math.min(1, Math.max(0, (k.y - H * 0.55) / (H * 0.45)));
-      ctx.strokeStyle = `rgba(${Math.round(140 + 115 * warm)},${Math.round(200 - 60 * warm)},${Math.round(255 - 170 * warm)},${k.a + heat})`;
+      ctx.strokeStyle = `rgba(${Math.round(0 + 255 * warm)},${Math.round(240 - 197 * warm)},${Math.round(255 - 41 * warm)},${k.a + heat})`;
       SHAPES[k.kind](ctx);
       ctx.restore();
     }
@@ -70,7 +70,7 @@
     for (const p of sparks) {
       p.t += dt; p.x += p.vx * dt + Math.sin(p.t * 3 + p.r) * 12 * dt; p.y += p.vy * dt; p.vy *= 1 - dt * 0.15;
       const k = 1 - p.t / p.life;
-      ctx.fillStyle = `rgba(255,${Math.round(150 + 80 * k)},${Math.round(70 * k)},${Math.max(0, k)})`;
+      ctx.fillStyle = k > .5 ? `rgba(0,240,255,${Math.max(0, k)})` : `rgba(255,43,214,${Math.max(0, k * 1.6)})`;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (0.6 + k * 0.6), 0, 7); ctx.fill();
     }
     sparks = sparks.filter((p) => p.t < p.life);

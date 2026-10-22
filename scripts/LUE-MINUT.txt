@@ -18,4 +18,4 @@ Your account, playtime and saves are in the cloud and in the folder
 
 Updates: Pelipaja checks GitHub for a newer version every time it starts
 and downloads it by itself. Updates are signed, so Pelipaja only installs
-versions published by Rasmus.
+official Pelipaja versions.
