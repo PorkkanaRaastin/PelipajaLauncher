@@ -29,6 +29,25 @@
       ]
     },
     {
+      "id": "fuzzling",
+      "name": "Grow a Fuzzling",
+      "type": "html",
+      "path": "fuzzling/index.html",
+      "cover": "fuzzling/cover.jpg",
+      "version": "1.0",
+      "endButton": "top-left",
+      "tags": [
+        "Pet",
+        "Cozy",
+        "Singleplayer"
+      ],
+      "description": "Hatch a fuzzy little creature and raise it from a baby to a grown up. Feed it, wash off the mud, play ball, tuck it into bed and catch berries for coins to buy snacks and hats.",
+      "controls": "Mouse. In berry catch also A / D or the arrow keys.",
+      "updates": [
+        "New game: hatch your own Fuzzling and help it grow up"
+      ]
+    },
+    {
       "id": "rautasatama",
       "name": "Iron Harbor",
       "type": "html",
