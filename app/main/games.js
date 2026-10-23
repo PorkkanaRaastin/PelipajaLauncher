@@ -9,6 +9,7 @@ const { loadCatalog } = require("./catalog");
 const { hardenSession, setRole } = require("./security");
 const stats = require("./stats");
 const { readSettings } = require("./settings");
+const saves = require("./saves");
 
 const running = new Map(); // pelin id -> { startedAt, user, close() }
 const gameWindows = new Map(); // webContents.id -> { win, game, ending }
@@ -83,6 +84,8 @@ async function saveAndEnd(win) {
     .catch(() => false);
   const timeout = new Promise((res) => setTimeout(() => res(false), 4000));
   await Promise.race([save, timeout]);
+  // tallennukset pilveen ennen kuin ikkuna suljetaan
+  await saves.capture(win, info.user).catch(() => {});
   if (!win.isDestroyed()) win.destroy();
 }
 
@@ -96,10 +99,19 @@ function buttonCorner(wc) {
 }
 
 // ---------- Käynnistys ----------
-function launch(id) {
+const launching = new Set();
+async function launch(id) {
   const user = state.session && state.session.user;
   if (!user) return { ok: false, error: "Sign in before playing." };
-  if (running.has(id)) return { ok: false, error: "That game is already running." };
+  if (running.has(id) || launching.has(id)) return { ok: false, error: "That game is already running." };
+  launching.add(id);
+  try {
+    // muilla koneilla tehdyt tallennukset haetaan ennen pelin käynnistystä
+    await saves.prepare(user).catch(() => {});
+  } finally {
+    launching.delete(id);
+  }
+  if (!state.session || state.session.user !== user) return { ok: false, error: "Sign in before playing." };
   reloadCatalog();
   const game = findGame(id);
   if (!game) return { ok: false, error: "Game not found." };
@@ -136,7 +148,12 @@ function launch(id) {
     win.webContents,
     game.type === "html" ? { kind: "game", root: path.dirname(game.target) } : { kind: "game", origin: new URL(game.target).origin }
   );
-  gameWindows.set(wcId, { win, game, ending: false });
+  gameWindows.set(wcId, { win, game, ending: false, user });
+  // välitallennus pilveen muutaman minuutin välein (jos kone sammuu kesken pelin)
+  const autoSync = setInterval(() => {
+    const info = gameWindows.get(wcId);
+    if (info && !info.ending && !win.isDestroyed()) saves.capture(win, user).catch(() => {});
+  }, 4 * 60 * 1000);
   if (game.fullscreen) win.setFullScreen(true);
   win.loadURL(game.type === "html" ? pathToFileURL(game.target).href : game.target);
 
@@ -160,6 +177,7 @@ function launch(id) {
     }
   });
   win.on("closed", () => {
+    clearInterval(autoSync);
     gameWindows.delete(wcId);
     finishGame(id);
   });

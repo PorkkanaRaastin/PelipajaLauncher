@@ -22,6 +22,7 @@ const stats = require("./stats");
 const settings = require("./settings");
 const updater = require("./updater");
 const whatsnew = require("./whatsnew");
+const saves = require("./saves");
 const { createCloud, CloudError } = require("./cloud");
 const CLOUD = require("./cloud-config");
 const { RENDERER_DIR, PRELOAD_DIR, GAMES_DIR, ICON, APP_VERSION } = require("./paths");
@@ -163,8 +164,21 @@ authHandle("auth-logout", async () => {
 ipcMain.on("game-save-and-end", (event) => {
   if (security.fromGame(event)) games.saveAndEndSender(event.sender);
 });
+// Peli-ikkunan preload hakee pilvestä tulleet tallennukset ennen pelin omaa koodia
+ipcMain.on("rr-saves-take", (event) => {
+  event.returnValue = security.fromGame(event) ? saves.take() : null;
+});
 ipcMain.on("game-button-corner", (event) => {
   event.returnValue = security.fromGame(event) ? games.buttonCorner(event.sender) : "top-left";
 });
 
 app.on("window-all-closed", () => app.quit());
+// Odotetaan hetki, että viimeiset tallennukset ehtivät pilveen
+let quitting = false;
+app.on("before-quit", (e) => {
+  if (quitting || !saves.busy()) return;
+  e.preventDefault();
+  quitting = true;
+  const done = () => app.quit();
+  Promise.race([saves.flush().catch(() => {}), new Promise((r) => setTimeout(r, 8000))]).then(done, done);
+});
