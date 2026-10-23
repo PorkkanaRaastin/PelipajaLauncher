@@ -2,8 +2,14 @@
 // Lisää "Save & End Game" -napin ja antaa pelille yhteyden launcheriin.
 const { contextBridge, ipcRenderer } = require("electron");
 
+let launcherUser = null;
+try {
+  launcherUser = ipcRenderer.sendSync("rr-game-user");
+} catch {}
 contextBridge.exposeInMainWorld("rrLauncher", {
   saveAndEnd: () => ipcRenderer.send("game-save-and-end"),
+  // Pelipajan käyttäjänimi (null, jos ei kirjauduttu)
+  username: launcherUser && typeof launcherUser.username === "string" ? launcherUser.username : null,
 });
 
 // ---------- Pilvitallennukset ----------

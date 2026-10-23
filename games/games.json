@@ -21,6 +21,26 @@
       ]
     },
     {
+      "id": "zombiecam",
+      "name": "ZombieCam",
+      "type": "html",
+      "path": "zombiecam/index.html",
+      "cover": "zombiecam/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "Shooter",
+        "Co-op",
+        "Online",
+        "Multiplayer"
+      ],
+      "description": "A bodycam-style zombie shooter. Fight off waves of zombies alone or with a squad of up to eight friends, or turn on each other in a private match. You play online with your Pelipaja username: add friends by their username and invite them to your squad. The game is in Finnish. Made by knh19.",
+      "controls": "WASD move, mouse look, left click shoot, right click aim, R reload, 1 / 2 / wheel switch weapon, Shift run, C crouch, Q / E lean, F weapon light, Tab scoreboard",
+      "updates": [
+        "New game: ZombieCam with online co-op and private matches using your Pelipaja username"
+      ]
+    },
+    {
       "id": "muuttopaku",
       "name": "Northline Movers",
       "type": "html",

@@ -168,6 +168,11 @@ ipcMain.on("game-save-and-end", (event) => {
 ipcMain.on("rr-saves-take", (event) => {
   event.returnValue = security.fromGame(event) ? saves.take() : null;
 });
+// Peli-ikkuna saa kirjautuneen käyttäjän nimen (verkkopelien nimeksi). Ei sähköpostia eikä tunnisteita.
+ipcMain.on("rr-game-user", (event) => {
+  const u = security.fromGame(event) && state.session && state.session.user;
+  event.returnValue = u && u.username ? { username: String(u.username).slice(0, 40) } : null;
+});
 ipcMain.on("game-button-corner", (event) => {
   event.returnValue = security.fromGame(event) ? games.buttonCorner(event.sender) : "top-left";
 });
