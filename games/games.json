@@ -26,7 +26,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.8",
+      "version": "0.8.1",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -38,6 +38,13 @@
       ],
       "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
+        "New cab interior: live speedometer and rev counter, steering wheel with spokes, centre console, gear lever, mirror, sun visors, door panels and proper seats",
+        "Load the same items on top of each other in the van, such as boxes on boxes or sofa on sofa. Light items also stack on flat furniture",
+        "Ultra: sharper, higher-resolution textures and furniture models",
+        "Ultra: new grass and new stone and sandstone walls on houses",
+        "Ultra: car indicators are now glowing lights inside the lamps",
+        "Fixed a car model that floated above the road",
+        "The indicator key hint no longer covers the driving view",
         "Ultra graphics: realistic asphalt, ground, brick and wooden floors, a photo sky, real trees and new traffic models",
         "All furniture replaced with realistic models: sofa, ottoman, bookshelf, antique bed, vintage TV, laptop, ukulele and more",
         "Choose Ultra or Potato graphics in the settings. The game starts in Potato and switches when Ultra has loaded",
