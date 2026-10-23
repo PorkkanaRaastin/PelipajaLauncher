@@ -1,6 +1,26 @@
 {
   "games": [
     {
+      "id": "supermarket",
+      "name": "Mini Mart Simulator",
+      "type": "html",
+      "path": "supermarket/index.html",
+      "cover": "supermarket/cover.jpg",
+      "version": "0.1",
+      "status": "Early access",
+      "endButton": "top-right",
+      "tags": [
+        "Work in progress",
+        "Simulator",
+        "Singleplayer"
+      ],
+      "description": "Run your own little supermarket. Order stock on the back office computer, carry the boxes in and fill the shelves and the fridge, set your prices and serve customers at the till: scan their shopping, take card payments and count out the right change. Work in progress: expect changes.",
+      "controls": "WASD move, Shift run, mouse look, E pick up / use, left click place or scan, right click take back, G drop box",
+      "updates": [
+        "New game: first early access version with ordering, shelves, prices, customers and the till"
+      ]
+    },
+    {
       "id": "muuttopaku",
       "name": "Northline Movers",
       "type": "html",

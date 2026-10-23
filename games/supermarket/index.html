@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mini Mart Simulator</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Segoe UI",system-ui,sans-serif;color:#1d232b;user-select:none}
+canvas{display:block}
+.hidden{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+#hud{position:fixed;left:14px;top:12px;display:flex;gap:10px;align-items:stretch;pointer-events:none}
+.chip{background:rgba(255,255,255,.92);border-radius:10px;padding:7px 12px;box-shadow:0 2px 8px rgba(0,0,0,.25);font-size:14px;line-height:1.25}
+.chip b{display:block;font-size:19px}
+.chip small{color:#69717c;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+#openChip.open b{color:#1d8a3b}#openChip.closed b{color:#c23b2a}
+#cross{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.55);pointer-events:none}
+#hint{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:rgba(16,20,26,.78);color:#fff;padding:7px 14px;border-radius:8px;font-size:14px;white-space:nowrap;pointer-events:none}
+#hint:empty{display:none}
+#hint kbd,.kb{display:inline-block;background:#fff;color:#111;border-radius:4px;padding:0 6px;font:600 12px/18px "Segoe UI",sans-serif;margin:0 3px}
+#toasts{position:fixed;left:50%;top:70px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.toast{background:rgba(255,255,255,.95);padding:8px 14px;border-radius:8px;font-size:14px;box-shadow:0 3px 10px rgba(0,0,0,.25);animation:tin .2s}
+@keyframes tin{from{opacity:0;transform:translateY(-6px)}}
+#till{position:fixed;right:14px;top:12px;width:230px;background:rgba(255,255,255,.94);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.25);padding:10px 12px;font-size:13px;pointer-events:none}
+#till h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#69717c}
+#till .ln{display:flex;justify-content:space-between;padding:2px 0}
+#till .tot{border-top:1px solid #d9dde2;margin-top:6px;padding-top:6px;font-size:18px;font-weight:700}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,14,20,.55);overflow:auto;padding:16px}
+.ov>*{margin:auto}
+.panel{background:#f4f5f7;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.4);overflow:hidden}
+.panel header{display:flex;align-items:center;gap:10px;background:#20303f;color:#fff;padding:10px 14px}
+.panel header b{font-size:15px}
+.panel header .sp{flex:1}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:7px 12px;background:#2f6fb0;color:#fff}
+button:hover{filter:brightness(1.08)}button:disabled{opacity:.45;cursor:default;filter:none}
+button.ghost{background:#e3e7ec;color:#1d232b}
+button.sm{padding:4px 9px;font-size:13px}
+.tabs button{background:transparent;color:#b8c4cf;padding:5px 10px}.tabs button.on{background:#3a5168;color:#fff}
+#pc{width:min(860px,96vw)}
+#pcBody{padding:14px;max-height:min(560px,74vh);overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#69717c;padding:4px 6px;font-weight:600}
+td{padding:6px;border-top:1px solid #e1e4e8;vertical-align:middle}
+td.r,th.r{text-align:right}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+.qty{display:inline-flex;align-items:center;gap:4px}.qty span{min-width:22px;text-align:center;font-weight:600}
+.pin{width:72px;padding:4px 6px;border:1px solid #c7ccd3;border-radius:6px;font:inherit;text-align:right}
+.foot{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid #dde1e6;background:#fff}
+.foot .sp{flex:1}
+.muted{color:#69717c;font-size:13px}
+.good{color:#1d8a3b}.bad{color:#c23b2a}
+#cash{width:min(560px,96vw)}
+.cashtop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px}
+.cashtop div{background:#fff;border-radius:8px;padding:8px 10px}.cashtop small{display:block;color:#69717c;font-size:11px;text-transform:uppercase}.cashtop b{font-size:20px}
+.drawer{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:4px 14px 12px}
+.drawer button{height:54px;font-weight:700;font-size:15px}
+.note{background:#5d8f5a}.note.n10{background:#b0565a}.note.n20{background:#4f73a8}.note.n50{background:#c07b34}.note.n5{background:#7d8a8f}
+.coin{background:#b8962e;border-radius:27px}.coin.cu{background:#a8683b}
+#card{width:320px}
+#cardScreen{margin:14px;background:#1d2b24;color:#bff2c9;border-radius:8px;padding:12px;font:600 15px/1.4 Consolas,monospace}
+#cardScreen .big{font-size:26px}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 14px}
+.keys button{height:46px;font-size:18px;font-weight:600;background:#3b4450}
+.keys button.ok{background:#2c8a46}.keys button.del{background:#a8463b}
+#menu{width:min(440px,94vw);padding:28px 26px;background:#f4f5f7;border-radius:16px;text-align:center}
+#menu h1{margin:0;font-size:34px;letter-spacing:-.01em}
+#menu .tag{display:inline-block;margin:8px 0 18px;background:#f2c14e;color:#3b2c00;font-weight:700;font-size:12px;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+#menu button{display:block;width:100%;margin:8px 0;padding:11px;font-size:16px}
+#menu p{font-size:13px;color:#5a626d;text-align:left;line-height:1.5}
+#sum{width:min(420px,94vw)}
+#sumBody{padding:14px}
+#sumBody .ln{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e1e4e8;font-size:15px}
+#sumBody .tot{font-size:19px;font-weight:700;border:0;padding-top:10px}
+</style>
+</head>
+<body>
+<div id="hud" class="hidden">
+  <div class="chip"><small>Money</small><b id="hMoney" class="num">€0.00</b></div>
+  <div class="chip"><small id="hDay">Day 1</small><b id="hTime" class="num">08:00</b></div>
+  <div class="chip" id="openChip"><small>Store</small><b id="hOpen">Closed</b></div>
+  <div class="chip"><small>Reputation</small><b id="hRep">★★★☆☆</b></div>
+</div>
+<div id="cross" class="hidden"></div>
+<div id="hint"></div>
+<div id="toasts"></div>
+<div id="till" class="hidden"><h4>Checkout</h4><div id="tillLines"></div><div class="ln tot"><span>Total</span><span id="tillTot" class="num">€0.00</span></div><div id="tillPay" class="muted" style="margin-top:4px"></div></div>
+
+<div id="ovMenu" class="ov"><div id="menu">
+  <h1>Mini Mart Simulator</h1><div class="tag">Early access</div>
+  <button id="bCont" class="hidden">Continue</button>
+  <button id="bNew">New store</button>
+  <button id="bHelp" class="ghost">How to play</button>
+  <p id="help" class="hidden"><b>WASD</b> move · <b>Shift</b> run · <b>Mouse</b> look<br><b>E</b> pick up a box, use the computer, open the store<br><b>Left click</b> put an item on the shelf, scan items at the till<br><b>Right click</b> take an item back into the box · <b>G</b> drop the box<br>Order stock on the computer in the back office. Deliveries are left outside next to the door. Stock the shelves, flip the sign to open and serve customers at the till.</p>
+</div></div>
+
+<div id="ovPause" class="ov hidden"><div id="menu" style="width:min(380px,94vw)"><h1 style="font-size:26px">Paused</h1><div style="height:14px"></div>
+  <button id="bResume">Resume</button><button id="bSaveQuit" class="ghost">Save and go to menu</button></div></div>
+
+<div id="ovPC" class="ov hidden"><div id="pc" class="panel">
+  <header><b>MiniMart Manager</b><div class="tabs" id="pcTabs"><button data-t="order" class="on">Order stock</button><button data-t="prices">Prices</button><button data-t="today">Today</button></div><span class="sp"></span><span id="pcMoney" class="num"></span><button class="ghost sm" id="pcClose">Close</button></header>
+  <div id="pcBody"></div><div class="foot" id="pcFoot"></div></div></div>
+
+<div id="ovCash" class="ov hidden"><div id="cash" class="panel">
+  <header><b>Cash register</b><span class="sp"></span><button class="ghost sm" id="cashClose">Close</button></header>
+  <div class="cashtop"><div><small>Total</small><b id="cTot" class="num"></b></div><div><small>Received</small><b id="cGot" class="num"></b></div><div><small>Change due</small><b id="cDue" class="num"></b></div></div>
+  <div class="drawer" id="drawer"></div>
+  <div class="foot"><span>Giving back: <b id="cGive" class="num">€0.00</b></span><span class="sp"></span><button class="ghost" id="cUndo">Undo</button><button class="ghost" id="cClear">Clear</button><button id="cDone">Give change</button></div></div></div>
+
+<div id="ovCard" class="ov hidden"><div id="card" class="panel">
+  <header><b>Card reader</b><span class="sp"></span><button class="ghost sm" id="cardClose">Close</button></header>
+  <div id="cardScreen"><div>Enter amount</div><div class="big num" id="cardAmt">€0.00</div><div id="cardMsg" style="font-size:13px;min-height:18px"></div></div>
+  <div class="keys" id="keys"></div></div></div>
+
+<div id="ovSum" class="ov hidden"><div id="sum" class="panel"><header><b id="sumTitle">End of day</b></header><div id="sumBody"></div><div class="foot"><span class="sp"></span><button id="bNextDay">Start next day</button></div></div></div>
+
+<script src="../_shared/three.min.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const PI=Math.PI,rnd=(a,b)=>a+Math.random()*(b-a),ri=(a,b)=>Math.floor(rnd(a,b+1)),clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const eur=c=>'€'+(c/100).toFixed(2);
+
+/* ================= products ================= */
+// price fields in cents. box = cost of one box, per = units per box, mkt = normal shop price for one unit
+const PRODUCTS=[
+  {id:'water',name:'Spring Water',sub:'1.5 L',per:12,box:600,mkt:89,shape:'bottle',w:.09,h:.30,d:.09,c1:'#3d8fd6',c2:'#e9f5ff',cold:false},
+  {id:'cola',name:'Fizz Cola',sub:'330 ml can',per:24,box:1440,mkt:99,shape:'can',w:.068,h:.12,d:.068,c1:'#c8202d',c2:'#ffffff',cold:false},
+  {id:'flakes',name:'Corn Flakes',sub:'500 g',per:8,box:1440,mkt:279,shape:'box',w:.2,h:.28,d:.07,c1:'#f3b81d',c2:'#d2332a',cold:false},
+  {id:'soup',name:'Tomato Soup',sub:'400 g can',per:12,box:1080,mkt:149,shape:'can',w:.08,h:.11,d:.08,c1:'#d9452f',c2:'#f6e9c8',cold:false},
+  {id:'pasta',name:'Spaghetti',sub:'500 g',per:12,box:840,mkt:119,shape:'box',w:.075,h:.26,d:.045,c1:'#1d5fa8',c2:'#f2d36b',cold:false},
+  {id:'chips',name:'Potato Chips',sub:'175 g',per:10,box:1300,mkt:219,shape:'box',w:.17,h:.24,d:.07,c1:'#f07f1e',c2:'#fff1c2',cold:false},
+  {id:'tp',name:'Toilet Paper',sub:'8 rolls',per:4,box:1040,mkt:399,shape:'box',w:.28,h:.24,d:.2,c1:'#f4f6f8',c2:'#5aa0d6',cold:false},
+  {id:'milk',name:'Milk',sub:'1 L',per:12,box:840,mkt:109,shape:'box',w:.075,h:.2,d:.075,c1:'#ffffff',c2:'#2f78c4',cold:true},
+  {id:'juice',name:'Orange Juice',sub:'1 L',per:8,box:1040,mkt:189,shape:'box',w:.075,h:.2,d:.075,c1:'#f29b1c',c2:'#2e8b3e',cold:true},
+  {id:'butter',name:'Butter',sub:'250 g',per:12,box:1920,mkt:249,shape:'box',w:.12,h:.05,d:.07,c1:'#f6d55c',c2:'#2c6a3d',cold:true}];
+const PBY={};PRODUCTS.forEach(p=>PBY[p.id]=p);
+const RENT=4000,DAY_START=480,DAY_END=1320,LAST_IN=1290,MIN_PER_SEC=1/0.6,DELIVERY_S=20;
+
+/* ================= save ================= */
+const KEY='minimart.save.v1';
+let S=null;
+function freshSave(){return{v:1,money:40000,day:1,rep:1.5,prices:Object.fromEntries(PRODUCTS.map(p=>[p.id,p.mkt])),slots:[],boxes:[],orders:[],started:false,
+  time:DAY_START,open:false,today:freshToday()};}
+function freshToday(){return{customers:0,sales:0,items:0,pricey:0,missing:0,left:0,spent:0};}
+function loadSave(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===1)return s;}catch(e){}return null;}
+function writeSave(){if(!S)return;try{S.slots=slots.map(s=>({p:s.pid,n:s.n}));S.boxes=boxes.map(b=>({p:b.pid,n:b.n,x:+b.mesh.position.x.toFixed(2),y:+b.mesh.position.y.toFixed(2),z:+b.mesh.position.z.toFixed(2),r:+b.mesh.rotation.y.toFixed(2)}));
+  if(held)S.boxes.push({p:held.pid,n:held.n,x:+player.x.toFixed(2),y:.17,z:+player.z.toFixed(2),r:0});localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+window.rrSaveGame=()=>{if(S&&state!=='menu')writeSave();};
+addEventListener('beforeunload',()=>{if(state!=='menu')writeSave();});
+
+/* ================= audio ================= */
+let AC=null;function initAudio(){if(AC){if(AC.state==='suspended')AC.resume();return;}try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+function tone(f,d,type='sine',v=.15,f2=null,del=0){if(!AC)return;const t=AC.currentTime+del,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02);}
+const SFX={beep(){tone(1850,.09,'square',.06);},place(){tone(240,.05,'triangle',.12,180);},pick(){tone(180,.07,'triangle',.12,260);},
+  err(){tone(160,.18,'sawtooth',.07);},chime(){tone(880,.25,'sine',.08);tone(660,.35,'sine',.08,null,.18);},
+  till(){tone(1500,.05,'square',.05);tone(2000,.12,'triangle',.08,null,.06);[0,1,2].forEach(i=>tone(3000+i*400,.08,'sine',.03,null,.12+i*.05));},
+  coin(){tone(2400,.06,'sine',.06,3000);},key(){tone(700,.04,'square',.04);},drop(){tone(110,.12,'triangle',.18,70);}};
+
+/* ================= renderer & scene ================= */
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(1.5,devicePixelRatio||1));renderer.setSize(innerWidth,innerHeight);
+renderer.outputEncoding=THREE.sRGBEncoding;document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xa9cbe6).convertSRGBToLinear();scene.fog=new THREE.Fog(0xa9cbe6,30,70);
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.05,120);scene.add(camera);
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+scene.add(new THREE.HemisphereLight(0xffffff,0x8a8070,.75));
+const sun=new THREE.DirectionalLight(0xfff1dc,.65);sun.position.set(8,14,10);scene.add(sun);
+const inLight=new THREE.PointLight(0xffffff,.55,22);inLight.position.set(0,3.3,0);scene.add(inLight);
+const M=(c,o={})=>{const m=new THREE.MeshLambertMaterial(o);m.color.set(c).convertSRGBToLinear();return m;};
+function tex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;return t;}
+function box(w,h,d,mat,x,y,z,parent=scene){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);parent.add(m);return m;}
+
+/* ================= colliders & nav grid ================= */
+const COL=[];// {x0,z0,x1,z1}
+function col(x0,z0,x1,z1){COL.push({x0:Math.min(x0,x1),z0:Math.min(z0,z1),x1:Math.max(x0,x1),z1:Math.max(z0,z1)});}
+const GX0=-14,GZ0=-6,CS=.5,GW=56,GH=36;
+
+/* ================= world ================= */
+const floorTex=tex(256,256,(g,w,h)=>{g.fillStyle='#e9e6df';g.fillRect(0,0,w,h);g.fillStyle='#dcd7cd';g.fillRect(0,0,128,128);g.fillRect(128,128,128,128);g.strokeStyle='#cbc5b9';g.lineWidth=2;g.strokeRect(0,0,128,128);g.strokeRect(128,128,128,128);g.strokeRect(128,0,128,128);g.strokeRect(0,128,128,128);});
+floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;floorTex.repeat.set(8,6);
+const fl=new THREE.Mesh(new THREE.PlaneGeometry(16,12),M(0xffffff,{map:floorTex}));fl.rotation.x=-PI/2;scene.add(fl);
+// outside ground
+const asph=new THREE.Mesh(new THREE.PlaneGeometry(140,80),M(0x55585c));asph.rotation.x=-PI/2;asph.position.set(0,-.02,10);scene.add(asph);
+const walk=new THREE.Mesh(new THREE.PlaneGeometry(40,5),M(0xb9b5ad));walk.rotation.x=-PI/2;walk.position.set(0,-.005,8.5);scene.add(walk);
+for(let x=-30;x<30;x+=4){box(2,.01,.15,M(0xe8e2c8),x,0,14.5);}
+box(40,.12,.3,M(0x9d9990),0,.06,11);
+const bcol=[0xb9806a,0xc9b38a,0x8a9aa8,0xa88f7c,0x9cae94];for(let i=0;i<7;i++){const w=rnd(6,9),h=rnd(6,13);box(w,h,8,M(bcol[i%5]),-24+i*8,h/2,24);for(let r=1;r<h-1;r+=2.2)for(let c=-w/2+1;c<w/2-.5;c+=1.6)box(.9,1.1,.05,M(0x5b6a78),-24+i*8+c,r+.6,19.98);}
+for(const x of[-11,10,13]){box(.25,2.4,.25,M(0x6b4a2f),x,1.2,9.6);const t=new THREE.Mesh(new THREE.SphereGeometry(1.2,10,8),M(0x5f8f4a));t.position.set(x,3,9.6);scene.add(t);}
+// building shell
+const wallM=M(0xf1efe9),wallOut=M(0xd9d2c4),trimM=M(0x2f6fb0);
+box(16.4,3.6,.2,wallM,0,1.8,-6.1);col(-8.2,-6.2,8.2,-6);
+box(.2,3.6,12.4,wallM,-8.1,1.8,0);col(-8.2,-6.2,-8,6.2);
+box(.2,3.6,12.4,wallM,8.1,1.8,0);col(8,-6.2,8.2,6.2);
+// outside skin
+box(16.6,4.2,.05,wallOut,0,2.1,-6.24);box(.05,4.2,12.6,wallOut,-8.24,2.1,0);box(.05,4.2,12.6,wallOut,8.24,2.1,0);
+// front: kick + glass + fascia, door gap -1..1
+for(const sd of[-1,1]){const cx=sd*4.5;box(7,.5,.22,M(0x8b8f94),cx,.25,6.1);
+  const g=box(7,2.3,.06,new THREE.MeshLambertMaterial({color:0xbfe0f0,transparent:true,opacity:.28}),cx,1.65,6.1);
+  for(let x=-3.5;x<=3.5;x+=1.75)box(.08,2.3,.12,M(0x50565c),cx+x,1.65,6.1);col(sd*1,5.95,sd*8,6.25);}
+box(16.4,.8,.24,trimM,0,3.2,6.1);box(16.6,.7,.3,M(0x264f7a),0,3.9,6.2);
+const signTex=tex(1024,128,(g,w,h)=>{g.fillStyle='#264f7a';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='800 92px "Segoe UI",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('MINI MART',w/2,h/2+4);});
+const signM=new THREE.Mesh(new THREE.PlaneGeometry(6,.75),new THREE.MeshBasicMaterial({map:signTex}));signM.position.set(0,3.9,6.36);scene.add(signM);
+box(2,.3,.24,M(0x50565c),0,2.75,6.1);
+// sliding doors
+const doorL=box(1,2.3,.05,new THREE.MeshLambertMaterial({color:0xcfe8f4,transparent:true,opacity:.35}),-.5,1.25,6.02),doorR=box(1,2.3,.05,doorL.material,.5,1.25,6.02);
+let doorOpen=0;
+// ceiling + light panels
+const ceil=new THREE.Mesh(new THREE.PlaneGeometry(16,12),new THREE.MeshBasicMaterial({color:0xd9dcdf}));ceil.rotation.x=PI/2;ceil.position.y=3.6;scene.add(ceil);
+for(let x=-6;x<=6;x+=4)for(let z=-4.5;z<=4.5;z+=3){const p=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.5),new THREE.MeshBasicMaterial({color:0xfdfdf8}));p.rotation.x=PI/2;p.position.set(x,3.59,z);scene.add(p);}
+// wall stripe
+box(16,.25,.02,trimM,0,2.4,-5.99);box(.02,.25,12,trimM,-7.99,2.4,0);box(.02,.25,12,trimM,7.99,2.4,0);
+// back office desk + computer
+const deskM=M(0x8a6a4b);box(1.6,.06,1,deskM,-7.2,.76,-5.4);box(.06,.74,.9,deskM,-7.95,.37,-5.4);box(.06,.74,.9,deskM,-6.45,.37,-5.4);col(-8,-6,-6.35,-4.85);
+const pcGroup=new THREE.Group();pcGroup.position.set(-7.25,.79,-5.55);scene.add(pcGroup);
+box(.55,.36,.04,M(0x1c1f24),0,.32,0,pcGroup);box(.08,.14,.08,M(0x30343a),0,.07,0,pcGroup);box(.4,.02,.14,M(0x30343a),0,.01,.25,pcGroup);
+const pcScreen=new THREE.Mesh(new THREE.PlaneGeometry(.5,.31),new THREE.MeshBasicMaterial({map:tex(256,160,(g,w,h)=>{g.fillStyle='#20303f';g.fillRect(0,0,w,h);g.fillStyle='#3a5168';g.fillRect(0,0,w,26);g.fillStyle='#fff';g.font='600 16px Segoe UI';g.fillText('MiniMart Manager',10,18);g.fillStyle='#8fb4d6';for(let i=0;i<5;i++)g.fillRect(14,42+i*22,150+Math.random()*60,10);})}));
+pcScreen.position.set(0,.32,.022);pcGroup.add(pcScreen);
+const chair=new THREE.Group();chair.position.set(-7.1,0,-4.5);scene.add(chair);box(.5,.08,.5,M(0x2a2e33),0,.5,0,chair);box(.5,.55,.06,M(0x2a2e33),0,.8,.24,chair);box(.06,.5,.06,M(0x555),0,.25,0,chair);
+// trash bin
+const binG=new THREE.Group();binG.position.set(-5.9,0,-5.6);scene.add(binG);const bin=box(.6,.8,.5,M(0x3f6b45),0,.4,0,binG);box(.64,.06,.54,M(0x2f5235),0,.83,0,binG);col(-6.25,-5.9,-5.55,-5.3);
+const binLbl=new THREE.Mesh(new THREE.PlaneGeometry(.4,.14),new THREE.MeshBasicMaterial({map:tex(128,44,(g,w,h)=>{g.fillStyle='#2f5235';g.fillRect(0,0,w,h);g.fillStyle='#fff';g.font='700 22px Segoe UI';g.textAlign='center';g.fillText('BOXES',w/2,30);})}));binLbl.position.set(0,.55,.26);binG.add(binLbl);
+// open/closed sign hanging inside the door glass
+const openTex=document.createElement('canvas');openTex.width=256;openTex.height=128;const openT=new THREE.CanvasTexture(openTex);openT.encoding=THREE.sRGBEncoding;
+function drawOpenSign(){const g=openTex.getContext('2d');g.fillStyle=S&&S.open?'#1d8a3b':'#c23b2a';g.fillRect(0,0,256,128);g.strokeStyle='#fff';g.lineWidth=6;g.strokeRect(8,8,240,112);g.fillStyle='#fff';g.font='800 56px Segoe UI';g.textAlign='center';g.textBaseline='middle';g.fillText(S&&S.open?'OPEN':'CLOSED',128,66);openT.needsUpdate=true;}
+const openSign=new THREE.Mesh(new THREE.PlaneGeometry(.6,.3),new THREE.MeshBasicMaterial({map:openT,side:THREE.DoubleSide}));openSign.position.set(1.9,1.75,5.98);openSign.rotation.y=PI;scene.add(openSign);
+// sign readable outside too
+const openSign2=openSign.clone();openSign2.rotation.y=0;openSign2.position.z=6.16;scene.add(openSign2);
+
+/* ================= checkout ================= */
+const counterM=M(0x3d4a57),topM=M(0x9aa5ae);
+box(.7,.88,3,counterM,-4.5,.44,2.7);box(.76,.04,3.06,topM,-4.5,.9,2.7);col(-4.88,1.17,-4.12,4.23);
+const belt=box(.5,.01,1.7,M(0x1d1f22),-4.5,.925,3.3);
+const reg=new THREE.Group();reg.position.set(-4.62,.92,1.6);scene.add(reg);box(.34,.12,.32,M(0x2c3036),0,.06,0,reg);box(.06,.22,.06,M(0x2c3036),0,.22,0,reg);
+const regTexC=document.createElement('canvas');regTexC.width=256;regTexC.height=128;const regT=new THREE.CanvasTexture(regTexC);regT.encoding=THREE.sRGBEncoding;
+const regScreen=new THREE.Mesh(new THREE.PlaneGeometry(.36,.18),new THREE.MeshBasicMaterial({map:regT}));regScreen.position.set(-.04,.38,0);regScreen.rotation.y=-PI/2;reg.add(regScreen);
+box(.03,.2,.38,M(0x2c3036),.0,.38,0,reg);
+function drawReg(txt,sub){const g=regTexC.getContext('2d');g.fillStyle='#10261a';g.fillRect(0,0,256,128);g.fillStyle='#9ff0b4';g.font='700 46px Consolas,monospace';g.textAlign='right';g.fillText(txt,240,70);g.font='18px Consolas,monospace';g.textAlign='left';g.fillText(sub||'',14,108);regT.needsUpdate=true;}
+const term=new THREE.Group();term.position.set(-4.4,.92,2.05);scene.add(term);box(.1,.04,.18,M(0x22252a),0,.02,0,term);const termHead=box(.08,.03,.12,M(0x22252a),-.02,.07,0,term);termHead.rotation.z=.5;
+const termScr=box(.005,.04,.06,new THREE.MeshBasicMaterial({color:0x223a2a}),-.05,.095,0,term);termScr.rotation.z=.5;
+// bags spot
+box(.3,.3,.2,M(0xe6dcc6),-4.55,1.07,4.0);
+const PAY={x:-3.6,z:3.3},QUEUE=i=>({x:-3.6,z:2.25-i*.95});
+
+/* ================= products: meshes ================= */
+function labelTex(p){return tex(128,160,(g,w,h)=>{g.fillStyle=p.c1;g.fillRect(0,0,w,h);g.fillStyle=p.c2;g.fillRect(0,h*.36,w,h*.3);g.fillStyle=p.c1==='#ffffff'||p.c1==='#f4f6f8'?'#1d232b':'#fff';
+  g.font='700 19px Segoe UI';g.textAlign='center';g.textBaseline='middle';const words=p.name.split(' ');words.forEach((wd,i)=>g.fillText(wd,w/2,22+i*20));
+  g.fillStyle=p.c1;g.font='700 17px Segoe UI';g.fillText(p.sub,w/2,h*.51);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,h-14,w,14);});}
+for(const p of PRODUCTS){const lt=labelTex(p),side=M(0xffffff,{map:lt}),plain=M(p.c1),top=M(p.shape==='bottle'?p.c2:p.c1);
+  if(p.shape==='bottle'||p.shape==='can'){p.geo=new THREE.CylinderGeometry(p.w/2,p.w/2,p.h,14);p.mat=[side,p.shape==='bottle'?M(p.c1):M(0xc9cdd1),M(0xc9cdd1)];}
+  else{p.geo=new THREE.BoxGeometry(p.w,p.h,p.d);p.mat=[plain,plain,top,top,side,side];}
+  p.inst=new THREE.InstancedMesh(p.geo,p.mat,900);p.inst.count=0;p.inst.frustumCulled=false;scene.add(p.inst);
+  p.boxTex=tex(256,160,(g,w,h)=>{g.fillStyle='#c79f6d';g.fillRect(0,0,w,h);g.fillStyle='rgba(0,0,0,.06)';for(let i=0;i<40;i++)g.fillRect(Math.random()*w,Math.random()*h,2,30);g.fillStyle=p.c1==='#ffffff'||p.c1==='#f4f6f8'?p.c2:p.c1;g.fillRect(0,22,w,44);
+    g.fillStyle='#fff';g.font='700 26px Segoe UI';g.textAlign='center';g.fillText(p.name,w/2,54);g.fillStyle='#3b2a18';g.font='600 22px Segoe UI';g.fillText(p.per+' × '+p.sub,w/2,104);if(p.cold){g.fillStyle='#2f78c4';g.fillText('KEEP COLD',w/2,138);}});
+  p.boxMat=[M(0xffffff,{map:p.boxTex}),M(0xffffff,{map:p.boxTex}),M(0xc79f6d),M(0xc79f6d),M(0xffffff,{map:p.boxTex}),M(0xffffff,{map:p.boxTex})];}
+const BOXGEO=new THREE.BoxGeometry(.5,.34,.38),BOX_H=.34;
+
+/* ================= shelves ================= */
+const slots=[],slotHits=[];
+const shelfM=M(0xc7ccd1),shelfDark=M(0x6f7880),tagMat=()=>new THREE.MeshBasicMaterial({map:null});
+function makeSlot(x,y,z,ry,W,D,cold){const f=new THREE.Object3D();f.position.set(x,y,z);f.rotation.y=ry;scene.add(f);f.updateMatrixWorld();
+  const hit=new THREE.Mesh(new THREE.BoxGeometry(W,.42,D),new THREE.MeshBasicMaterial({visible:false}));hit.position.set(0,.21,-D/2);f.add(hit);
+  const c=document.createElement('canvas');c.width=192;c.height=64;const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;
+  const tag=new THREE.Mesh(new THREE.PlaneGeometry(.2,.066),new THREE.MeshBasicMaterial({map:t}));tag.position.set(-W/2+.16,-.04,.012);f.add(tag);
+  const s={i:slots.length,f,W,D,cold,pid:null,n:0,c,t,hit};hit.userData={kind:'slot',slot:s};slots.push(s);slotHits.push(hit);drawTag(s);return s;}
+function cap(s,p){p=p||PBY[s.pid];if(!p)return 0;const cols=Math.floor(s.W/(p.w+.012)),rows=Math.min(3,Math.floor(s.D/(p.d+.012)));return cols*rows;}
+function drawTag(s){const g=s.c.getContext('2d'),p=PBY[s.pid];g.fillStyle='#fff8c6';g.fillRect(0,0,192,64);g.fillStyle='#1d232b';g.textAlign='left';
+  if(p){g.font='600 18px Segoe UI';g.fillText(p.name,8,22);g.font='800 30px Segoe UI';g.textAlign='right';g.fillText(eur(S?S.prices[p.id]:p.mkt),184,56);}else{g.fillStyle='#9aa0a6';g.font='600 18px Segoe UI';g.fillText('empty',8,38);}s.t.needsUpdate=true;}
+function gondola(gx,z0,z1){const L=z1-z0,zc=(z0+z1)/2;box(1.1,.12,L,shelfDark,gx,.06,zc);box(.06,1.75,L,shelfM,gx,.95,zc);box(1.12,.04,L+.04,shelfM,gx,1.83,zc);
+  for(const y of[.12,.62,1.12])box(1.1,.03,L,shelfM,gx,y+.0,zc);for(const z of[z0,z1])box(1.1,1.8,.04,shelfDark,gx,.9,z);
+  for(const sd of[-1,1])for(let i=0;i<4;i++)for(const y of[.135,.635,1.135])makeSlot(gx+sd*.55,y,z0+(i+.5)*1.25,sd>0?PI/2:-PI/2,1.2,.5,false);
+  col(gx-.56,z0-.03,gx+.56,z1+.03);}
+gondola(-.3,-4,1);gondola(3.7,-4,1);
+// fridge on right wall
+(function(){const x0=6.9,z0=-4,z1=1,zc=(z0+z1)/2,L=z1-z0;box(1,2.1,L+.1,M(0xe9edf0),7.45,1.05,zc);box(.9,1.7,L,M(0x9fb4c4),7.5,1.05,zc);
+  for(const y of[.25,.75,1.25])box(.95,.03,L,M(0xd9e2ea),7.42,y,zc);box(.12,.25,L+.1,M(0x2f78c4),6.98,2.0,zc);
+  const lt=new THREE.Mesh(new THREE.PlaneGeometry(.06,L),new THREE.MeshBasicMaterial({color:0xeaf6ff}));lt.rotation.set(PI/2,0,0);lt.position.set(7.2,1.88,zc);scene.add(lt);
+  for(let i=0;i<4;i++)for(const y of[.265,.765,1.265])makeSlot(x0,y,z0+(i+.5)*1.25,-PI/2,1.2,.5,true);col(6.88,z0-.06,8,z1+.06);})();
+const _m=new THREE.Matrix4(),_v=new THREE.Vector3(),_q=new THREE.Quaternion();
+let instDirty=true;
+function rebuildInst(){const cnt={};for(const p of PRODUCTS)cnt[p.id]=0;
+  for(const s of slots){if(!s.pid||!s.n)continue;const p=PBY[s.pid],cols=Math.floor(s.W/(p.w+.012)),gx=p.w+.012,gz=p.d+.012;
+    for(let i=0;i<s.n;i++){const r=Math.floor(i/cols),c=i%cols;_v.set((c-(cols-1)/2)*gx,p.h/2+.016,-(r+.5)*gz-.01);s.f.localToWorld(_v);
+      s.f.getWorldQuaternion(_q);_m.compose(_v,_q,new THREE.Vector3(1,1,1));p.inst.setMatrixAt(cnt[p.id]++,_m);}}
+  for(const p of PRODUCTS){p.inst.count=cnt[p.id];p.inst.instanceMatrix.needsUpdate=true;}instDirty=false;}
+
+/* ================= boxes ================= */
+const boxes=[];let held=null;
+function makeBox(pid,n,x,y,z,r=0){const p=PBY[pid];const m=new THREE.Mesh(BOXGEO,p.boxMat);m.position.set(x,y,z);m.rotation.y=r;scene.add(m);const b={pid,n,mesh:m};m.userData={kind:'box',box:b};boxes.push(b);return b;}
+const DELIV=[];for(let r=0;r<2;r++)for(let c=0;c<4;c++)DELIV.push({x:3+c*.62,z:7.3+r*.5});
+function deliverySpot(){for(let lvl=0;lvl<3;lvl++)for(const d of DELIV){const y=BOX_H/2+lvl*BOX_H;const taken=boxes.some(b=>Math.abs(b.mesh.position.x-d.x)<.3&&Math.abs(b.mesh.position.z-d.z)<.22&&Math.abs(b.mesh.position.y-y)<.1);if(!taken)return{x:d.x,y,z:d.z};}
+  return{x:rnd(2.5,6),y:BOX_H/2,z:rnd(8.6,9.6)};}
+
+/* ================= nav grid ================= */
+const blocked=new Uint8Array(GW*GH);
+function buildGrid(){blocked.fill(0);const inf=.32;for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){const x=GX0+(i+.5)*CS,z=GZ0+(j+.5)*CS;
+  for(const c of COL)if(x>c.x0-inf&&x<c.x1+inf&&z>c.z0-inf&&z<c.z1+inf){blocked[j*GW+i]=1;break;}if(z>11.6)blocked[j*GW+i]=1;}}
+const cellOf=(x,z)=>[clamp(Math.floor((x-GX0)/CS),0,GW-1),clamp(Math.floor((z-GZ0)/CS),0,GH-1)];
+function nearestFree(i,j){if(!blocked[j*GW+i])return[i,j];for(let r=1;r<6;r++)for(let dj=-r;dj<=r;dj++)for(let di=-r;di<=r;di++){const a=i+di,b=j+dj;if(a>=0&&b>=0&&a<GW&&b<GH&&!blocked[b*GW+a])return[a,b];}return[i,j];}
+function los(ax,az,bx,bz){const d=Math.hypot(bx-ax,bz-az),n=Math.ceil(d/(CS*.4));for(let k=1;k<n;k++){const t=k/n,[i,j]=cellOf(ax+(bx-ax)*t,az+(bz-az)*t);if(blocked[j*GW+i])return false;}return true;}
+function findPath(ax,az,bx,bz){let [si,sj]=nearestFree(...cellOf(ax,az)),[ti,tj]=nearestFree(...cellOf(bx,bz));const N=GW*GH,g=new Float32Array(N).fill(1e9),from=new Int32Array(N).fill(-1),closed=new Uint8Array(N);
+  const open=[[si,sj]];g[sj*GW+si]=0;const h=(i,j)=>Math.hypot(i-ti,j-tj);const f=new Float32Array(N).fill(1e9);f[sj*GW+si]=h(si,sj);
+  while(open.length){let bi=0;for(let k=1;k<open.length;k++)if(f[open[k][1]*GW+open[k][0]]<f[open[bi][1]*GW+open[bi][0]])bi=k;const [ci,cj]=open.splice(bi,1)[0],ck=cj*GW+ci;if(ci===ti&&cj===tj)break;if(closed[ck])continue;closed[ck]=1;
+    for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(!di&&!dj)continue;const ni=ci+di,nj=cj+dj;if(ni<0||nj<0||ni>=GW||nj>=GH)continue;const nk=nj*GW+ni;if(blocked[nk]||closed[nk])continue;if(di&&dj&&(blocked[cj*GW+ni]||blocked[nj*GW+ci]))continue;
+      const ng=g[ck]+(di&&dj?1.414:1);if(ng<g[nk]){g[nk]=ng;f[nk]=ng+h(ni,nj);from[nk]=ck;open.push([ni,nj]);}}}
+  const pts=[];let k=tj*GW+ti;if(from[k]<0&&k!==sj*GW+si)return[{x:bx,z:bz}];while(k>=0&&k!==sj*GW+si){pts.push({x:GX0+(k%GW+.5)*CS,z:GZ0+(Math.floor(k/GW)+.5)*CS});k=from[k];}pts.reverse();
+  if(pts.length)pts[pts.length-1]={x:bx,z:bz};else pts.push({x:bx,z:bz});
+  // smooth
+  const out=[];let cx=ax,cz=az,i=0;while(i<pts.length){let j=pts.length-1;while(j>i&&!los(cx,cz,pts[j].x,pts[j].z))j--;out.push(pts[j]);cx=pts[j].x;cz=pts[j].z;i=j+1;}return out;}
+
+/* ================= customers ================= */
+const customers=[],queue=[];let payCust=null,spawnT=6;
+const SKIN=[0xf1c9a5,0xe0ac80,0xc68a5b,0x8d5a3b,0xf5d7bd],SHIRT=[0x2f6fb0,0xc0392b,0x3a8f5a,0x8e5aa8,0xe0a030,0x34495e,0xd35f8d,0x7f8c8d],PANTS=[0x2c3e50,0x3b3b3b,0x5d4a3a,0x355c7d,0x6b6b6b],HAIR=[0x2b1d14,0x5a3a22,0xc9a15e,0x1b1b1b,0x8c8c8c,0xa0522d];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function makePerson(){const g=new THREE.Group(),sh=M(pick(SHIRT)),pa=M(pick(PANTS)),sk=M(pick(SKIN));
+  const legL=new THREE.Group(),legR=new THREE.Group();legL.position.set(-.09,.82,0);legR.position.set(.09,.82,0);box(.13,.8,.15,pa,0,-.4,0,legL);box(.13,.8,.15,pa,0,-.4,0,legR);box(.14,.07,.24,M(0x222222),0,-.8,.04,legL);box(.14,.07,.24,M(0x222222),0,-.8,.04,legR);g.add(legL,legR);
+  box(.42,.6,.24,sh,0,1.13,0,g);const armL=new THREE.Group(),armR=new THREE.Group();armL.position.set(-.27,1.4,0);armR.position.set(.27,1.4,0);box(.1,.58,.12,sh,0,-.27,0,armL);box(.1,.58,.12,sh,0,-.27,0,armR);box(.09,.09,.1,sk,0,-.6,0,armL);box(.09,.09,.1,sk,0,-.6,0,armR);g.add(armL,armR);
+  box(.12,.08,.12,sk,0,1.47,0,g);const head=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),sk);head.position.y=1.62;g.add(head);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(.135,12,8,0,PI*2,0,PI*.55),M(pick(HAIR)));hair.position.y=1.64;g.add(hair);
+  for(const sd of[-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(.018,6,6),M(0x1a1a1a));e.position.set(sd*.05,1.64,.12);g.add(e);}
+  const basket=new THREE.Group();basket.position.set(0,-.62,.1);armR.add(basket);box(.3,.16,.2,M(0xd23b3b),0,-.06,.06,basket);basket.visible=false;
+  scene.add(g);return{g,legL,legR,armL,armR,basket};}
+function bubble(c,text){if(c.bub){c.g.remove(c.bub);c.bub.material.map.dispose();}const t=tex(256,64,(g,w,h)=>{g.fillStyle='rgba(255,255,255,.95)';g.beginPath();g.roundRect?g.roundRect(4,4,w-8,h-8,18):g.rect(4,4,w-8,h-8);g.fill();g.fillStyle='#1d232b';g.font='600 26px Segoe UI';g.textAlign='center';g.textBaseline='middle';g.fillText(text,w/2,h/2+1);});
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false}));sp.scale.set(.9,.225,1);sp.position.y=2.05;c.g.add(sp);c.bub=sp;c.bubT=2.6;}
+function stocked(){const ids=new Set();for(const s of slots)if(s.pid&&s.n>0)ids.add(s.pid);return[...ids];}
+function spawnCustomer(){const av=stocked();const p=makePerson(),side=Math.random()<.5?-1:1;const c=Object.assign(p,{x:side*13,z:rnd(8,9),path:[],state:'walkin',wait:0,list:[],cart:[],ph:0,patience:0,speed:rnd(1.15,1.45)});
+  c.g.position.set(c.x,0,c.z);
+  const n=ri(1,4);const pool=av.slice();for(let i=0;i<n;i++){if(pool.length&&Math.random()<.85){const k=Math.floor(Math.random()*pool.length);c.list.push(pool.splice(k,1)[0]);}else{const miss=PRODUCTS.filter(p=>!c.list.includes(p.id));if(miss.length)c.list.push(pick(miss).id);}}
+  setPath(c,0,4.6);customers.push(c);S.today.customers++;}
+function setPath(c,x,z){c.path=findPath(c.x,c.z,x,z);}
+function slotStand(s){_v.set(0,0,.62);s.f.localToWorld(_v);return{x:_v.x,z:_v.z};}
+function nextTarget(c){while(c.list.length){const pid=c.list[0];const cand=slots.filter(s=>s.pid===pid&&s.n>0);if(!cand.length){c.list.shift();S.today.missing++;bubble(c,'Out of '+PBY[pid].name.toLowerCase());continue;}
+    let best=cand[0],bd=1e9;for(const s of cand){const p=slotStand(s),d=Math.hypot(p.x-c.x,p.z-c.z);if(d<bd){bd=d;best=s;}}c.target=best;const p=slotStand(best);setPath(c,p.x,p.z);c.state='toShelf';return;}
+  if(c.cart.length){c.state='toQueue';queue.push(c);c.patience=0;goQueue(c);}else{c.state='leave';S.rep=Math.max(0,S.rep-.05);setPath(c,0,4.6);c.exitStep=0;}}
+function goQueue(c){const i=queue.indexOf(c);const q=i===0&&!payCust?PAY:QUEUE(i-(payCust?0:1)<0?0:i-(payCust?0:1));setPath(c,q.x,q.z);c.qSpot=q;}
+function acceptPrice(pid){const r=S.prices[pid]/PBY[pid].mkt;const pr=r<=1?1:r<=1.15?.85:r<=1.3?.55:r<=1.5?.22:.04;return Math.random()<pr;}
+function updCustomer(c,dt){
+  if(c.bub){c.bubT-=dt;if(c.bubT<=0){c.g.remove(c.bub);c.bub=null;}}
+  let moving=false;
+  if(c.path.length){const t=c.path[0],dx=t.x-c.x,dz=t.z-c.z,d=Math.hypot(dx,dz);if(d<.06){c.path.shift();}else{const st=Math.min(d,c.speed*dt);c.x+=dx/d*st;c.z+=dz/d*st;moving=true;const a=Math.atan2(dx,dz);let da=a-c.g.rotation.y;while(da>PI)da-=2*PI;while(da<-PI)da+=2*PI;c.g.rotation.y+=da*Math.min(1,dt*10);}}
+  if(moving)for(const o of customers){if(o===c)continue;const dx=c.x-o.x,dz=c.z-o.z,d=Math.hypot(dx,dz);if(d>.01&&d<.5){const k=(.5-d)*.35,nx=c.x+dx/d*k,nz=c.z+dz/d*k,[i,j]=cellOf(nx,nz);if(!blocked[j*GW+i]){c.x=nx;c.z=nz;}}}
+  c.g.position.set(c.x,0,c.z);c.ph+=moving?dt*8:0;const sw=moving?Math.sin(c.ph)*.5:0;c.legL.rotation.x=sw;c.legR.rotation.x=-sw;c.armL.rotation.x=-sw*.7;c.armR.rotation.x=c.basket.visible?-.3:sw*.7;
+  if(moving||c.path.length)return;
+  if(c.state==='walkin'){c.basket.visible=true;nextTarget(c);}
+  else if(c.state==='toShelf'){c.state='picking';c.wait=rnd(1.2,2.2);const s=c.target,a=Math.atan2(s.f.position.x-c.x,s.f.position.z-c.z);c.g.rotation.y=a;}
+  else if(c.state==='picking'){c.wait-=dt;c.armL.rotation.x=-1.2;if(c.wait<=0){const s=c.target,pid=c.list.shift();
+      if(s.pid===pid&&s.n>0){if(acceptPrice(pid)){const q=Math.min(s.n,Math.random()<.7?1:2);s.n-=q;instDirty=true;for(let i=0;i<q;i++)c.cart.push(pid);}else{S.today.pricey++;bubble(c,'Too expensive');}}
+      else{S.today.missing++;bubble(c,'Sold out');}
+      nextTarget(c);}}
+  else if(c.state==='toQueue'){c.state='queue';c.g.rotation.y=PI*0;faceTill(c);}
+  else if(c.state==='queue'){c.patience+=dt;faceTill(c);if(c===queue[0]&&!payCust&&c.qSpot===PAY){toPay(c);}
+    if(c.patience>140&&c!==payCust){leaveAngry(c);}}
+  else if(c.state==='pay'){c.patience+=dt;faceTill(c);if(c.patience>200&&!c.paid){leaveAngry(c);}}
+  else if(c.state==='leave'){if(c.exitStep===0){c.exitStep=1;setPath(c,0,7.4);}else if(c.exitStep===1){c.exitStep=2;setPath(c,c.x<0?-14.5:14.5,rnd(8,9));}else{removeCustomer(c);}}
+}
+function faceTill(c){c.g.rotation.y=-PI/2;}
+function advanceQueue(){queue.forEach(goQueue);}
+function toPay(c){queue.shift();payCust=c;c.state='pay';c.basket.visible=false;c.patience=0;c.scanned=0;c.total=0;c.lines=[];c.pay=Math.random()<.5?'card':'cash';c.paid=false;
+  // place items on the counter
+  c.items=c.cart.map((pid,i)=>{const p=PBY[pid],m=new THREE.Mesh(p.geo,p.mat);m.position.set(-4.5+rnd(-.14,.14),.93+p.h/2,2.55+((i%6)*.27)+rnd(-.05,.05));m.rotation.y=rnd(0,PI);m.userData={kind:'item',pid,cust:c};scene.add(m);return m;});
+  advanceQueue();updateTill();drawReg(eur(0),'Next customer');}
+function leaveAngry(c){bubble(c,'Too slow, bye');S.rep=Math.max(0,S.rep-.15);S.today.left++;const qi=queue.indexOf(c);if(qi>=0)queue.splice(qi,1);
+  if(c===payCust){clearCounter();payCust=null;closePanels();}c.state='leave';c.exitStep=0;c.basket.visible=false;setPath(c,0,4.6);advanceQueue();}
+function clearCounter(){if(payCust&&payCust.items)for(const m of payCust.items)scene.remove(m);}
+function removeCustomer(c){scene.remove(c.g);const i=customers.indexOf(c);if(i>=0)customers.splice(i,1);}
+function scanItem(m){const c=m.userData.cust;if(c!==payCust)return;scene.remove(m);c.items=c.items.filter(x=>x!==m);const pr=S.prices[m.userData.pid];c.total+=pr;c.lines.push(m.userData.pid);SFX.beep();
+  drawReg(eur(c.total),c.items.length?c.lines.length+' items':(c.pay==='card'?'Card payment':'Cash payment'));
+  if(!c.items.length){if(c.pay==='cash'){c.given=cashGiven(c.total);bubble(c,'Here you go');}else bubble(c,'Card, please');}updateTill();}
+function cashGiven(t){const opts=[Math.ceil(t/100)*100,Math.ceil(t/500)*500,Math.ceil(t/1000)*1000,Math.ceil(t/2000)*2000,Math.ceil(t/5000)*5000].filter(v=>v>=t);if(Math.random()<.12)return t;return pick(opts.slice(0,Math.min(opts.length,3)));}
+function finishSale(net){const c=payCust;S.money+=net;S.today.sales+=c.total;S.today.items+=c.lines.length;S.rep=Math.min(5,S.rep+.03+(c.patience<40?.02:0));
+  SFX.till();toast('Sale '+eur(c.total));c.paid=true;bubble(c,pick(['Thanks!','Have a nice day','Cheers','Bye!']));payCust=null;c.state='leave';c.exitStep=0;setPath(c,-3.6,4.8);
+  advanceQueue();updateTill();drawReg(eur(c.total),'Thank you');writeSave();}
+function updateTill(){const c=payCust,el=$('till');if(!c||state!=='play'){el.classList.add('hidden');return;}el.classList.remove('hidden');
+  const cnt={};c.lines.forEach(p=>cnt[p]=(cnt[p]||0)+1);$('tillLines').innerHTML=Object.entries(cnt).map(([p,n])=>`<div class="ln"><span>${n}× ${PBY[p].name}</span><span class="num">${eur(n*S.prices[p])}</span></div>`).join('')||'<div class="muted">Scan the items on the counter</div>';
+  $('tillTot').textContent=eur(c.total);$('tillPay').textContent=c.items.length?c.items.length+' left to scan':c.pay==='card'?'Paying by card: use the card reader':'Paying with '+eur(c.given)+' cash: open the register';}
+
+/* ================= player ================= */
+const player={x:-6,z:-3.6,yaw:-PI*.75,pitch:-.05,vy:0};
+const keys={};let state='menu',locked=false,mouseL=false,mouseR=false,placeT=0;
+addEventListener('keydown',e=>{keys[e.code]=true;
+  if(state==='card'){cardKey(e);return;}
+  if((state==='pc'||state==='cash')&&e.code==='Escape'){closePanels();return;}
+  if(state==='play'){if(e.code==='KeyE')interact();if(e.code==='KeyG')dropBox();}});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+renderer.domElement.addEventListener('mousedown',e=>{initAudio();if(state!=='play')return;if(!locked){lock();return;}if(e.button===0){mouseL=true;placeT=0;}if(e.button===2){mouseR=true;placeT=0;}});
+addEventListener('mouseup',e=>{if(e.button===0)mouseL=false;if(e.button===2)mouseR=false;});
+addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('mousemove',e=>{if(!locked||state!=='play')return;player.yaw-=e.movementX*.0022;player.pitch=clamp(player.pitch-e.movementY*.0022,-1.45,1.45);});
+function lock(){try{const p=renderer.domElement.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;if(!locked&&state==='play'&&!skipPause)openPause();skipPause=false;});
+let skipPause=false;
+function unlock(){if(document.pointerLockElement){skipPause=true;document.exitPointerLock();}}
+function movePlayer(dt){const sp=(keys.ShiftLeft||keys.ShiftRight)?4.6:2.9;let fx=0,fz=0;if(keys.KeyW)fz-=1;if(keys.KeyS)fz+=1;if(keys.KeyA)fx-=1;if(keys.KeyD)fx+=1;
+  const l=Math.hypot(fx,fz);if(l){fx/=l;fz/=l;}const s=Math.sin(player.yaw),c=Math.cos(player.yaw);const vx=(fx*c+fz*s)*sp*dt,vz=(-fx*s+fz*c)*sp*dt;
+  const R=.3;player.x+=vx;for(const b of COL)if(player.x>b.x0-R&&player.x<b.x1+R&&player.z>b.z0-R&&player.z<b.z1+R){player.x=vx>0?b.x0-R:b.x1+R;}
+  player.z+=vz;for(const b of COL)if(player.x>b.x0-R&&player.x<b.x1+R&&player.z>b.z0-R&&player.z<b.z1+R){player.z=vz>0?b.z0-R:b.z1+R;}
+  player.x=clamp(player.x,-13.5,13.5);player.z=clamp(player.z,-5.7,11.4);
+  camera.position.set(player.x,1.65+(l?Math.sin(performance.now()*.011)*.02:0),player.z);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');camera.updateMatrixWorld();}
+
+/* ================= interaction ================= */
+const ray=new THREE.Raycaster();ray.far=3.1;const _c=new THREE.Vector2(0,0);
+let look=null;
+function targets(){const t=[...slotHits,pcScreen,bin,openSign,reg.children[0],regScreen,termHead,term.children[0]];for(const b of boxes)t.push(b.mesh);if(payCust&&payCust.items)t.push(...payCust.items);return t;}
+pcScreen.userData={kind:'pc'};bin.userData={kind:'bin'};openSign.userData={kind:'sign'};reg.children[0].userData={kind:'reg'};regScreen.userData={kind:'reg'};termHead.userData={kind:'term'};term.children[0].userData={kind:'term'};
+function updLook(){ray.setFromCamera(_c,camera);const h=ray.intersectObjects(targets(),false);look=h.length?h[0].object.userData:null;if(look&&!look.kind)look=null;}
+function slotProblem(s,b){const p=PBY[b.pid];if(s.cold!==p.cold)return p.cold?'This needs to go in the fridge':'This does not go in the fridge';if(s.pid&&s.pid!==b.pid&&s.n>0)return'This shelf has '+PBY[s.pid].name+' on it';if(s.n>=cap(s,p)&&s.pid===b.pid)return'Shelf is full';if(!b.n)return'The box is empty';return null;}
+const K=k=>`<kbd>${k}</kbd>`;
+function hint(){let h='';const L=look;
+  if(held){const p=PBY[held.pid];
+    if(L&&L.kind==='slot'){const pr=slotProblem(L.slot,held);h=pr?pr:K('Left click')+'put on shelf'+(L.slot.pid===held.pid&&L.slot.n?'  '+K('Right click')+'take back':'')+`  <span style="opacity:.7">${L.slot.pid===held.pid?L.slot.n:0}/${cap(L.slot,p)}</span>`;}
+    else if(L&&L.kind==='bin')h=held.n?'Empty the box before throwing it away':K('E')+'throw the box away';
+    else h=`${p.name}: ${held.n} left  ${K('G')}drop box`;}
+  else if(L){const k=L.kind;
+    if(k==='box'){const p=PBY[L.box.pid];h=K('E')+`pick up ${p.name} (${L.box.n})`;}
+    else if(k==='pc')h=K('E')+'use computer';
+    else if(k==='sign')h=K('E')+(S.open?'close the store':'open the store');
+    else if(k==='item'&&L.cust===payCust)h=K('Left click')+'scan '+PBY[L.pid].name;
+    else if(k==='term'&&payCust&&!payCust.items.length&&payCust.pay==='card')h=K('E')+'use card reader';
+    else if(k==='reg'&&payCust&&!payCust.items.length&&payCust.pay==='cash')h=K('E')+'open cash drawer';
+    else if(k==='slot'&&L.slot.pid){const s=L.slot,p=PBY[s.pid];h=`${p.name} · ${eur(S.prices[s.pid])} · ${s.n}/${cap(s)}`;}
+    else if(k==='bin')h='Empty boxes go here';}
+  const el=$('hint');if(el._h!==h){el._h=h;el.innerHTML=h;}}
+function interact(){const L=look;
+  if(held){if(L&&L.kind==='bin'){if(held.n){toast('Empty the box first');SFX.err();return;}camera.remove(held.mesh);held=null;SFX.drop();return;}return;}
+  if(!L)return;
+  if(L.kind==='box'){const b=L.box;boxes.splice(boxes.indexOf(b),1);scene.remove(b.mesh);held=b;camera.add(b.mesh);b.mesh.position.set(.32,-.42,-.72);b.mesh.rotation.set(0,0,0);SFX.pick();}
+  else if(L.kind==='pc')openPC();
+  else if(L.kind==='sign')toggleOpen();
+  else if(L.kind==='term'&&payCust&&!payCust.items.length&&payCust.pay==='card')openCard();
+  else if(L.kind==='reg'&&payCust&&!payCust.items.length&&payCust.pay==='cash')openCash();}
+function dropBox(){if(!held)return;const b=held;camera.remove(b.mesh);held=null;const d=1;let x=player.x-Math.sin(player.yaw)*d,z=player.z-Math.cos(player.yaw)*d;
+  for(const c of COL)if(x>c.x0-.3&&x<c.x1+.3&&z>c.z0-.3&&z<c.z1+.3){x=player.x;z=player.z;}
+  let y=BOX_H/2;for(const o of boxes)if(Math.abs(o.mesh.position.x-x)<.4&&Math.abs(o.mesh.position.z-z)<.3)y=Math.max(y,o.mesh.position.y+BOX_H);
+  b.mesh.position.set(x,y,z);b.mesh.rotation.set(0,player.yaw,0);scene.add(b.mesh);boxes.push(b);SFX.drop();}
+function useHeld(dt){if(!held||!(mouseL||mouseR)||!look||look.kind!=='slot')return;placeT-=dt;if(placeT>0)return;placeT=.13;const s=look.slot;
+  if(mouseL){if(slotProblem(s,held)){if(placeT===.13&&!useHeld.e){SFX.err();useHeld.e=1;setTimeout(()=>useHeld.e=0,500);}return;}if(s.pid!==held.pid){s.pid=held.pid;drawTag(s);}s.n++;held.n--;instDirty=true;SFX.place();}
+  else if(mouseR){if(s.pid!==held.pid||!s.n||held.n>=PBY[held.pid].per)return;s.n--;held.n++;instDirty=true;SFX.pick();}}
+function clickScan(){if(!mouseL||held||!look||look.kind!=='item')return;mouseL=false;const m=payCust&&payCust.items.find(o=>o.userData===look);if(m)scanItem(m);}
+function toggleOpen(){if(!S.open&&S.time>=DAY_END-10){toast('It is too late to open today');return;}S.open=!S.open;if(S.open)S.started=true;drawOpenSign();SFX.chime();toast(S.open?'The store is open':'The store is closed');}
+
+/* ================= panels ================= */
+let pcTab='order',cart={};
+function openPanel(id,st){unlock();state=st;mouseL=mouseR=false;$(id).classList.remove('hidden');$('cross').classList.add('hidden');$('hint').innerHTML='';$('hint')._h='';}
+function closePanels(){for(const id of['ovPC','ovCash','ovCard'])$(id).classList.add('hidden');if(state==='pc'||state==='cash'||state==='card'){state='play';$('cross').classList.remove('hidden');lock();}}
+function openPC(){cart={};openPanel('ovPC','pc');renderPC();}
+$('pcClose').onclick=closePanels;$('cashClose').onclick=closePanels;$('cardClose').onclick=closePanels;
+$('pcTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;pcTab=b.dataset.t;renderPC();};
+function renderPC(){document.querySelectorAll('#pcTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===pcTab));$('pcMoney').textContent=eur(S.money);let h='',f='';
+  if(pcTab==='order'){h='<table><tr><th>Product</th><th>Box</th><th class="r">Per unit</th><th class="r">Box price</th><th class="r">Amount</th></tr>';
+    for(const p of PRODUCTS){const q=cart[p.id]||0;h+=`<tr><td><span class="sw" style="background:${p.c1};border:1px solid #ccd"></span><b>${p.name}</b> <span class="muted">${p.sub}${p.cold?' · fridge':''}</span></td><td>${p.per} pcs</td><td class="r num">${eur(Math.round(p.box/p.per))}</td><td class="r num">${eur(p.box)}</td>
+      <td class="r"><span class="qty"><button class="ghost sm" data-q="${p.id}" data-d="-1">−</button><span>${q}</span><button class="ghost sm" data-q="${p.id}" data-d="1">+</button></span></td></tr>`;}
+    h+='</table>';const tot=PRODUCTS.reduce((a,p)=>a+(cart[p.id]||0)*p.box,0),n=Object.values(cart).reduce((a,b)=>a+b,0);
+    const pend=S.orders.length?`${S.orders.length} box${S.orders.length>1?'es':''} on the way, ${Math.ceil(Math.max(...S.orders.map(o=>o.t)))} s`:'Deliveries are left outside, next to the front door';
+    f=`<span class="muted">${pend}</span><span class="sp"></span><span>Total <b class="num">${eur(tot)}</b></span><button id="bOrder" ${!n||tot>S.money?'disabled':''}>Order ${n||''} ${n===1?'box':'boxes'}</button>`;}
+  else if(pcTab==='prices'){h='<table><tr><th>Product</th><th class="r">You pay</th><th class="r">Usual price</th><th class="r">Your price</th><th class="r">Profit</th><th></th></tr>';
+    for(const p of PRODUCTS){const cost=p.box/p.per,pr=S.prices[p.id],m=Math.round((pr-cost)/pr*100),r=pr/p.mkt;h+=`<tr><td><span class="sw" style="background:${p.c1};border:1px solid #ccd"></span>${p.name}</td><td class="r num">${eur(Math.round(cost))}</td><td class="r num">${eur(p.mkt)}</td>
+      <td class="r"><input class="pin num" data-p="${p.id}" type="number" step="0.01" min="0.01" value="${(pr/100).toFixed(2)}"></td><td class="r num ${m<0?'bad':m>0?'good':''}">${m}%</td><td class="r muted" style="font-size:12px">${r>1.3?'<span class="bad">few will buy</span>':r>1.12?'some will skip':'fine'}</td></tr>`;}
+    h+='</table>';f='<span class="muted">Customers know the usual price. The higher above it you go, the more of them leave it on the shelf.</span><span class="sp"></span><button class="ghost" id="bMkt">Set all to usual price</button>';}
+  else{const t=S.today;h=`<table><tr><td>Customers</td><td class="r">${t.customers}</td></tr><tr><td>Sales</td><td class="r num">${eur(t.sales)}</td></tr><tr><td>Items sold</td><td class="r">${t.items}</td></tr><tr><td>Stock bought</td><td class="r num">${eur(t.spent)}</td></tr>
+      <tr><td>Left something because of the price</td><td class="r">${t.pricey}</td></tr><tr><td>Wanted something you don't have</td><td class="r">${t.missing}</td></tr><tr><td>Gave up waiting</td><td class="r">${t.left}</td></tr></table>`;f=`<span class="muted">Rent ${eur(RENT)} is paid at the end of the day.</span>`;}
+  $('pcBody').innerHTML=h;$('pcFoot').innerHTML=f;
+  const bo=$('bOrder');if(bo)bo.onclick=placeOrder;const bm=$('bMkt');if(bm)bm.onclick=()=>{PRODUCTS.forEach(p=>S.prices[p.id]=p.mkt);slots.forEach(drawTag);renderPC();};}
+$('pcBody').addEventListener('click',e=>{const b=e.target.closest('button[data-q]');if(!b)return;const id=b.dataset.q;cart[id]=Math.max(0,Math.min(16,(cart[id]||0)+ +b.dataset.d));SFX.key();renderPC();});
+$('pcBody').addEventListener('change',e=>{const i=e.target.closest('input[data-p]');if(!i)return;const v=Math.round(parseFloat(i.value)*100);if(v>0&&v<100000){S.prices[i.dataset.p]=v;slots.forEach(s=>{if(s.pid===i.dataset.p)drawTag(s);});}renderPC();});
+$('pcBody').addEventListener('keydown',e=>e.stopPropagation());
+function placeOrder(){const tot=PRODUCTS.reduce((a,p)=>a+(cart[p.id]||0)*p.box,0);if(tot>S.money)return;S.money-=tot;S.today.spent+=tot;let i=0;
+  for(const p of PRODUCTS)for(let k=0;k<(cart[p.id]||0);k++)S.orders.push({pid:p.id,t:DELIVERY_S+i++*.6});cart={};SFX.till();toast('Order placed. It will be outside the front door soon.');renderPC();writeSave();}
+// cash
+const DENOM=[5000,2000,1000,500,200,100,50,20,10,5,2,1];let giving=[];
+$('drawer').innerHTML=DENOM.map(d=>`<button class="${d>=500?'note n'+d/100:'coin'+(d<10?' cu':'')}" data-d="${d}">${d>=100?'€'+d/100:d+'c'}</button>`).join('');
+function openCash(){giving=[];openPanel('ovCash','cash');renderCash();}
+function renderCash(){const c=payCust;if(!c)return closePanels();const due=c.given-c.total,g=giving.reduce((a,b)=>a+b,0);$('cTot').textContent=eur(c.total);$('cGot').textContent=eur(c.given);$('cDue').textContent=eur(due);
+  $('cGive').textContent=eur(g);$('cGive').className='num '+(g===due?'good':g>due?'bad':'');}
+$('drawer').onclick=e=>{const b=e.target.closest('button');if(!b)return;giving.push(+b.dataset.d);SFX.coin();renderCash();};
+$('cUndo').onclick=()=>{giving.pop();renderCash();};$('cClear').onclick=()=>{giving=[];renderCash();};
+$('cDone').onclick=()=>{const c=payCust;if(!c)return;const due=c.given-c.total,g=giving.reduce((a,b)=>a+b,0);if(g<due){SFX.err();toast('That is not enough change');return;}
+  if(g>due)toast('You gave '+eur(g-due)+' too much');closePanels();finishSale(c.given-g);};
+// card
+let cardAmt='';
+$('keys').innerHTML=['1','2','3','4','5','6','7','8','9','Del','0','OK'].map(k=>`<button class="${k==='OK'?'ok':k==='Del'?'del':''}" data-k="${k}">${k}</button>`).join('');
+function openCard(){cardAmt='';openPanel('ovCard','card');renderCard('');}
+function renderCard(msg){$('cardAmt').textContent=eur(+(cardAmt||0));$('cardMsg').textContent=msg||'';}
+function cardPress(k){SFX.key();if(k==='Del')cardAmt=cardAmt.slice(0,-1);else if(k==='OK'){const c=payCust;if(!c)return closePanels();if(+(cardAmt||0)===c.total){closePanels();finishSale(c.total);}else{SFX.err();renderCard('Wrong amount, try again');cardAmt='';return;}}
+  else if(cardAmt.length<6)cardAmt=(cardAmt+k).replace(/^0+/,'');renderCard('');}
+$('keys').onclick=e=>{const b=e.target.closest('button');if(b)cardPress(b.dataset.k);};
+function cardKey(e){if(/^Digit\d$|^Numpad\d$/.test(e.code))cardPress(e.code.slice(-1));else if(e.code==='Backspace')cardPress('Del');else if(e.code==='Enter'||e.code==='NumpadEnter')cardPress('OK');else if(e.code==='Escape')closePanels();}
+// menu / pause
+function openPause(){state='pause';$('ovPause').classList.remove('hidden');$('cross').classList.add('hidden');}
+$('bResume').onclick=()=>{$('ovPause').classList.add('hidden');state='play';$('cross').classList.remove('hidden');lock();};
+$('bSaveQuit').onclick=()=>{writeSave();location.reload();};
+$('bHelp').onclick=()=>$('help').classList.toggle('hidden');
+$('bNew').onclick=()=>{if(loadSave()&&!confirmNew())return;localStorage.removeItem(KEY);start(freshSave(),true);};
+function confirmNew(){const b=$('bNew');if(b.dataset.sure){return true;}b.dataset.sure=1;b.textContent='Start over? Click again';return false;}
+$('bCont').onclick=()=>{const s=loadSave();if(s)start(s,false);};
+if(loadSave())$('bCont').classList.remove('hidden');
+function start(save,isNew){initAudio();S=save;S.today=Object.assign(freshToday(),S.today||{});
+  for(const p of PRODUCTS)if(S.prices[p.id]==null)S.prices[p.id]=p.mkt;
+  (S.slots||[]).forEach((d,i)=>{if(slots[i]&&d.p&&PBY[d.p]){slots[i].pid=d.p;slots[i].n=Math.min(d.n,cap(slots[i]));}});slots.forEach(drawTag);instDirty=true;
+  if(isNew){[['water',1],['flakes',1],['soup',1],['milk',1]].forEach(([p,n])=>{for(let i=0;i<n;i++){const d=deliverySpot();makeBox(p,PBY[p].per,d.x,d.y,d.z);}});}
+  else(S.boxes||[]).forEach(b=>{if(PBY[b.p])makeBox(b.p,b.n,b.x,b.y,b.z,b.r);});
+  S.open=false;drawOpenSign();drawReg('€0.00','Closed');
+  $('ovMenu').classList.add('hidden');$('hud').classList.remove('hidden');$('cross').classList.remove('hidden');state='play';lock();
+  if(isNew)setTimeout(()=>toast('Your first boxes are outside the front door. Stock the shelves, then flip the sign to open.'),400);}
+// day end
+function endDay(){state='sum';unlock();const t=S.today;const profit=t.sales-t.spent-RENT;S.money-=RENT;
+  $('sumTitle').textContent='Day '+S.day+' is over';$('sumBody').innerHTML=`<div class="ln"><span>Customers</span><span>${t.customers}</span></div><div class="ln"><span>Items sold</span><span>${t.items}</span></div><div class="ln"><span>Sales</span><span class="num">${eur(t.sales)}</span></div><div class="ln"><span>Stock bought</span><span class="num">−${eur(t.spent)}</span></div><div class="ln"><span>Rent</span><span class="num">−${eur(RENT)}</span></div><div class="ln tot"><span>Result</span><span class="num ${profit>=0?'good':'bad'}">${profit<0?'−':''}${eur(Math.abs(profit))}</span></div>`+
+    (t.missing?`<p class="muted">${t.missing} times a customer looked for something you don't sell or had run out of.</p>`:'')+(t.pricey?`<p class="muted">${t.pricey} times a customer thought the price was too high.</p>`:'');
+  $('ovSum').classList.remove('hidden');$('cross').classList.add('hidden');}
+$('bNextDay').onclick=()=>{S.day++;S.time=DAY_START;S.started=false;S.open=false;S.today=freshToday();drawOpenSign();$('ovSum').classList.add('hidden');state='play';$('cross').classList.remove('hidden');writeSave();lock();};
+
+/* ================= toasts & HUD ================= */
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;$('toasts').appendChild(d);setTimeout(()=>d.remove(),3200);while($('toasts').children.length>3)$('toasts').firstChild.remove();}
+function fmtTime(m){m=Math.floor(m);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+const HC={};function set(id,v){if(HC[id]!==v){HC[id]=v;$(id).textContent=v;}}
+function hud(){set('hMoney',eur(S.money));set('hDay','Day '+S.day);set('hTime',fmtTime(S.time));set('hOpen',S.open?'Open':'Closed');$('openChip').className='chip '+(S.open?'open':'closed');
+  const r=Math.round(S.rep);set('hRep','★'.repeat(r)+'☆'.repeat(5-r));}
+
+/* ================= loop ================= */
+buildGrid();
+let last=performance.now(),saveT=0;
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;tick(dt,now);renderer.render(scene,camera);}
+function tick(dt,now){
+  if(S&&(state==='play'||state==='pc'||state==='cash'||state==='card')){
+    if(state==='play')movePlayer(dt);
+    // time
+    if(S.started&&S.time<DAY_END){S.time=Math.min(DAY_END,S.time+dt*MIN_PER_SEC);if(S.time>=DAY_END&&S.open){S.open=false;drawOpenSign();toast('22:00, the store closes');}}
+    if(S.started&&S.time>=DAY_END&&!customers.length&&state==='play')endDay();
+    // customers
+    if(S.open&&S.time<LAST_IN){spawnT-=dt;if(spawnT<=0){const hr=S.time/60,peak=(hr>=12&&hr<14)||(hr>=16&&hr<18.5)?.65:1;spawnT=rnd(16,30)*peak/(1+S.rep*.25);if(customers.length<9)spawnCustomer();}}
+    for(const c of customers.slice())updCustomer(c,dt);
+    // deliveries
+    for(const o of S.orders)o.t-=dt;const arrived=S.orders.filter(o=>o.t<=0);if(arrived.length){S.orders=S.orders.filter(o=>o.t>0);for(const o of arrived){const d=deliverySpot();makeBox(o.pid,PBY[o.pid].per,d.x,d.y,d.z,rnd(-.1,.1));}if(!S.orders.length)toast('Your delivery is outside the front door');}
+    if(state==='pc'&&pcTab==='order'&&S.orders.length&&Math.floor(now/1000)!==loop.s){loop.s=Math.floor(now/1000);const f=$('pcFoot').querySelector('.muted');if(f)f.textContent=`${S.orders.length} box${S.orders.length>1?'es':''} on the way, ${Math.ceil(Math.max(...S.orders.map(o=>o.t)))} s`;}
+    // doors
+    const near=[player,...customers].some(p=>Math.hypot(p.x-0,(p.z)-6)<2.2);doorOpen+=((near?1:0)-doorOpen)*Math.min(1,dt*5);doorL.position.x=-.5-doorOpen*.95;doorR.position.x=.5+doorOpen*.95;if(near&&!loop.dn&&customers.some(c=>Math.hypot(c.x,c.z-6)<2.2))SFX.chime();loop.dn=near;
+    if(state==='play'){updLook();useHeld(dt);clickScan();hint();}
+    if(instDirty)rebuildInst();
+    hud();
+    saveT+=dt;if(saveT>20){saveT=0;writeSave();}}
+  else if(!S){const t=now*.00005;camera.position.set(Math.sin(t)*3+1,2.2,3.2);camera.lookAt(-1,1,-3);}}
+drawOpenSign();drawReg('','');requestAnimationFrame(loop);
+// debug/test hooks
+window.__mm={get S(){return S;},slots,boxes,customers,queue,get payCust(){return payCust;},player,spawnCustomer,get held(){return held;},scanItem,PRODUCTS,interact,get look(){return look;},finishSale,endDay,tick(dt,n){for(let i=0;i<n;i++)tick(dt,performance.now());},get state(){return state;},dirty(){instDirty=true;slots.forEach(drawTag);}};
+</script>
+</body>
+</html>
