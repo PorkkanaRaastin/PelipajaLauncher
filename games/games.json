@@ -26,7 +26,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.5",
+      "version": "0.5.1",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -38,6 +38,7 @@
       ],
       "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
+        "When the van is empty and things are still waiting at the pickup, the route takes you back there",
         "New ring road that winds around the whole town, with every street joining it",
         "Countryside houses along the ring road, a lake and lots of new forest",
         "Almost twice as much traffic, including more city buses",

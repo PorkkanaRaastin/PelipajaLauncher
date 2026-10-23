@@ -1019,7 +1019,9 @@ function acceptOffer(id,pi=ME()){
   fillOffers();if(pi===ME())closeModal();showZone(job.to,job.zoneFloor,job.zone);SFX.click();sayAll('Job '+o.id+' accepted. Pick up at '+h.addr+'.');NET.metaDirty=true;save();updateJobPanel(true);}
 function cancelJob(){if(!job)return;cash-=150;rating=Math.max(1,rating-.2);history.unshift({id:job.id,client:job.client,res:'Cancelled',amt:-150});clearItems();job=null;showZone(null);NET.metaDirty=true;if(modal==='term')renderTerm();save();updateJobPanel(true);sayAll('Job cancelled. Cancellation fee €150.');}
 function inZone(x,z,y){if(!job)return false;const h=job.to;if(Math.abs(y-h.floors[job.zoneFloor].y)>.5)return false;const[lx,lz]=h.toL(x,z),L=job.zone;return bldAt(x,z)&&bldAt(x,z)[0]===h&&lx>L.x1&&lx<L.x2&&lz>L.z1&&lz<L.z2;}
-function jobTarget(){if(!job)return null;if(V.cargo.some(i=>ITEMS.includes(i)))return job.to;return ITEMS.some(i=>i.state==='loose'&&i.home===job.from)?job.from:job.to;}
+// Is this item still waiting at the pickup? Items set down in the yard or on the street near the old house count too.
+function atPickup(it){if(!job||it.state!=='loose')return false;if(it.home===job.from)return true;const a=doorPt(job.from),b=doorPt(job.to);return Math.hypot(it.x-a[0],it.z-a[1])<Math.hypot(it.x-b[0],it.z-b[1]);}
+function jobTarget(){if(!job)return null;if(V.cargo.some(i=>ITEMS.includes(i)))return job.to;return ITEMS.some(atPickup)?job.from:job.to;}
 function completeJob(){
   const base=job.pay;let dmg=0;for(const it of ITEMS)dmg+=Math.round(it.T.value*(100-it.cond)/100);
   const claims=Math.round(dmg*(BIZ.insurance?.4:1)),insFee=BIZ.insurance?Math.round(base*.08):0;
@@ -1238,12 +1240,12 @@ $('sMir').onclick=e=>{const b=e.target.closest('button');if(!b)return;SET.mirror
 /* ================= HUD ================= */
 let toastT=0;function toast(s){const t=$('toast');t.textContent=s;t.classList.add('show');toastT=4.5;}
 let jpT=0;
-function whereTxt(it){switch(it.state){case'loose':return it.home===job.from?FLOOR_SHORT[it.floor]:'Set down';case'carried':return'Carrying';case'dolly':return'Hand truck';case'van':return'In van';default:return'Delivered';}}
+function whereTxt(it){switch(it.state){case'loose':return it.home===job.from?FLOOR_SHORT[it.floor]:atPickup(it)?'Outside pickup':'Set down';case'carried':return'Carrying';case'dolly':return'Hand truck';case'van':return'In van';default:return'Delivered';}}
 function updateJobPanel(force){
   jpT-=1;if(!force&&jpT>0)return;jpT=15;
   const el=$('jobp');if(!job){el.classList.add('hidden');return;}el.classList.remove('hidden');
   const late=gameT>job.due,tg=jobTarget(),pk=tg===job.from;
-  const c={pick:0,van:0,done:0,hand:0};for(const it of ITEMS){if(it.state==='placed')c.done++;else if(it.state==='van')c.van++;else if(it.state==='loose'&&it.home===job.from)c.pick++;else c.hand++;}
+  const c={pick:0,van:0,done:0,hand:0};for(const it of ITEMS){if(it.state==='placed')c.done++;else if(it.state==='van')c.van++;else if(atPickup(it))c.pick++;else c.hand++;}
   let h=`<div class="row"><span class="lbl">Job ${job.id} · ${job.client}</span><span class="num ${late?'c-bad':'lbl'}">${late?'Late':'Due '+fmtT(job.due)}</span></div>
   <div class="stop"><span class="lbl">Pick up</span><span class="${pk?'on':'off'}">${job.from.addr}</span><span class="lbl">Deliver</span><span class="${pk?'off':'on'}">${job.to.addr}, ${FLOOR_NAMES[job.zoneFloor]}</span></div>
   <div class="sum">At pickup ${c.pick} · In van ${c.van} · Moving ${c.hand} · Delivered ${c.done}/${ITEMS.length}</div><table>`;
@@ -1274,7 +1276,7 @@ const mapBase=document.createElement('canvas');mapBase.width=mapBase.height=MB;
  for(const r of HR)for(let i=0;i<xc.length-1;i++){g.textAlign='center';g.fillText(r.n.toUpperCase(),wm((xc[i]+xc[i+1])/2),wm(r.z));}
  for(const r of VR)for(let i=0;i<zc.length-1;i++){g.save();g.translate(wm(r.x),wm((zc[i]+zc[i+1])/2));g.rotate(PI/2);g.textAlign='center';g.fillText(r.n.toUpperCase(),0,0);g.restore();}
  for(const[tx0,tz0]of[[-70,-400],[70,400],[-400,70],[400,-70]]){let b=RING[0],bd=1e9;for(const p of RING){const d=Math.hypot(p.x-tx0,p.z-tz0);if(d<bd){bd=d;b=p;}}g.save();g.translate(wm(b.x),wm(b.z));{let an=Math.atan2(b.tz,b.tx);if(an>PI/2)an-=PI;if(an<-PI/2)an+=PI;g.rotate(an);}g.textAlign='center';g.fillText(ringName(b.x,b.z).toUpperCase(),0,0);g.restore();}}
-let routePts=null,routeT=0;
+let routePts=null,routeT=0,routePrev=null;
 function drawMap(){
   const big=$('mapw').classList.contains('big'),fx=mode==='van'?V.x:P.x,fz=mode==='van'?V.z:P.z;let ox,oz,sc;
   if(big){sc=MS/MW;ox=-MW/2;oz=-MW/2;mg.drawImage(mapBase,0,0,MB,MB,0,0,MS,MS);}
@@ -1702,7 +1704,7 @@ function frame(now){
     updateSignals();thr=updateVan(dt);
     if(mode==='van'){P.x=V.x;P.z=V.z;updateCamVan(dt);}else moving=updateFoot(dt);
     updateOther(dt);netTick(dt,thr);
-    routeT-=dt;if(routeT<=0){routeT=.5;const tg=jobTarget();if(tg){const p=doorPt(tg),sx=mode==='van'?V.x:P.x,sz=mode==='van'?V.z:P.z;routePts=route(sx,sz,p[0],p[1]);}else routePts=null;}
+    routeT-=dt;if(routeT<=0){routeT=.5;const tg=jobTarget();if(job&&tg===job.from&&routePrev===job.to){const n=ITEMS.filter(atPickup).length;toast(`The van is empty. ${n} item${n>1?'s are':' is'} still at ${job.from.addr}. Route back to the pickup.`);updateJobPanel(true);}routePrev=tg;if(tg){const p=doorPt(tg),sx=mode==='van'?V.x:P.x,sz=mode==='van'?V.z:P.z;routePts=route(sx,sz,p[0],p[1]);}else routePts=null;}
     saveT+=dt;if(saveT>20){saveT=0;save();}
     if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').classList.remove('show');}
     setTxt('clock',fmtT(gameT));setTxt('day','Day '+day);setTxt('cash',eur(cash));$('cash').classList.toggle('neg',cash<0);setTxt('rating',starStr(rating)+' '+rating.toFixed(1));
