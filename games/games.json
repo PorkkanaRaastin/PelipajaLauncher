@@ -46,7 +46,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -58,6 +58,7 @@
       ],
       "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
+        "Ultra: the grass is back to the earlier look",
         "New cab interior: live speedometer and rev counter, steering wheel with spokes, centre console, gear lever, mirror, sun visors, door panels and proper seats",
         "Load the same items on top of each other in the van, such as boxes on boxes or sofa on sofa. Light items also stack on flat furniture",
         "Ultra: sharper, higher-resolution textures and furniture models",

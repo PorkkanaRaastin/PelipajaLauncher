@@ -1844,7 +1844,7 @@ function buildUltraWorld(){const I=ULTRA.img;
   const tile2=(g,img,s)=>{const h=s/2;for(const x of[0,h])for(const y of[0,h])g.drawImage(img,x,y,h,h);};
   draw('asphalt',2048,(g,s)=>{g.drawImage(I.asphalt,0,0,s,s);});
   draw('road',2048,(g,s)=>{tile2(g,I.asphalt,s);g.fillStyle='rgba(0,0,0,.07)';g.fillRect(s*.16,0,s*.16,s);g.fillRect(s*.68,0,s*.16,s);g.globalAlpha=.9;g.fillStyle='#e4e1d4';g.fillRect(80,0,40,s);g.fillRect(s-120,0,40,s);g.fillRect(s/2-24,0,48,s*.4);g.globalAlpha=1;});
-  draw('grass',2048,(g,s)=>{tile2(g,I.grass,s);});
+  draw('grass',1024,(g,s)=>{g.drawImage(I.ground,0,0,s,s);g.globalCompositeOperation='multiply';g.fillStyle='#93b86c';g.fillRect(0,0,s,s);g.globalCompositeOperation='source-over';g.fillStyle='rgba(78,118,52,.18)';g.fillRect(0,0,s,s);});
   draw('wood',2048,(g,s)=>{g.drawImage(I.woodfloor,0,0,s,s);});
   // brick walls on houses and brick buildings
   const wallT=img=>{const t=new THREE.Texture(img);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=renderer.capabilities.getMaxAnisotropy();t.needsUpdate=true;return t;};
