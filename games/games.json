@@ -26,7 +26,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.4.1",
+      "version": "0.5",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -38,14 +38,13 @@
       ],
       "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
-        "Your company name shows when a friend joins, on the HUD and on the dispatch computer",
-        "New main menu with several named saves: pick a save, then play solo or with a friend",
-        "Character editor: hats, clothes, hair, glasses and beards, plus your name above your head",
-        "Traffic lights at every crossing and three times more traffic, including city buses",
-        "Smoother online play for the joining player",
-        "Fixed getting stuck in house doorways",
-        "Fixed the player arrow on the minimap pointing the wrong way",
-        "Smoother camera when looking around"
+        "New ring road that winds around the whole town, with every street joining it",
+        "Countryside houses along the ring road, a lake and lots of new forest",
+        "Almost twice as much traffic, including more city buses",
+        "Air brakes: braking builds up smoothly, so normal stops no longer damage the cargo",
+        "Buy vehicles and upgrades from the dispatch computer (Vehicles tab)",
+        "New large box truck, turbocharger, long top gear and economy kit",
+        "Drive modes: Eco, Normal and Sport"
       ]
     },
     {
