@@ -26,7 +26,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.6",
+      "version": "0.7",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -38,6 +38,10 @@
       ],
       "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
+        "Road signs: speed limits, give way and priority road signs",
+        "Speed and red light cameras: €300 for driving more than 5 km/h over the limit, €100 for running a red light",
+        "Pedestrians walk the sidewalks and cross at the zebra crossings when the lights allow it",
+        "Much more traffic: 150 cars and buses",
         "Traffic follows the give-way rules: side streets give way to the ring road and left turns give way to oncoming traffic",
         "Indicators: Q left, E right, X hazard lights. They switch off by themselves after the turn",
         "Other drivers use their indicators before turning",
