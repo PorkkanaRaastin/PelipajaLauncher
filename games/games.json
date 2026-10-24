@@ -26,7 +26,7 @@
       "type": "html",
       "path": "zombiecam/index.html",
       "cover": "zombiecam/cover.jpg",
-      "version": "1.0",
+      "version": "1.1",
       "endButton": "bottom-left",
       "tags": [
         "Shooter",
@@ -35,8 +35,13 @@
         "Multiplayer"
       ],
       "description": "A bodycam-style zombie shooter. Fight off waves of zombies alone or with a squad of up to eight friends, or turn on each other in a private match. You play online with your Pelipaja username: add friends by their username and invite them to your squad. The game is in Finnish. Made by knh19.",
-      "controls": "WASD move, mouse look, left click shoot, right click aim, R reload, 1 / 2 / wheel switch weapon, Shift run, C crouch, Q / E lean, F weapon light, Tab scoreboard",
+      "controls": "WASD move, mouse look, left click shoot, right click aim, R reload, 1 / 2 / wheel switch weapon, Shift run, C / Ctrl crouch, Ctrl while running slide, Q / E lean, F weapon light, Tab scoreboard",
       "updates": [
+        "More realistic bodycam: motion blur and rolling shutter when you turn fast, dirty lens that glows around lights, blood on the lens up close, exposure that adapts slowly to the dark and frame drops when you get hit",
+        "Camera is mounted on the chest: heel strikes, recoil jolt and leaning into fast turns",
+        "Slide: press Ctrl while sprinting",
+        "Zombies react harder to hits: heads snap back, leg shots make them stumble, and kills knock bodies back (shotguns up close send them flying)",
+        "Sound: zombies behind walls sound muffled, the mic ducks after your own shots, gear rattles when you run and the radio beeps",
         "New game: ZombieCam with online co-op and private matches using your Pelipaja username"
       ]
     },
