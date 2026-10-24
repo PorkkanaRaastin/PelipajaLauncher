@@ -125,6 +125,25 @@
       ]
     },
     {
+      "id": "pingviiniposti",
+      "name": "Pingviinin postipalvelu",
+      "type": "html",
+      "path": "pingviiniposti/index.html",
+      "cover": "pingviiniposti/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "Cute",
+        "Platformer",
+        "Singleplayer"
+      ],
+      "description": "Pipsa the penguin is the new mail carrier of a little arctic bay. Slide down snowy hills on your belly, jump over cracks in the ice, collect fish and throw letters into the mailboxes of seals, walruses, polar bear cubs and other friends. Eight routes from a sunny village to the northern lights, and fish to spend on hats and scarves. The game is in Finnish.",
+      "controls": "Space jump/flap, hold S dive, E or click throw letter",
+      "updates": [
+        "New game: Pingviinin postipalvelu, a cute sliding game where a penguin delivers mail across eight snowy routes"
+      ]
+    },
+    {
       "id": "fuzzling",
       "name": "Grow a Fuzzling",
       "type": "html",
