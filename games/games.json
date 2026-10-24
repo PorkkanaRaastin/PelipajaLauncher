@@ -59,7 +59,7 @@
       "type": "html",
       "path": "muuttopaku/index.html",
       "cover": "muuttopaku/cover.jpg",
-      "version": "0.9",
+      "version": "0.10",
       "status": "Early access",
       "endButton": "top-right",
       "tags": [
@@ -71,6 +71,14 @@
       ],
       "description": "Run the vans for Northline Moving, alone or online with a friend. Take jobs from dispatch, carry furniture down the stairs of houses and apartment blocks, wheel the heavy stuff on a hand truck and drive it across town without breaking anything. One of you drives, the other rides along. Work in progress: expect changes.",
       "updates": [
+        "Stack boxes on the hand truck: up to about 1.5 m. Load the whole stack into the van at once, or stack more boxes from the van with Q",
+        "A glowing outline shows exactly which item you are about to pick up, and the crosshair now picks the item you look at (the top one first if things are stacked)",
+        "Rev counter fixed: the needle now climbs through each gear and drops when the van shifts up",
+        "New cab interior: moulded two-tone dashboard, gauges under a curved hood, round air vents, radio and climate controls, cup holders, door speakers and rounded seats",
+        "Realistic steering wheel: leather rim with thumb grips, three spokes with buttons, airbag pad and an indicator stalk that moves with the indicators",
+        "Smoother steering: the wheels turn in gradually instead of snapping to full lock",
+        "Six new winding streets through the town blocks, including Brook Lane in the town centre, with T-junctions, street lamps and name signs",
+        "More houses: over twice as many homes, closely built terraces in the town centre and two older districts, and houses along the new streets",
         "Voice chat in online co-op: talk to your partner through your microphone. They sound quieter and duller the further away they are, and come from their direction",
         "Your partner's head grows while they talk",
         "Settings: voice chat on or off, open mic or push to talk (hold V), and voice volume",
