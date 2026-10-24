@@ -5,7 +5,8 @@
 // - Sivut saavat ladata koneelta vain Pelipajan omia tiedostoja, eivät esim. käyttäjän dokumentteja.
 // - Salaamattomat yhteydet (http://, ws://) estetään.
 // - Pelit saavat vain ne selainoikeudet, joita ne tarvitsevat (koko näyttö, hiiren lukitus,
-//   leikepöydälle kopiointi). Kamera, mikrofoni, sijainti, ilmoitukset jne. on estetty.
+//   leikepöydälle kopiointi). Mikrofoni sallitaan vain peleille, joilla on games.jsonissa
+//   "voice": true (äänichat). Kamera, sijainti, ilmoitukset jne. on estetty.
 // - IPC-viestit hyväksytään vain oikeasta ikkunasta.
 const { app } = require("electron");
 const { fileURLToPath } = require("url");
@@ -55,13 +56,22 @@ function hardenSession(ses) {
   hardened.add(ses);
   const roots = [RENDERER_DIR, GAMES_DIR, ASSETS_DIR];
 
-  ses.setPermissionRequestHandler((wc, permission, callback) => {
+  // äänichat: vain mikrofoni (ei kameraa eikä näytön jakoa) ja vain voice-peleille
+  const micOnly = (details) => {
+    const types = (details && details.mediaTypes) || [];
+    return types.length > 0 && types.every((t) => t === "audio");
+  };
+  ses.setPermissionRequestHandler((wc, permission, callback, details) => {
     const role = roleOf(wc);
-    callback(!!role && role.kind === "game" && GAME_PERMISSIONS.has(permission));
+    if (!role || role.kind !== "game") return callback(false);
+    if (permission === "media") return callback(!!role.voice && micOnly(details));
+    callback(GAME_PERMISSIONS.has(permission));
   });
-  ses.setPermissionCheckHandler((wc, permission) => {
+  ses.setPermissionCheckHandler((wc, permission, _origin, details) => {
     const role = roleOf(wc);
-    return !!role && role.kind === "game" && GAME_PERMISSIONS.has(permission);
+    if (!role || role.kind !== "game") return false;
+    if (permission === "media") return !!role.voice && (!details || !details.mediaType || details.mediaType === "audio");
+    return GAME_PERMISSIONS.has(permission);
   });
   ses.setDevicePermissionHandler(() => false); // USB/HID/sarjaportit
   ses.on("will-download", (e) => e.preventDefault());

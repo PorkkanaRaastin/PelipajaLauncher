@@ -43,6 +43,8 @@ function checkGame(raw, gamesDir) {
     // "peli" näkyy etusivulla ja kirjastossa, "minipeli" Minipelit-välilehdellä
     category: CATEGORIES.includes(raw.category) ? raw.category : "peli",
     players: raw.players === 2 ? 2 : 1,
+    // true = peli saa käyttää mikrofonia (äänichat). Kamera pysyy estettynä.
+    voice: raw.voice === true,
     controls: text(raw.controls, 60),
     // esim. "Early access": näkyy oranssina merkkinä kortissa ja pelin sivulla
     status: text(raw.status, 30),

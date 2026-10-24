@@ -146,7 +146,7 @@ async function launch(id) {
   const wcId = win.webContents.id;
   setRole(
     win.webContents,
-    game.type === "html" ? { kind: "game", root: path.dirname(game.target) } : { kind: "game", origin: new URL(game.target).origin }
+    game.type === "html" ? { kind: "game", root: path.dirname(game.target), voice: game.voice } : { kind: "game", origin: new URL(game.target).origin, voice: game.voice }
   );
   gameWindows.set(wcId, { win, game, ending: false, user });
   // välitallennus pilveen muutaman minuutin välein (jos kone sammuu kesken pelin)

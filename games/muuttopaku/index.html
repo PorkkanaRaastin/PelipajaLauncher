@@ -13,6 +13,11 @@ canvas{display:block}
 .num{font-variant-numeric:tabular-nums}
 .k{display:inline-block;min-width:20px;padding:1px 6px;margin-right:6px;border:1px solid rgba(255,255,255,.28);border-radius:3px;font:600 11px/16px ui-monospace,Consolas,monospace;text-align:center;color:#fff;background:rgba(255,255,255,.06)}
 .hidden{display:none!important}
+#voiceInd{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12px;color:#c9ced6;width:max-content}
+#voiceInd .vmic{width:10px;height:10px;border-radius:50%;background:#4a4f57;box-shadow:0 0 0 2px rgba(255,255,255,.08);transition:background .08s,box-shadow .08s}
+#voiceInd .vmic.on{background:#3fd46a;box-shadow:0 0 0 calc(2px + var(--l,0)*6px) rgba(63,212,106,.28)}
+#voiceInd .vmic.muted{background:#e2553a}
+#voiceInd .vmate{font-size:11px;color:#3fd46a;opacity:0;transition:opacity .15s}#voiceInd .vmate.on{opacity:1}
 #hud{position:fixed;left:16px;top:16px;width:320px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 #status{display:grid;grid-template-columns:1fr auto;align-items:center;row-gap:3px;padding:10px 14px}
 #clock{font-size:19px;font-weight:600}
@@ -146,6 +151,7 @@ canvas{display:block}
 <div id="hud" class="hidden">
   <div id="status" class="panel"><div><span id="clock" class="num">08:00</span><span id="day" class="lbl">Day 1</span></div><div id="cash" class="num">€0</div><div id="rating"></div><div id="coName" class="lbl" style="text-align:right">Northline Moving</div><div id="netInfo" class="lbl hidden"></div></div>
   <div id="jobp" class="panel hidden"></div>
+  <div id="voiceInd" class="panel hidden"><span class="vmic" id="vMe"></span><span id="vTxt">Mic on</span><span class="vmate" id="vMate"></span></div>
 </div>
 <div id="dot" class="hidden"></div>
 <div id="hint"></div>
@@ -229,6 +235,9 @@ canvas{display:block}
     <span>Graphics</span><div class="seg" id="sQual"><button class="btn ghost sm" data-v="high">High</button><button class="btn ghost sm" data-v="low">Low</button></div>
     <span>Style</span><div><div class="seg" id="sGfx"><button class="btn ghost sm" data-v="ultra">Ultra</button><button class="btn ghost sm" data-v="potato">Potato</button></div><div id="gfxNote" style="color:#868d97;font-size:12px;margin-top:4px"></div></div>
     <span>Mirrors</span><div class="seg" id="sMir"><button class="btn ghost sm" data-v="1">On</button><button class="btn ghost sm" data-v="0">Off</button></div>
+    <span>Voice chat</span><div><div class="seg" id="sVoice"><button class="btn ghost sm" data-v="1">On</button><button class="btn ghost sm" data-v="0">Off</button></div><div id="voiceNote" style="color:#868d97;font-size:12px;margin-top:4px"></div></div>
+    <span>Microphone</span><div class="seg" id="sPtt"><button class="btn ghost sm" data-v="0">Open mic</button><button class="btn ghost sm" data-v="1">Push to talk (V)</button></div>
+    <span>Voice volume</span><input type="range" id="sVoiceVol" min="0" max="2" step="0.05">
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="bResume">Resume</button><button class="btn ghost" id="bQuit">Save and quit to menu</button><button class="btn ghost hidden" id="bLeave">Leave online session</button></div>
 </div></div>
@@ -245,7 +254,7 @@ const R=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length
 const eur=n=>(n<0?'−€':'€')+Math.abs(Math.round(n)).toLocaleString('en-US');
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const wr=mulberry(20261022),WR=(a,b)=>a+wr()*(b-a),wpick=a=>a[Math.floor(wr()*a.length)];
-const SET=Object.assign({music:.45,sfx:.8,quality:'high',mirrors:true,station:0,gfx:'ultra'},(()=>{try{return JSON.parse(localStorage.getItem('muuttopaku.settings')||'{}');}catch(e){return{};}})());
+const SET=Object.assign({music:.45,sfx:.8,quality:'high',mirrors:true,station:0,gfx:'ultra',voice:true,ptt:false,voiceVol:1},(()=>{try{return JSON.parse(localStorage.getItem('muuttopaku.settings')||'{}');}catch(e){return{};}})());
 function saveSet(){try{localStorage.setItem('muuttopaku.settings',JSON.stringify(SET));}catch(e){}}
 const MC={},VCM={},GEO={};
 let lightsOn=null,VAN=null;
@@ -1393,12 +1402,15 @@ function garAct(pi,a,k,i){const st=vs();let rebuild=false;
   else if(a==='repair'){const rc=Math.round((100-st.cond)*14);if(!rc||!pay(rc))return;st.cond=100;}
   else if(a==='fill'){refuel(2.2,pi);}
   if(rebuild)buildVan();NET.metaDirty=true;if(modal==='gar')renderGar();if(modal==='term')renderTerm();save();}
-function renderPause(){const on=NET.connected;$('pauseTitle').textContent=on?'Settings':'Paused';$('pauseNote').textContent=on?'The game keeps running in online play.':'';$('bLeave').classList.toggle('hidden',!on);$('sMusic').value=SET.music;$('sSfx').value=SET.sfx;for(const[id,v]of[['sStation',String(SET.station)],['sQual',SET.quality],['sMir',SET.mirrors?'1':'0'],['sGfx',SET.gfx]])$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
+function renderPause(){const on=NET.connected;$('pauseTitle').textContent=on?'Settings':'Paused';$('pauseNote').textContent=on?'The game keeps running in online play.':'';$('bLeave').classList.toggle('hidden',!on);$('sMusic').value=SET.music;$('sSfx').value=SET.sfx;$('sVoiceVol').value=SET.voiceVol;$('voiceNote').textContent=voiceNote();for(const[id,v]of[['sStation',String(SET.station)],['sQual',SET.quality],['sMir',SET.mirrors?'1':'0'],['sGfx',SET.gfx],['sVoice',SET.voice?'1':'0'],['sPtt',SET.ptt?'1':'0']])$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
 $('sMusic').oninput=e=>{SET.music=+e.target.value;applyVol();saveSet();};
 $('sSfx').oninput=e=>{SET.sfx=+e.target.value;applyVol();saveSet();};
 $('sStation').onclick=e=>{const b=e.target.closest('button');if(!b)return;SET.station=+b.dataset.v;saveSet();renderPause();};
 $('sQual').onclick=e=>{const b=e.target.closest('button');if(!b)return;SET.quality=b.dataset.v;saveSet();shadowQuality();curPR=maxPR();renderer.setPixelRatio(curPR);makeRTs();renderPause();};
 $('sGfx').onclick=e=>{const b=e.target.closest('button');if(!b)return;setGfx(b.dataset.v);renderPause();};
+$('sVoice').onclick=e=>{const b=e.target.closest('button');if(!b)return;SET.voice=b.dataset.v==='1';saveSet();voiceSetOn(SET.voice);renderPause();};
+$('sPtt').onclick=e=>{const b=e.target.closest('button');if(!b)return;SET.ptt=b.dataset.v==='1';saveSet();renderPause();};
+$('sVoiceVol').oninput=e=>{SET.voiceVol=+e.target.value;saveSet();};
 $('sMir').onclick=e=>{const b=e.target.closest('button');if(!b)return;SET.mirrors=b.dataset.v==='1';saveSet();bindMirrors();renderPause();};
 
 /* ================= HUD ================= */
@@ -1647,7 +1659,7 @@ function makeAvatar(ch,preview){ch=cleanChar(ch);
   box(.46,.62,.26,sh,0,1.26,0,g);
   if(ch.vest){box(.475,.36,.275,M(0xd6e03a),0,1.3,0,g);box(.48,.05,.28,vest,0,1.2,0,g,false);box(.48,.05,.28,vest,0,1.36,0,g,false);}
   for(const s of[-1,1]){const p=new THREE.Group();p.position.set(s*.3,1.52,0);g.add(p);box(.12,.58,.13,sh,0,-.27,0,p);box(.1,.1,.11,skin,0,-.6,0,p);arms.push(p);}
-  box(.12,.08,.12,skin,0,1.6,0,g);box(.25,.27,.25,skin,0,1.77,0,g);
+  box(.12,.08,.12,skin,0,1.6,0,g);const n0=g.children.length;box(.25,.27,.25,skin,0,1.77,0,g);
   box(.05,.04,.01,dk,-.06,1.8,-.126,g,false);box(.05,.04,.01,dk,.06,1.8,-.126,g,false);
   if(ch.face==='glasses'||ch.face==='both'){box(.09,.07,.01,M(0x2a2c30),-.065,1.8,-.132,g,false);box(.09,.07,.01,M(0x2a2c30),.065,1.8,-.132,g,false);box(.04,.015,.01,M(0x2a2c30),0,1.81,-.132,g,false);}
   if(ch.face==='beard'||ch.face==='both'){box(.25,.1,.05,hair,0,1.68,-.11,g,false);box(.26,.06,.2,hair,0,1.66,-.02,g,false);}
@@ -1658,10 +1670,11 @@ function makeAvatar(ch,preview){ch=cleanChar(ch);
   else if(hat==='beanie'){box(.28,.16,.28,hc,0,1.97,0,g);box(.29,.05,.29,M(0x2a2c30),0,1.9,0,g);}
   else if(hat==='hard'){const m=new THREE.Mesh(new THREE.SphereGeometry(.17,12,8,0,PI*2,0,PI/2),hc);m.position.set(0,1.9,0);m.castShadow=true;g.add(m);cyl(.21,.21,.02,hc,0,1.9,-.01,g,14);}
   else if(hat==='bucket'){cyl(.13,.15,.13,hc,0,1.97,0,g,12);cyl(.23,.23,.02,hc,0,1.91,0,g,14);}
+  const head=new THREE.Group();head.position.y=1.64;for(const o of g.children.slice(n0)){g.remove(o);o.position.y-=1.64;head.add(o);}g.add(head);
   const tc=document.createElement('canvas');tc.width=256;tc.height=64;const c=tc.getContext('2d');c.fillStyle='rgba(16,18,21,.78)';c.fillRect(0,8,256,48);c.fillStyle='#fff';c.font='600 30px Inter,Segoe UI,Arial';c.textAlign='center';c.textBaseline='middle';c.fillText(ch.name,128,33);
   const tag=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(tc),depthTest:false,transparent:true}));tag.scale.set(.9,.225,1);tag.position.set(0,2.3,0);tag.renderOrder=5;g.add(tag);
   const carryG=new THREE.Group();g.add(carryG);g.userData.dyn=true;if(!preview){g.visible=false;scene.add(g);}
-  return{g,legs,arms,carry:carryG,tag};}
+  return{g,legs,arms,carry:carryG,tag,head};}
 function pushBuf(B,ts,arr){const L=B[B.length-1];if(L&&ts<=L[0])return;B.push([ts,...arr]);if(B.length>14)B.shift();}
 function angLerp(a,b,t){let d=b-a;while(d>PI)d-=2*PI;while(d<-PI)d+=2*PI;return a+d*t;}
 function sampleBuf(B,rt,ang){if(!B.length)return null;if(rt<=B[0][0])return B[0].slice(1);const Z=B[B.length-1];if(rt>Z[0]&&B.length>1){const Y=B[B.length-2],t=Math.min(rt-Z[0],220)/Math.max(1,Z[0]-Y[0]);return Z.slice(1).map((v,j)=>typeof v!=='number'?v:ang&&ang.includes(j)?angLerp(Y[j+1],v,1+t):v+(v-Y[j+1])*t);}
@@ -1679,6 +1692,67 @@ function updateOther(dt){const av=OTHER.av;if(!av)return;if(!NET.connected||OTHE
   OTHER.px=OTHER.x;OTHER.pz=OTHER.z;}
 function ensureAvatar(ch){if(ch)OTHER.ch=cleanChar(ch);const c=OTHER.ch||cleanChar({name:'Partner'});OTHER.name=c.name;const old=OTHER.av;OTHER.av=makeAvatar(c);if(old){for(const ch2 of old.carry.children.slice())OTHER.av.carry.add(ch2);scene.remove(old.g);if(old.g.parent)old.g.parent.remove(old.g);}refreshItems();}
 
+/* ================= voice chat ================= */
+// Proximity voice over the same PeerJS connection: the guest calls the host with its microphone.
+// The partner's voice gets quieter and duller with distance, pans left/right, and their head grows while they talk.
+const VOICE={stream:null,mic:null,pc:null,cq:[],tried:0,sid:0,el:null,src:null,an:null,g:null,lp:null,pan:null,myAn:null,state:'idle',lvl:0,myLvl:0,buf:null,v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3()};
+function voiceNote(){if(!SET.voice)return 'Voice chat is off: you can\'t hear your partner and they can\'t hear you.';if(VOICE.state==='blocked')return 'Microphone not available. Check that a mic is connected and allowed.';
+  return SET.ptt?'Hold V to talk. Your partner is quieter the further away they are.':'Your partner hears you when you talk, and is quieter the further away they are.';}
+async function voiceGetMic(){if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))return null;
+  try{return await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});}catch(e){VOICE.state='blocked';return null;}}
+function voiceUseStream(st,isMic){VOICE.stream=st;VOICE.mic=st.getAudioTracks()[0]||null;VOICE.myAn=null;VOICE.state=isMic?'mic':VOICE.state==='blocked'?'blocked':'silent';
+  if(isMic&&AC&&VOICE.mic){try{const s2=AC.createMediaStreamSource(new MediaStream([VOICE.mic.clone()]));VOICE.myAn=AC.createAnalyser();VOICE.myAn.fftSize=512;s2.connect(VOICE.myAn);}catch(e){}}voiceGate();}
+// start with a silent track so the connection opens at once; the microphone replaces it when it is ready
+function voiceEnsure(){if(VOICE.stream)return VOICE.stream;initAudio();let st=null;try{if(AC)st=AC.createMediaStreamDestination().stream;}catch(e){}st=st||new MediaStream();voiceUseStream(st,false);if(SET.voice)voiceUpgrade();return st;}
+async function voiceUpgrade(){if(VOICE.upg||VOICE.state==='mic')return;VOICE.upg=true;const mic=await voiceGetMic();VOICE.upg=false;if(!mic){renderPause&&$('pause')&&renderPause();return;}
+  if(!VOICE.stream){for(const t of mic.getTracks())try{t.stop();}catch(e){}return;}const tr=mic.getAudioTracks()[0];
+  if(VOICE.pc){const snd=VOICE.pc.getSenders().find(x=>x.track&&x.track.kind==='audio')||VOICE.pc.getSenders()[0];if(snd)try{await snd.replaceTrack(tr);}catch(e){}}
+  for(const t of VOICE.stream.getTracks())if(t!==tr)try{t.stop();}catch(e){}voiceUseStream(mic,true);}
+function voiceSetOn(on){if(on&&VOICE.stream&&VOICE.state!=='mic')voiceUpgrade();voiceGate();}
+function voiceGate(){if(VOICE.mic)VOICE.mic.enabled=VOICE.state==='mic'&&!!SET.voice&&(SET.ptt?!!keys.KeyV:true);}
+for(const ev of['pointerdown','keydown'])addEventListener(ev,()=>{if(AC&&AC.state==='suspended')AC.resume().catch(()=>{});},true);
+function voiceAttach(rs){initAudio();if(!AC)return;voiceDetach();
+  try{const el=new Audio();el.srcObject=rs;el.muted=true;el.play().catch(()=>{});VOICE.el=el;}catch(e){}
+  const src=AC.createMediaStreamSource(rs),an=AC.createAnalyser(),lp=AC.createBiquadFilter(),g=AC.createGain(),pan=AC.createStereoPanner?AC.createStereoPanner():AC.createGain();
+  an.fftSize=512;lp.type='lowpass';lp.frequency.value=16000;g.gain.value=0;src.connect(an);src.connect(lp);lp.connect(g);g.connect(pan);pan.connect(MASTER);
+  Object.assign(VOICE,{src,an,lp,g,pan});if(AC.state==='suspended')AC.resume().catch(()=>{});}
+function voiceDetach(){for(const k of['src','an','lp','g','pan'])if(VOICE[k]){try{VOICE[k].disconnect();}catch(e){}VOICE[k]=null;}if(VOICE.el){try{VOICE.el.srcObject=null;}catch(e){}VOICE.el=null;}VOICE.lvl=0;}
+function voiceStop(){const pc=VOICE.pc;VOICE.pc=null;VOICE.tried=0;VOICE.cq=[];try{pc&&pc.close();}catch(e){}voiceDetach();if(VOICE.stream)for(const t of VOICE.stream.getTracks())try{t.stop();}catch(e){}VOICE.stream=null;VOICE.mic=null;VOICE.myAn=null;if(VOICE.state!=='blocked')VOICE.state='idle';
+  if(OTHER.av&&OTHER.av.head)OTHER.av.head.scale.setScalar(1);}
+// signalling for the voice connection goes over the game's own reliable data channel
+function voiceCfg(){const o=NET.peer&&NET.peer.options&&NET.peer.options.config;return o&&o.iceServers?o:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]};}
+function voiceNewPc(st){if(VOICE.pc){try{VOICE.pc.close();}catch(e){}}voiceDetach();const pc=new RTCPeerConnection(voiceCfg());VOICE.pc=pc;VOICE.cq=[];
+  for(const t of st.getAudioTracks())pc.addTrack(t,st);
+  const sid=VOICE.sid;pc.onicecandidate=e=>{if(VOICE.pc===pc&&e.candidate)netSend({t:'vo',i:sid,c:e.candidate.toJSON?e.candidate.toJSON():e.candidate});};
+  pc.ontrack=e=>{if(VOICE.pc===pc)voiceAttach(e.streams&&e.streams[0]||new MediaStream([e.track]));};
+  pc.onconnectionstatechange=()=>{if(VOICE.pc===pc&&pc.connectionState==='failed'&&NET.role==='guest')VOICE.tried=performance.now()-31000;};
+  return pc;}
+async function voiceCallHost(){if(NET.role!=='guest'||!NET.connected||typeof RTCPeerConnection!=='function')return;VOICE.tried=performance.now();VOICE.sid=(VOICE.sid||0)+1;
+  try{const st=voiceEnsure();const pc=voiceNewPc(st);const off=await pc.createOffer({offerToReceiveAudio:true});await pc.setLocalDescription(off);if(VOICE.pc===pc)netSend({t:'vo',i:VOICE.sid,sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}});}catch(e){}}
+async function voiceSignal(d){try{
+  if(d.sdp&&d.sdp.type==='offer'&&NET.role==='host'){VOICE.sid=d.i;const st=voiceEnsure();const pc=voiceNewPc(st);await pc.setRemoteDescription(d.sdp);for(const c of VOICE.cq.splice(0))try{await pc.addIceCandidate(c);}catch(e){}
+    const ans=await pc.createAnswer();await pc.setLocalDescription(ans);if(VOICE.pc===pc)netSend({t:'vo',i:d.i,sdp:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}});}
+  else if(d.i!==VOICE.sid)return;
+  else if(d.sdp&&d.sdp.type==='answer'&&VOICE.pc&&NET.role==='guest'&&VOICE.pc.signalingState==='have-local-offer'){const pc=VOICE.pc;await pc.setRemoteDescription(d.sdp);for(const c of VOICE.cq.splice(0))try{await pc.addIceCandidate(c);}catch(e){}}
+  else if(d.c&&VOICE.pc){const pc=VOICE.pc;if(pc.remoteDescription)await pc.addIceCandidate(d.c);else VOICE.cq.push(d.c);}}catch(e){}}
+function voiceLevel(an){if(!an)return 0;const n=an.fftSize;if(!VOICE.buf||VOICE.buf.length!==n)VOICE.buf=new Float32Array(n);an.getFloatTimeDomainData(VOICE.buf);let s2=0;for(let i=0;i<n;i++)s2+=VOICE.buf[i]*VOICE.buf[i];return Math.sqrt(s2/n);}
+function voiceTick(dt){voiceGate();const ind=$('voiceInd');
+  if(!NET.connected){ind.classList.add('hidden');return;}
+  if(NET.role==='guest'&&VOICE.tried&&performance.now()-VOICE.tried>30000){const pc=VOICE.pc;if(!pc||pc.connectionState==='failed'||pc.connectionState==='closed'||!pc.remoteDescription)voiceCallHost();}
+  const myRaw=VOICE.mic&&VOICE.mic.enabled?voiceLevel(VOICE.myAn):0;VOICE.myLvl=lerp(VOICE.myLvl,clamp((myRaw-.012)*9,0,1),Math.min(1,dt*(myRaw>VOICE.myLvl?20:6)));
+  const raw=SET.voice?voiceLevel(VOICE.an):0,tl=clamp((raw-.012)*7,0,1.6);VOICE.lvl=lerp(VOICE.lvl,tl,Math.min(1,dt*(tl>VOICE.lvl?18:4)));
+  const av=OTHER.av;
+  if(VOICE.g&&AC){let k=1,pn=0,far=0;
+    if(av&&av.g.visible&&av.head){av.head.getWorldPosition(VOICE.v1);camera.getWorldPosition(VOICE.v2);const d=VOICE.v1.distanceTo(VOICE.v2);
+      k=clamp(1-(d-3)/32,0,1);k*=k;far=clamp((d-3)/30,0,1);if(mode==='van'&&OTHER.mode==='van')k=1,far=0;
+      camera.getWorldDirection(VOICE.v3);const dx=VOICE.v1.x-VOICE.v2.x,dz=VOICE.v1.z-VOICE.v2.z,l=Math.hypot(dx,dz)||1;pn=clamp((dx*-VOICE.v3.z+dz*VOICE.v3.x)/l*.75,-.75,.75);if(d<1.5)pn*=d/1.5;}
+    const t=AC.currentTime;VOICE.g.gain.setTargetAtTime(SET.voice?k*SET.voiceVol*1.6:0,t,.06);VOICE.lp.frequency.setTargetAtTime(16000-far*13500,t,.08);if(VOICE.pan.pan)VOICE.pan.pan.setTargetAtTime(pn,t,.06);}
+  if(av&&av.head){const sc=1+VOICE.lvl*.85;av.head.scale.setScalar(sc);av.tag.position.y=2.3+(sc-1)*.42;}
+  ind.classList.remove('hidden');const me=$('vMe');const live=VOICE.mic&&VOICE.mic.enabled;
+  me.className='vmic'+(live?' on':VOICE.state==='mic'&&SET.ptt&&SET.voice?'':' muted');me.style.setProperty('--l',VOICE.myLvl.toFixed(2));
+  $('vTxt').textContent=!SET.voice?'Voice off':VOICE.state==='blocked'?'No microphone':VOICE.state!=='mic'?'Listening only':SET.ptt?(live?'Talking':'Hold V to talk'):'Mic on';
+  const mt=$('vMate');mt.textContent=(OTHER.name||'Partner')+' is talking';mt.classList.toggle('on',SET.voice&&VOICE.lvl>.08);}
+
 /* ================= online co-op ================= */
 const NET_VER='nm-net-5',NET_PREFIX='rr-muuttopaku-',CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const hasNet=()=>typeof window.Peer==='function'&&typeof window.RTCPeerConnection==='function';
@@ -1691,7 +1765,7 @@ function netErrText(err){const m={'peer-unavailable':'No game found with that co
 function netSend(o){if(NET.conn&&NET.conn.open){try{NET.conn.send(o);}catch(e){}}}
 function sendFast(o){const f=NET.fast;if(f&&f.open){const dc=f.dataChannel;if(dc&&dc.bufferedAmount>64000)return;try{f.send(o);}catch(e){}}else netSend(o);}
 let evQ=[];function netEv(e){if(NET.role==='host'&&NET.connected)evQ.push(e);}
-function netCleanup(){const c=NET.conn,f=NET.fast,p=NET.peer;NET.conn=NET.fast=NET.peer=null;NET.connected=false;NET.lastQ=NET.lastInQ=0;NET.off=null;try{f&&f.close();}catch(e){}try{c&&c.close();}catch(e){}try{p&&p.destroy();}catch(e){}}
+function netCleanup(){voiceStop();const c=NET.conn,f=NET.fast,p=NET.peer;NET.conn=NET.fast=NET.peer=null;NET.connected=false;NET.lastQ=NET.lastInQ=0;NET.off=null;try{f&&f.close();}catch(e){}try{c&&c.close();}catch(e){}try{p&&p.destroy();}catch(e){}}
 function newCode(){let c='';for(let i=0;i<5;i++)c+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return c;}
 function netButtons(on){$('bJoin').disabled=!on;}
 function syncOff(ts){const now=performance.now(),o=now-ts;if(NET.off==null){NET.off=o;}else if(o<NET.off)NET.off+=(o-NET.off)*.5;else NET.off+=(o-NET.off)*.02;if(NET.lastArr){const gap=now-NET.lastArr;NET.jit=lerp(NET.jit||0,Math.abs(gap-(NET.role==='guest'?50:50)),.08);}NET.lastArr=now;}
@@ -1729,11 +1803,12 @@ function onNet(d,role){
     case'in':onFast(d,'host');break;
     case'act':if(mode!=='menu'&&d.c&&typeof d.c==='object')applyAct(1,d.c);break;
     case'ping':netSend({t:'pong',ts:d.ts});break;
+    case'vo':voiceSignal(d);break;
     case'bye':netLost('Your partner left the session.');break;}}
   else{switch(d.t){
     case'welcome':NET.connected=true;NET.role='guest';NET.lastRx=performance.now();ensureAvatar(d.ch);setCompany(d.co);
       try{const f=NET.peer.connect(NET.hostId,{label:'nm-fast',reliable:false,serialization:'json'});NET.fast=f;f.on('data',x=>{if(NET.fast===f)onFast(x,'client');});f.on('error',()=>{});}catch(e){}
-      netStatus('Connected to '+COMPANY+'. Waiting for '+(OTHER.name||'the host')+' to start the shift…');break;
+      netStatus('Connected to '+COMPANY+'. Waiting for '+(OTHER.name||'the host')+' to start the shift…');voiceCallHost();break;
     case'bad':netStatus('Game versions don\'t match. Both of you should update.',true);break;
     case'full':netStatus('That game already has two players.',true);break;
     case'start':guestStart(d);break;
@@ -1741,6 +1816,7 @@ function onNet(d,role){
     case's':onFast(d,'client');break;
     case'ev':if(mode!=='menu')for(const e of d.e||[])applyEv(e);break;
     case'pong':NET.ping=Math.round(performance.now()-d.ts);break;
+    case'vo':voiceSignal(d);break;
     case'bye':netLost('The host ended the session.');break;}}}
 function onFast(d,role){
   if(!d||typeof d!=='object')return;NET.lastRx=performance.now();
@@ -1964,7 +2040,7 @@ function frame(now){
     if(NET.role!=='guest')simWorld(dt);else{gameT+=dt*TIME_SCALE;lerpCars(dt);lerpPeds();}
     blinkPh+=dt;updateSignals();thr=updateVan(dt);checkFines(dt);
     if(mode==='van'){P.x=V.x;P.z=V.z;updateCamVan(dt);}else moving=updateFoot(dt);
-    updateOther(dt);netTick(dt,thr);
+    updateOther(dt);voiceTick(dt);netTick(dt,thr);
     routeT-=dt;if(routeT<=0){routeT=.5;const tg=jobTarget();if(job&&tg===job.from&&routePrev===job.to){const n=ITEMS.filter(atPickup).length;toast(`The van is empty. ${n} item${n>1?'s are':' is'} still at ${job.from.addr}. Route back to the pickup.`);updateJobPanel(true);}routePrev=tg;if(tg){const p=doorPt(tg),sx=mode==='van'?V.x:P.x,sz=mode==='van'?V.z:P.z;routePts=route(sx,sz,p[0],p[1]);}else routePts=null;}
     saveT+=dt;if(saveT>20){saveT=0;save();}
     if(toastT>0){toastT-=dt;if(toastT<=0)$('toast').classList.remove('show');}
