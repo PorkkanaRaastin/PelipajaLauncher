@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kissakahvila</title>
+<style>
+/* fonts bundled with the game (SIL Open Font License, see fonts/) */
+@font-face{font-family:'Fredoka';src:url(fonts/fredoka.woff2) format('woff2');font-weight:300 700;font-display:swap}
+@font-face{font-family:'Gochi Hand';src:url(fonts/gochi-hand.woff2) format('woff2');font-weight:400;font-display:swap}
+/* Iltakahvila: luumunvärinen seinä, voinkeltaiset lamput, pistaasi ja mansikkamaito. Liitutaulu kertoo menun. */
+:root{
+  --plum:#3a2440; --plum2:#4b3053; --butter:#ffd27a; --pista:#b7d99a; --pista2:#8fbf76; --berry:#f2a2b8; --berry2:#e07a98;
+  --cocoa:#5e3b2e; --cocoa2:#3d251c; --chalk:#2e4038; --chalkline:#f3efe6; --paper:#f7fbf2; --ink:#3d251c;
+  --ui:'Fredoka','Trebuchet MS','Segoe UI',sans-serif; --hand:'Gochi Hand','Comic Sans MS',cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#1d1220;overflow:hidden;font-family:var(--ui);color:var(--ink);-webkit-user-select:none;user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font-family:var(--ui)}
+.hidden{display:none!important}
+#hud{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;pointer-events:none;z-index:3}
+.pill{background:rgba(29,18,32,.72);color:#fff3dc;border-radius:999px;padding:7px 16px;font-weight:600;font-size:17px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(4px)}
+.pill .ico{font-size:18px}
+#hudBtns{position:fixed;top:12px;right:14px;display:flex;gap:8px;z-index:3}
+.round{width:42px;height:42px;border-radius:50%;border:0;background:rgba(29,18,32,.72);color:#fff3dc;font-size:19px;cursor:pointer;display:grid;place-items:center}
+.round:hover{background:rgba(75,48,83,.9)}
+.round:focus-visible,.btn:focus-visible,.card button:focus-visible,input:focus-visible,.tab:focus-visible{outline:3px solid var(--butter);outline-offset:2px}
+#tip{position:fixed;left:50%;top:64px;transform:translateX(-50%);background:rgba(29,18,32,.82);color:#fff3dc;border-radius:14px;padding:8px 16px;font-size:15px;z-index:3;pointer-events:none;max-width:min(720px,92vw);text-align:center;transition:opacity .3s}
+
+/* overlays */
+.ov{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 40%,rgba(58,36,64,.55),rgba(20,10,22,.86))}
+.sheet{background:var(--paper);border-radius:26px;box-shadow:0 18px 60px rgba(0,0,0,.45);width:min(920px,100%);max-height:100%;overflow:auto;padding:26px 28px}
+.board{background:var(--chalk);color:var(--chalkline);border-radius:22px;border:10px solid #7a5238;box-shadow:inset 0 0 40px rgba(0,0,0,.35),0 18px 60px rgba(0,0,0,.45);font-family:var(--hand)}
+
+/* title */
+#title .board{width:min(620px,100%);padding:34px 40px 30px;text-align:center}
+#title h1{font-family:var(--hand);font-weight:400;font-size:clamp(46px,8vw,72px);margin:0;line-height:1;letter-spacing:.5px}
+#title .sub{font-size:22px;opacity:.85;margin:10px 0 22px}
+#title label{display:block;font-size:20px;margin-bottom:6px}
+#title input{width:100%;font-family:var(--hand);font-size:28px;text-align:center;background:rgba(255,255,255,.06);color:var(--chalkline);border:2px dashed rgba(243,239,230,.45);border-radius:12px;padding:8px 10px}
+.btn{border:0;border-radius:999px;padding:12px 26px;font-size:19px;font-weight:600;cursor:pointer;background:var(--berry);color:var(--cocoa2);box-shadow:0 4px 0 var(--berry2)}
+.btn:hover{filter:brightness(1.05)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--berry2)}
+.btn.alt{background:var(--pista);box-shadow:0 4px 0 var(--pista2)}
+.btn.ghost{background:transparent;color:inherit;box-shadow:none;border:2px solid currentColor;opacity:.8}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+#title .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+#title .how{font-size:18px;opacity:.8;margin-top:20px;line-height:1.35}
+
+/* day summary */
+#summary .sheet{max-width:560px;text-align:center}
+#summary h2{font-family:var(--hand);font-weight:400;font-size:44px;margin:0 0 4px;color:var(--cocoa)}
+#summary .lines{margin:18px auto;max-width:360px;font-size:19px;text-align:left}
+#summary .lines div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:2px dotted #d9e6cf}
+#summary .lines b{font-weight:600}
+#summary .tot{font-size:26px;font-weight:700;color:var(--cocoa)}
+
+/* shop */
+#shop .sheet{width:min(1040px,100%);padding:22px 24px}
+.shophead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.shophead h2{font-family:var(--hand);font-weight:400;font-size:40px;margin:0;color:var(--cocoa)}
+.money{font-size:26px;font-weight:700;color:var(--cocoa);background:#fff3dc;border-radius:999px;padding:6px 18px}
+.tabs{display:flex;gap:8px;margin:14px 0 16px;flex-wrap:wrap}
+.tab{border:0;border-radius:999px;padding:9px 18px;font-size:17px;font-weight:600;background:#e6efe0;color:var(--cocoa);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--cocoa);color:#fff3dc}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{background:#fff;border-radius:18px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 0 #e3ecdc}
+.card canvas{width:100%;height:auto;border-radius:12px;background:#f1e9f3}
+.card h3{margin:2px 0 0;font-size:19px;font-weight:600}
+.card p{margin:0;font-size:14.5px;line-height:1.35;color:#6b5a52;flex:1}
+.card .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.card .price{font-weight:700;font-size:18px}
+.card button{border:0;border-radius:999px;padding:8px 16px;font-size:15px;font-weight:600;cursor:pointer;background:var(--pista);color:var(--cocoa2)}
+.card button:disabled{background:#eee;color:#9a8f8a;cursor:default}
+.card.owned{background:#fbfdf8}
+.card .own{color:var(--pista2);font-weight:600}
+.shopfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+
+/* toasts in game */
+#toast{position:fixed;top:118px;left:50%;transform:translateX(-50%);z-index:4;font-size:18px;font-weight:600;color:#fff3dc;background:rgba(224,122,152,.95);border-radius:999px;padding:8px 18px;opacity:0;transition:opacity .25s;pointer-events:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Kissakahvila"></canvas>
+
+<div id="hud" class="hidden">
+  <div class="pill"><span class="ico">🕘</span><span id="hClock">9.00</span></div>
+  <div class="pill"><span class="ico">🪙</span><span id="hMoney">0</span></div>
+  <div class="pill"><span class="ico">⭐</span><span id="hStars">3,0</span></div>
+  <div class="pill"><span class="ico">💗</span><span id="hLove">0</span></div>
+</div>
+<div id="hudBtns" class="hidden">
+  <button class="round" id="bMusic" title="Musiikki päälle / pois" aria-label="Musiikki">♪</button>
+  <button class="round" id="bSound" title="Äänet päälle / pois" aria-label="Äänet">🔊</button>
+  <button class="round" id="bPause" title="Tauko" aria-label="Tauko">⏸</button>
+</div>
+<div id="tip" class="hidden"></div>
+<div id="toast"></div>
+
+<div id="title" class="ov">
+  <div class="board">
+    <h1 id="tTitle">Kissakahvila</h1>
+    <div class="sub">Kahvia, korvapuusteja ja kehräämistä</div>
+    <label for="cafeName">Kahvilan nimi</label>
+    <input id="cafeName" maxlength="24" value="Kahvila Kissanpentu" autocomplete="off">
+    <div class="row">
+      <button class="btn" id="bStart">Avaa kahvila</button>
+      <button class="btn ghost hidden" id="bReset">Aloita alusta</button>
+    </div>
+    <div class="how">Tee asiakkaiden tilaukset koneilla ja tarjoile ne. Silitä kissoja, niin asiakkaat jaksavat odottaa ja jättävät isompaa tippiä.</div>
+  </div>
+</div>
+
+<div id="pause" class="ov hidden">
+  <div class="board" style="padding:30px 40px;text-align:center;width:min(460px,100%)">
+    <h1 style="font-family:var(--hand);font-weight:400;font-size:52px;margin:0">Tauko</h1>
+    <p style="font-size:20px;opacity:.85">Kissat odottavat kiltisti.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" id="bResume">Jatka</button>
+      <button class="btn ghost" id="bQuitDay">Lopeta päivä</button>
+    </div>
+  </div>
+</div>
+
+<div id="summary" class="ov hidden">
+  <div class="sheet">
+    <h2 id="sTitle">Päivä 1 valmis</h2>
+    <div id="sNote" style="font-size:17px;color:#6b5a52"></div>
+    <div class="lines" id="sLines"></div>
+    <button class="btn" id="bToShop">Kauppaan</button>
+  </div>
+</div>
+
+<div id="shop" class="ov hidden">
+  <div class="sheet">
+    <div class="shophead"><h2>Kahvilan kauppa</h2><div class="money">🪙 <span id="shMoney">0</span></div></div>
+    <div class="tabs" role="tablist" id="shTabs"></div>
+    <div class="grid" id="shGrid"></div>
+    <div class="shopfoot"><button class="btn" id="bNextDay">Avaa päivä 2</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ================= setup ================= */
+const W=1280,H=720,TAU=Math.PI*2;
+const cv=document.getElementById('c');let ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+let SC=1,OX=0,OY=0,DPR=1;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);const w=innerWidth,h=innerHeight;cv.width=Math.round(w*DPR);cv.height=Math.round(h*DPR);SC=Math.min(w/W,h/H);OX=(w-W*SC)/2;OY=(h-H*SC)/2;}
+addEventListener('resize',resize);resize();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t,rand=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=n=>{const v=Math.round(n*100)/100;return v.toLocaleString('fi-FI',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2});};
+
+/* ================= data ================= */
+const DRINKS={
+  kahvi:{name:'Kahvi',price:3},
+  latte:{name:'Latte',price:4.5},
+  tee:{name:'Tee',price:3},
+  kaakao:{name:'Kaakao',price:4},
+  kaakaok:{name:'Kaakao kermalla',price:5},
+  kissalatte:{name:'Kissalatte',price:6.5},
+};
+const FOODS={
+  puusti:{name:'Korvapuusti',price:3.5},
+  keksi:{name:'Kaurakeksi',price:2},
+  piirakka:{name:'Mustikkapiirakka',price:4.5},
+};
+const CAT_LOOKS={
+  pulla:{name:'Pulla',body:'#f0b46a',dark:'#d48a3e',belly:'#fbe3c0',pattern:'tabby',eyes:'#5c8a3a'},
+  morri:{name:'Mörri',body:'#2b2530',dark:'#17131a',belly:'#3a3240',pattern:'plain',eyes:'#e8c54a'},
+  nuppu:{name:'Nuppu',body:'#fbf6ee',dark:'#e48a42',belly:'#ffffff',pattern:'calico',eyes:'#4f7fbf'},
+  sisu:{name:'Sisu',body:'#9aa0a8',dark:'#6b7178',belly:'#d8dbe0',pattern:'tabby',eyes:'#d9a33a'},
+  hippu:{name:'Hippu',body:'#ffffff',dark:'#e5e1dc',belly:'#ffffff',pattern:'plain',eyes:'#6aa7d8'},
+  kaneli:{name:'Kaneli',body:'#c9733a',dark:'#94501f',belly:'#f2c99a',pattern:'tabby',eyes:'#6b8f2c'},
+  tuhka:{name:'Tuhka',body:'#e9dccb',dark:'#5b4334',belly:'#f6efe5',pattern:'siamese',eyes:'#4c8fd6'},
+};
+// shop: kind = menu | cat | decor | gear
+const SHOP=[
+  {id:'tee',kind:'menu',name:'Tee',desc:'Teekannu tiskille. Asiakkaat voivat tilata teetä.',price:60},
+  {id:'keksi',kind:'menu',name:'Kaurakeksit',desc:'Uuni paistaa myös keksejä. Halpa ja nopea herkku.',price:80},
+  {id:'kaakao',kind:'menu',name:'Kaakao',desc:'Kaakaokattila tiskille. Kaakao on ilta-asiakkaiden suosikki.',price:120},
+  {id:'kerma',kind:'menu',name:'Kermavaahto',desc:'Kermavaahtoa kaakaon päälle. Kaakao kermalla on arvokkaampi.',price:110},
+  {id:'piirakka',kind:'menu',name:'Mustikkapiirakka',desc:'Uuni paistaa mustikkapiirakkaa. Kallein herkku.',price:160},
+  {id:'taide',kind:'menu',name:'Kissalatte',desc:'Maitokannu, jolla piirrät kissan latten pintaan. Paras hinta ja iso tippi.',price:300},
+  {id:'nuppu',kind:'cat',name:'Nuppu',desc:'Kolmivärinen kissa, joka rakastaa ikkunalautaa.',price:150},
+  {id:'sisu',kind:'cat',name:'Sisu',desc:'Harmaa juovikas, utelias ja rohkea.',price:220},
+  {id:'hippu',kind:'cat',name:'Hippu',desc:'Lumivalkoinen ja vähän ujo. Kehrää tosi kovaa.',price:300},
+  {id:'kaneli',kind:'cat',name:'Kaneli',desc:'Punainen juovikas, joka nukkuu missä tahansa.',price:400},
+  {id:'tuhka',kind:'cat',name:'Tuhka',desc:'Siamilainen, puhelias ja vähän diiva.',price:550},
+  {id:'kasvit',kind:'decor',name:'Viherkasvit',desc:'Kasveja hyllyille ja ikkunaan. Asiakkaat jaksavat odottaa 10 % pidempään.',price:90},
+  {id:'valot',kind:'decor',name:'Valosarja',desc:'Pienet valot ikkunan ympärille. Tipit kasvavat 10 %.',price:120},
+  {id:'matto',kind:'decor',name:'Pehmeä matto',desc:'Kissat tykkäävät nukkua siinä. Silittäminen ilahduttaa enemmän.',price:140},
+  {id:'taulut',kind:'decor',name:'Kissataulut',desc:'Muotokuvat kahvilan kissoista. Maine kasvaa nopeammin.',price:160},
+  {id:'mint',kind:'decor',name:'Mintunvihreä seinä',desc:'Raikas uusi seinäväri.',price:70},
+  {id:'rose',kind:'decor',name:'Ruusunpunainen seinä',desc:'Lämmin uusi seinäväri.',price:70},
+  {id:'kone',kind:'gear',name:'Nopea kahvikone',desc:'Kahvi ja maito valmistuvat kolmanneksen nopeammin.',price:200},
+  {id:'tarjotin',kind:'gear',name:'Isompi tarjotin',desc:'Yksi paikka lisää tarjottimelle.',price:150},
+  {id:'tarjotin2',kind:'gear',name:'Vielä isompi tarjotin',desc:'Toinen lisäpaikka tarjottimelle.',price:320,needs:'tarjotin'},
+  {id:'uuni',kind:'gear',name:'Iso uuni',desc:'Uuni paistaa 5 kerralla ja nopeammin.',price:240},
+];
+
+/* ================= save ================= */
+const SAVE_KEY='kissakahvila.save.v1';
+function freshSave(){return{v:1,name:'Kahvila Kissanpentu',day:1,money:20,rep:3,love:0,owned:{},cats:['pulla','morri'],wall:'plum',served:0,best:0};}
+let G=freshSave();
+function load(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.v===1){G=Object.assign(freshSave(),d);return true;}}catch(e){}return false;}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(G));}catch(e){}}
+window.rrSaveGame=()=>{save();};
+const has=id=>!!G.owned[id];
+
+/* ================= audio ================= */
+let AC=null,MASTER=null,SFX=null,MUS=null,NOISE=null,soundOn=true,musicOn=true;
+try{const s=JSON.parse(localStorage.getItem('kissakahvila.settings')||'{}');if(s.sound===false)soundOn=false;if(s.music===false)musicOn=false;}catch(e){}
+function saveSettings(){try{localStorage.setItem('kissakahvila.settings',JSON.stringify({sound:soundOn,music:musicOn}));}catch(e){}}
+function initAudio(){if(AC){if(AC.state==='suspended')AC.resume();return;}
+  try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+  MASTER=AC.createGain();MASTER.gain.value=.8;MASTER.connect(AC.destination);SFX=AC.createGain();SFX.connect(MASTER);MUS=AC.createGain();MUS.gain.value=musicOn?.22:0;MUS.connect(MASTER);SFX.gain.value=soundOn?1:0;
+  const nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;NOISE=nb;startMusic();applyAudio();}
+function env(g,t,a,peak,dur){g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);}
+function tone(f,dur,type,vol,dst,t0,f2){if(!AC)return;const t=(t0||AC.currentTime),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);env(g,t,.01,vol,dur);o.connect(g);g.connect(dst||SFX);o.start(t);o.stop(t+dur+.05);}
+function noise(dur,vol,type,f,q,t0,dst){if(!AC)return;const t=t0||AC.currentTime,s=AC.createBufferSource();s.buffer=NOISE;const fl=AC.createBiquadFilter();fl.type=type;fl.frequency.value=f;if(q)fl.Q.value=q;const g=AC.createGain();env(g,t,.02,vol,dur);s.connect(fl);fl.connect(g);g.connect(dst||SFX);s.start(t,Math.random());s.stop(t+dur+.05);return {g,fl};}
+const SND={
+  pop(){tone(520,.12,'sine',.25,null,null,880);},
+  click(){tone(900,.05,'triangle',.12);},
+  bell(){if(!AC)return;const t=AC.currentTime;tone(1568,.9,'sine',.18,null,t);tone(2349,.7,'sine',.09,null,t);tone(1568,.8,'sine',.12,null,t+.18);},
+  cash(){if(!AC)return;const t=AC.currentTime;tone(1320,.12,'triangle',.18,null,t);tone(1760,.18,'triangle',.18,null,t+.08);noise(.08,.08,'highpass',4000,0,t);},
+  hiss(d){noise(d||1.6,.07,'bandpass',2600,.8);},
+  pour(){noise(.9,.06,'lowpass',900);},
+  oven(){if(!AC)return;tone(1200,.2,'sine',.15);tone(1600,.25,'sine',.12,null,AC.currentTime+.15);},
+  meow(p){if(!AC)return;p=p||1;const t=AC.currentTime,o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';
+    o.frequency.setValueAtTime(480*p,t);o.frequency.linearRampToValueAtTime(760*p,t+.18);o.frequency.linearRampToValueAtTime(420*p,t+.5);
+    f.type='bandpass';f.Q.value=4;f.frequency.setValueAtTime(900,t);f.frequency.linearRampToValueAtTime(1500,t+.18);f.frequency.linearRampToValueAtTime(700,t+.5);
+    env(g,t,.05,.22,.55);o.connect(f);f.connect(g);g.connect(SFX);o.start(t);o.stop(t+.6);},
+  purr(){if(!AC)return;const t=AC.currentTime,s=AC.createBufferSource();s.buffer=NOISE;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=180;const g=AC.createGain();g.gain.value=0;
+    const lfo=AC.createOscillator();lfo.frequency.value=24;const lg=AC.createGain();lg.gain.value=.18;lfo.connect(lg);lg.connect(g.gain);
+    const g2=AC.createGain();env(g2,t,.15,1,1.4);s.connect(f);f.connect(g);g.connect(g2);g2.connect(SFX);s.start(t);s.stop(t+1.5);lfo.start(t);lfo.stop(t+1.5);},
+  sad(){tone(440,.25,'triangle',.12,null,null,330);},
+  wrong(){tone(220,.15,'square',.06);},
+  happy(){if(!AC)return;const t=AC.currentTime;[660,880,1320].forEach((f,i)=>tone(f,.18,'triangle',.12,null,t+i*.07));},
+};
+let musicTimer=null;
+function startMusic(){if(!AC||musicTimer)return;
+  // soft lo-fi: Fmaj7 Em7 Dm7 Cmaj7, electric piano + crackle
+  const chords=[[53,57,60,64],[52,55,59,62],[50,53,57,60],[48,52,55,59]],bpm=72,beat=60/bpm;let bar=0,next=AC.currentTime+.2;
+  const ep=(m,t,d,v)=>{const f=440*Math.pow(2,(m-69)/12);tone(f,d,'sine',v,MUS,t);tone(f*2,d*.6,'triangle',v*.18,MUS,t);};
+  const crackle=()=>{const s=AC.createBufferSource();s.buffer=NOISE;s.loop=true;const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=3000;const g=AC.createGain();g.gain.value=.012;s.connect(f);f.connect(g);g.connect(MUS);s.start();};crackle();
+  musicTimer=setInterval(()=>{if(!AC)return;while(next<AC.currentTime+1.2){const c=chords[bar%4];
+    c.forEach((m,i)=>ep(m,next+i*.03,beat*3.6,.05));ep(c[0]-12,next,beat*2,.07);ep(c[0]-12,next+beat*2,beat*1.8,.05);
+    const mel=[c[3]+12,c[2]+12,c[1]+12,c[2]+12];for(let k=0;k<4;k++)if(Math.random()<.55)ep(mel[k],next+beat*k+beat*.5,beat*.9,.03);
+    next+=beat*4;bar++;}},300);}
+function applyAudio(){if(!AC)return;SFX.gain.value=soundOn?1:0;MUS.gain.setTargetAtTime(musicOn?.22:0,AC.currentTime,.2);$('bMusic').style.opacity=musicOn?1:.45;$('bSound').textContent=soundOn?'🔊':'🔈';}
+
+/* ================= runtime state ================= */
+const COUNTER_Y=585,FLOOR_Y=535,SPOTS=[470,640,810];
+let R=null;
+function trayCount(){return 3+(has('tarjotin')?1:0)+(has('tarjotin2')?1:0);}
+function newDay(){
+  R={phase:'day',t:0,len:210,paused:false,customers:[],tray:new Array(trayCount()).fill(null),sel:-1,jobs:{},stock:{puusti:4,keksi:has('keksi')?4:0,piirakka:has('piirakka')?2:0},oven:null,
+    parts:[],floats:[],spawnT:3,served:0,lost:0,earned:0,tips:0,petBoost:0,closing:false,hover:null,shake:{},seats:[{x:150,y:FLOOR_Y-6,c:null},{x:265,y:FLOOR_Y-6,c:null},{x:1015,y:FLOOR_Y-6,c:null},{x:1130,y:FLOOR_Y-6,c:null}]};
+  buildCats();
+}
+let CATS=[];
+const PERCHES=[{x:590,y:300,kind:'window'},{x:700,y:300,kind:'window'},{x:150,y:FLOOR_Y-36,kind:'chair'},{x:1130,y:FLOOR_Y-36,kind:'chair'}];
+function buildCats(){const old=new Map(CATS.map(c=>[c.id,c]));CATS=G.cats.map((id,i)=>old.get(id)||{id,look:CAT_LOOKS[id],x:360+i*120,y:FLOOR_Y,dir:i%2?1:-1,state:'walk',t:rand(1,4),tx:rand(360,920),perch:null,blink:rand(1,4),tail:rand(0,6),love:0,heartsT:0,z:0});}
+
+/* ================= drawing helpers ================= */
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
+function circle(x,y,r){ctx.beginPath();ctx.arc(x,y,r,0,TAU);}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const f=k<0?0:255,p=Math.abs(k);r=Math.round(r+(f-r)*p);g=Math.round(g+(f-g)*p);b=Math.round(b+(f-b)*p);return `rgb(${r},${g},${b})`;}
+const WALLS={plum:['#3a2440','#4b3053'],mint:['#2f5248','#3c6658'],rose:['#5a2a3a','#6d3649']};
+
+/* ---------- background ---------- */
+function drawRoom(){const t=R?R.t/R.len:0.3,[w1,w2]=WALLS[G.wall]||WALLS.plum;
+  // wall
+  const wg=ctx.createLinearGradient(0,0,0,FLOOR_Y);wg.addColorStop(0,w1);wg.addColorStop(1,w2);ctx.fillStyle=wg;ctx.fillRect(0,0,W,FLOOR_Y);
+  // wallpaper: tiny paw prints
+  ctx.fillStyle='rgba(255,255,255,.035)';for(let y=30;y<FLOOR_Y-40;y+=70)for(let x=(y/70%2)*45+20;x<W;x+=90){circle(x,y,6);ctx.fill();for(let k=0;k<3;k++){circle(x-7+k*7,y-9,2.6);ctx.fill();}}
+  // wainscot
+  ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,FLOOR_Y-110,W,110);ctx.fillStyle='rgba(255,210,122,.08)';ctx.fillRect(0,FLOOR_Y-112,W,4);
+  // window with sky following the clock
+  const wx=440,wy=70,ww=400,wh=230;
+  const sky=ctx.createLinearGradient(0,wy,0,wy+wh);const day=t<.7;
+  sky.addColorStop(0,day?shade('#8fc4e8',-t*.3):'#2b2f5e');sky.addColorStop(1,day?shade('#f7d9a8',-t*.1):lerpCol('#f39a6a','#4a3a6a',clamp((t-.7)/.3,0,1)));
+  ctx.fillStyle='#7a5238';rr(wx-14,wy-14,ww+28,wh+28,18);ctx.fill();ctx.fillStyle=sky;rr(wx,wy,ww,wh,10);ctx.fill();
+  // rooftops outside
+  ctx.save();rr(wx,wy,ww,wh,10);ctx.clip();
+  if(!day){ctx.fillStyle='#fff6d0';circle(wx+ww-80,wy+60,22);ctx.fill();ctx.fillStyle='rgba(255,255,255,.7)';for(let i=0;i<14;i++){circle(wx+(i*73)%ww,wy+15+(i*41)%90,1.3);ctx.fill();}}
+  else{ctx.fillStyle='rgba(255,255,255,.75)';const ct=R?R.t:perfT;for(const c of[[wx+((80+ct*8)%(ww+80))-40,wy+50],[wx+((260+ct*5)%(ww+80))-40,wy+80]]){ctx.beginPath();ctx.ellipse(c[0],c[1],38,12,0,0,TAU);ctx.fill();}}
+  ctx.fillStyle=day?'#6c7f99':'#232845';for(let i=0;i<8;i++){const bx=wx+i*55-10,bh=50+((i*37)%60);ctx.fillRect(bx,wy+wh-bh,48,bh);ctx.beginPath();ctx.moveTo(bx-4,wy+wh-bh);ctx.lineTo(bx+24,wy+wh-bh-20);ctx.lineTo(bx+52,wy+wh-bh);ctx.fill();}
+  if(!day){ctx.fillStyle='#ffd27a';for(let i=0;i<8;i++)for(let k=0;k<2;k++)if((i+k)%3!==0)ctx.fillRect(wx+i*55+6+k*20,wy+wh-30-k*16,8,8);}
+  ctx.restore();
+  ctx.strokeStyle='#7a5238';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(wx+ww/2,wy);ctx.lineTo(wx+ww/2,wy+wh);ctx.moveTo(wx,wy+wh*.45);ctx.lineTo(wx+ww,wy+wh*.45);ctx.stroke();
+  // windowsill
+  ctx.fillStyle='#8a5f42';rr(wx-30,wy+wh+8,ww+60,18,6);ctx.fill();
+  // café name painted on the window
+  ctx.save();ctx.font='34px "Gochi Hand", cursive';ctx.textAlign='center';ctx.fillStyle='rgba(255,246,220,.85)';ctx.fillText(G.name,wx+ww/2,wy+wh*.45-14);ctx.restore();
+  if(has('valot')){for(let i=0;i<=24;i++){const a=i/24;const x=wx-20+a*(ww+40),y=wy-22+Math.sin(a*Math.PI)*18;ctx.fillStyle=['#ffd27a','#f2a2b8','#b7d99a','#9fd2ff'][i%4];ctx.globalAlpha=.7+.3*Math.sin(perfT*3+i);circle(x,y,4);ctx.fill();ctx.globalAlpha=.18;circle(x,y,11);ctx.fill();ctx.globalAlpha=1;}}
+  // chalkboard menu
+  drawMenuBoard(60,100,300,250);
+  // shelves on the right
+  ctx.fillStyle='#7a5238';for(const y of[150,250])ctx.fillRect(940,y,300,12);
+  const jars=[['#f2a2b8',955],['#b7d99a',1000],['#ffd27a',1048],['#c9a27a',1096],['#9fd2ff',1144],['#f2a2b8',1190]];
+  jars.forEach(([c,x],i)=>{const y=i%2?250:150;ctx.fillStyle='rgba(255,255,255,.35)';rr(x,y-44,34,44,8);ctx.fill();ctx.fillStyle=c;rr(x+3,y-26,28,24,6);ctx.fill();ctx.fillStyle='#5e3b2e';ctx.fillRect(x+4,y-50,26,7);});
+  if(has('kasvit')){plant(990,150,1);plant(1210,250,1.1);plant(445,wy+wh+8,.9);plant(835,wy+wh+8,.9);}
+  if(has('taulut')){portrait(380,120,'pulla');portrait(870,120,'morri');}
+  // lamps
+  for(const x of SPOTS){ctx.strokeStyle='#1d1220';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,40);ctx.stroke();ctx.fillStyle='#e9c56a';ctx.beginPath();ctx.moveTo(x-26,62);ctx.lineTo(x-12,38);ctx.lineTo(x+12,38);ctx.lineTo(x+26,62);ctx.fill();
+    const lg=ctx.createRadialGradient(x,66,4,x,140,200);lg.addColorStop(0,'rgba(255,214,130,.38)');lg.addColorStop(1,'rgba(255,214,130,0)');ctx.fillStyle=lg;ctx.fillRect(x-220,40,440,520);}
+  // floor
+  const fg=ctx.createLinearGradient(0,FLOOR_Y,0,H);fg.addColorStop(0,'#7a5238');fg.addColorStop(1,'#5e3b2e');ctx.fillStyle=fg;ctx.fillRect(0,FLOOR_Y,W,H-FLOOR_Y);
+  ctx.strokeStyle='rgba(0,0,0,.15)';ctx.lineWidth=2;for(let x=-40;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,FLOOR_Y);ctx.lineTo(x-30,H);ctx.stroke();}
+  if(has('matto')){ctx.fillStyle='#f2a2b8';ctx.beginPath();ctx.ellipse(640,FLOOR_Y+22,260,24,0,0,TAU);ctx.fill();ctx.strokeStyle='#fff3dc';ctx.lineWidth=3;ctx.setLineDash([8,8]);ctx.beginPath();ctx.ellipse(640,FLOOR_Y+22,240,18,0,0,TAU);ctx.stroke();ctx.setLineDash([]);}
+  // door
+  ctx.fillStyle='#5e3b2e';rr(-10,FLOOR_Y-250,80,250,10);ctx.fill();ctx.fillStyle='rgba(255,214,130,.25)';rr(8,FLOOR_Y-230,44,90,8);ctx.fill();ctx.fillStyle='#e9c56a';circle(58,FLOOR_Y-120,5);ctx.fill();
+  // tables and chairs (seating)
+  for(const s of R?R.seats:[]){chair(s.x,s.y);}
+  table(208,FLOOR_Y-2);table(1072,FLOOR_Y-2);
+}
+let perfT=0;
+function lerpCol(a,b,t){const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);const c=i=>Math.round(lerp((A>>i)&255,(B>>i)&255,t));return `rgb(${c(16)},${c(8)},${c(0)})`;}
+function plant(x,y,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#c9733a';rr(-14,-24,28,24,5);ctx.fill();ctx.fillStyle='#6fae5e';for(let i=0;i<5;i++){ctx.save();ctx.rotate(-1+i*.5+Math.sin(perfT+i)*.05);ctx.beginPath();ctx.ellipse(0,-44,7,22,0,0,TAU);ctx.fill();ctx.restore();}ctx.restore();}
+function portrait(x,y,cat){ctx.fillStyle='#e9c56a';rr(x-28,y-34,56,68,6);ctx.fill();ctx.fillStyle='#f1e9f3';rr(x-22,y-28,44,56,4);ctx.fill();drawCatFace(x,y+4,.55,CAT_LOOKS[cat]);}
+function chair(x,y){ctx.fillStyle='#8a5f42';ctx.fillRect(x-20,y-34,40,8);ctx.fillRect(x-18,y-26,5,26);ctx.fillRect(x+13,y-26,5,26);ctx.fillRect(x+14,y-70,5,40);ctx.fillStyle='#f2a2b8';rr(x-20,y-40,40,8,4);ctx.fill();}
+function table(x,y){ctx.fillStyle='#a8774f';rr(x-60,y-62,120,12,6);ctx.fill();ctx.fillStyle='#7a5238';ctx.fillRect(x-5,y-50,10,50);ctx.fillRect(x-24,y-4,48,6);}
+function drawMenuBoard(x,y,w,h){ctx.fillStyle='#7a5238';rr(x-10,y-10,w+20,h+20,12);ctx.fill();ctx.fillStyle='#2e4038';rr(x,y,w,h,8);ctx.fill();
+  ctx.fillStyle='rgba(243,239,230,.92)';ctx.textAlign='center';ctx.font='30px "Gochi Hand", cursive';ctx.fillText('Menu',x+w/2,y+38);ctx.textAlign='left';ctx.font='20px "Gochi Hand", cursive';
+  const items=menuItems();let yy=y+68;for(const it of items.slice(0,8)){ctx.fillText(it.name,x+18,yy);ctx.textAlign='right';ctx.fillText(fmt(it.price)+' €',x+w-18,yy);ctx.textAlign='left';yy+=22;}
+  ctx.strokeStyle='rgba(243,239,230,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+w/2-60,y+46);ctx.lineTo(x+w/2+60,y+46);ctx.stroke();}
+function menuItems(){const l=[DRINKS.kahvi,DRINKS.latte];if(has('tee'))l.push(DRINKS.tee);if(has('kaakao'))l.push(DRINKS.kaakao);if(has('kaakao')&&has('kerma'))l.push(DRINKS.kaakaok);if(has('taide'))l.push(DRINKS.kissalatte);l.push(FOODS.puusti);if(has('keksi'))l.push(FOODS.keksi);if(has('piirakka'))l.push(FOODS.piirakka);return l;}
+
+/* ---------- items ---------- */
+const CUP_FILL={empty:null,kahvi:'#3b2416',latte:'#c99a6a',tee:'#c97a2a',kaakao:'#6b3a22',kaakaok:'#6b3a22',kissalatte:'#c99a6a'};
+function drawItem(it,x,y,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+  if(it.kind==='cup'){const c=it.c;
+    // saucer + mug
+    ctx.fillStyle='#e9e4ef';ctx.beginPath();ctx.ellipse(0,20,30,7,0,0,TAU);ctx.fill();
+    ctx.fillStyle=c==='tee'?'#ffffff':'#fff8f0';rr(-20,-14,40,34,9);ctx.fill();ctx.strokeStyle='#e0d6e4';ctx.lineWidth=2;ctx.stroke();
+    ctx.strokeStyle='#fff8f0';ctx.lineWidth=6;ctx.beginPath();ctx.arc(22,2,9,-1.2,1.2);ctx.stroke();
+    if(CUP_FILL[c]){ctx.fillStyle=CUP_FILL[c];ctx.beginPath();ctx.ellipse(0,-12,18,5,0,0,TAU);ctx.fill();}
+    if(c==='latte'||c==='kissalatte'){ctx.fillStyle='#f7ecd9';ctx.beginPath();ctx.ellipse(0,-12,12,3.4,0,0,TAU);ctx.fill();}
+    if(c==='kissalatte'){ctx.fillStyle='#f7ecd9';ctx.beginPath();ctx.moveTo(-7,-14);ctx.lineTo(-9,-19);ctx.lineTo(-3,-15);ctx.moveTo(7,-14);ctx.lineTo(9,-19);ctx.lineTo(3,-15);ctx.fill();ctx.fillStyle='#8a5a3a';circle(-3,-12,1);ctx.fill();circle(3,-12,1);ctx.fill();}
+    if(c==='kaakaok'){ctx.fillStyle='#ffffff';for(let i=0;i<4;i++){circle(-9+i*6,-17+Math.abs(i-1.5)*-2,6);ctx.fill();}ctx.fillStyle='#d14';circle(0,-25,3);ctx.fill();}
+    if(c==='tee'){ctx.strokeStyle='#d9c7a0';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(10,-12);ctx.lineTo(14,6);ctx.stroke();ctx.fillStyle='#b7d99a';ctx.fillRect(11,4,8,8);}
+    if(c!=='empty'&&c!=='tee'&&c!=='kaakaok'){ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2;for(let i=0;i<2;i++){ctx.beginPath();const ph=perfT*2+i*2;ctx.moveTo(-5+i*10,-22);ctx.bezierCurveTo(-9+i*10+Math.sin(ph)*3,-30,-1+i*10,-34,-5+i*10+Math.sin(ph)*3,-42);ctx.stroke();}}
+  }else{const f=it.f;ctx.fillStyle='#f6f2fa';ctx.beginPath();ctx.ellipse(0,14,32,9,0,0,TAU);ctx.fill();ctx.strokeStyle='#e0d6e4';ctx.lineWidth=2;ctx.stroke();
+    if(f==='puusti'){ctx.fillStyle='#c98a4a';ctx.beginPath();ctx.ellipse(0,2,22,13,0,0,TAU);ctx.fill();ctx.strokeStyle='#8a5326';ctx.lineWidth=3;ctx.beginPath();for(let a=0;a<12;a+=.3){const r=a*1.6;ctx.lineTo(Math.cos(a)*r,2+Math.sin(a)*r*.55);}ctx.stroke();ctx.fillStyle='#fff';for(let i=0;i<7;i++){ctx.fillRect(-12+i*4,-6+((i*7)%9),2.2,2.2);}}
+    else if(f==='keksi'){for(let k=0;k<2;k++){ctx.fillStyle='#d9a866';ctx.beginPath();ctx.ellipse(-8+k*14,4-k*4,13,9,0,0,TAU);ctx.fill();ctx.fillStyle='#5e3b2e';for(let i=0;i<4;i++){circle(-12+k*14+i*3,2-k*4+(i%2)*3,1.6);ctx.fill();}}}
+    else{ctx.fillStyle='#e7c38c';ctx.beginPath();ctx.moveTo(-22,8);ctx.lineTo(18,8);ctx.lineTo(14,-8);ctx.closePath();ctx.fill();ctx.fillStyle='#4a5bb5';for(let i=0;i<6;i++){circle(-12+i*5,2-(i%2)*3,2.4);ctx.fill();}ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(-2,-6,8,3,0,0,TAU);ctx.fill();}
+  }
+  ctx.restore();}
+function itemName(it){return it.kind==='cup'?(it.c==='empty'?'Tyhjä kuppi':DRINKS[it.c].name):FOODS[it.f].name;}
+function itemKey(it){return it.kind==='cup'?it.c:it.f;}
+
+/* ---------- stations ---------- */
+const ST={
+  cups:{x:52,w:70,name:'Kupit',hint:'Ota tyhjä kuppi tarjottimelle'},
+  coffee:{x:136,w:110,name:'Kahvikone',in:'empty',out:'kahvi',dur:2.2},
+  milk:{x:258,w:74,name:'Maitovaahdotin',in:'kahvi',out:'latte',dur:1.6},
+  art:{x:340,w:46,name:'Latte art',in:'latte',out:'kissalatte',dur:1.4,need:'taide'},
+  case:{x:902,w:120,name:'Herkkuvitriini'},
+  tea:{x:1034,w:72,name:'Teekannu',in:'empty',out:'tee',dur:2,need:'tee'},
+  cocoa:{x:1112,w:76,name:'Kaakaokattila',in:'empty',out:'kaakao',dur:2,need:'kaakao'},
+  cream:{x:1196,w:62,name:'Kermavaahto',in:'kaakao',out:'kaakaok',dur:.9,need:'kerma'},
+  oven:{x:1090,w:170,y:615,h:96,name:'Uuni'},
+  trash:{x:282,w:58,y:630,h:72,name:'Roskis'},
+};
+const stationOk=k=>!ST[k].need||has(ST[k].need);
+function stationTop(k){return {cups:470,coffee:430,milk:470,art:500,case:470,tea:475,cocoa:480,cream:495}[k]||470;}
+function drawStations(){
+  const sh=k=>R&&R.shake[k]>0?Math.sin(perfT*60)*3*R.shake[k]:0;
+  // cups
+  {const s=ST.cups;for(let i=0;i<4;i++){ctx.save();ctx.translate(s.x+35+sh('cups'),COUNTER_Y-14-i*16);ctx.fillStyle='#fff8f0';rr(-20,-10,40,18,6);ctx.fill();ctx.strokeStyle='#e0d6e4';ctx.lineWidth=2;ctx.stroke();ctx.restore();}}
+  // coffee machine
+  {const s=ST.coffee,x=s.x+sh('coffee'),busy=R&&R.jobs.coffee;ctx.fillStyle='#d7dde3';rr(x,430,s.w,COUNTER_Y-430,14);ctx.fill();ctx.fillStyle='#b8c0c8';rr(x+8,440,s.w-16,40,10);ctx.fill();ctx.fillStyle='#2b2530';rr(x+18,448,s.w-36,22,6);ctx.fill();
+    ctx.fillStyle=busy?'#7be08a':'#e07a98';circle(x+s.w-24,459,4);ctx.fill();ctx.fillStyle='#9aa0a8';ctx.fillRect(x+s.w/2-10,486,20,22);ctx.fillStyle='#5e646b';rr(x+12,COUNTER_Y-14,s.w-24,10,4);ctx.fill();
+    if(has('kone')){ctx.fillStyle='#ffd27a';ctx.font='600 12px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText('TURBO',x+s.w/2,462);}}
+  // milk steamer
+  {const s=ST.milk,x=s.x+sh('milk');ctx.fillStyle='#c9d3dc';rr(x+10,470,s.w-20,COUNTER_Y-470,12);ctx.fill();ctx.fillStyle='#e8eef3';rr(x+18,478,s.w-36,46,10);ctx.fill();ctx.fillStyle='#8a939c';ctx.fillRect(x+s.w/2-3,524,6,30);ctx.fillStyle='#5e3b2e';ctx.font='600 13px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText('MAITO',x+s.w/2,505);}
+  // latte art jug
+  if(stationOk('art')){const s=ST.art,x=s.x+sh('art');ctx.fillStyle='#e8eef3';ctx.beginPath();ctx.moveTo(x+8,COUNTER_Y-4);ctx.lineTo(x+40,COUNTER_Y-4);ctx.lineTo(x+36,COUNTER_Y-60);ctx.lineTo(x+44,COUNTER_Y-70);ctx.lineTo(x+12,COUNTER_Y-60);ctx.closePath();ctx.fill();drawCatFace(x+24,COUNTER_Y-32,.3,CAT_LOOKS.pulla);}
+  // pastry case
+  {const s=ST.case,x=s.x;ctx.fillStyle='rgba(220,240,255,.28)';rr(x,470,s.w,COUNTER_Y-470,10);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#8a5f42';ctx.fillRect(x+4,COUNTER_Y-42,s.w-8,4);ctx.fillRect(x+4,COUNTER_Y-80,s.w-8,4);
+    const rows=caseRows();rows.forEach((f,i)=>{const yy=COUNTER_Y-18-i*38;const n=R?R.stock[f]:0;for(let k=0;k<Math.min(n,4);k++)drawItem({kind:'food',f},x+22+k*24,yy-4,.42);if(n>4){ctx.fillStyle='#fff3dc';ctx.font='600 13px Fredoka,sans-serif';ctx.textAlign='right';ctx.fillText('×'+n,x+s.w-6,yy-4);}if(!n){ctx.fillStyle='rgba(255,255,255,.55)';ctx.font='500 12px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText(FOODS[f].name+' loppu',x+s.w/2,yy-6);}});}
+  // tea, cocoa, cream (faded and locked if not bought)
+  const locked=(k,draw)=>{ctx.save();if(!stationOk(k))ctx.globalAlpha=.22;draw();ctx.restore();if(!stationOk(k)){const s=ST[k];ctx.fillStyle='rgba(255,243,220,.75)';ctx.font='18px sans-serif';ctx.textAlign='center';ctx.fillText('🔒',s.x+s.w/2,COUNTER_Y-30);}};
+  locked('tea',()=>{const s=ST.tea,x=s.x+sh('tea');ctx.fillStyle='#b7d99a';ctx.beginPath();ctx.ellipse(x+s.w/2,COUNTER_Y-38,30,34,0,0,TAU);ctx.fill();ctx.fillStyle='#8fbf76';ctx.fillRect(x+s.w/2-12,COUNTER_Y-80,24,10);ctx.strokeStyle='#8fbf76';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x+s.w/2+26,COUNTER_Y-40);ctx.quadraticCurveTo(x+s.w+6,COUNTER_Y-60,x+s.w+4,COUNTER_Y-74);ctx.stroke();ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(x+s.w/2-8,COUNTER_Y-50,6,10,-.4,0,TAU);ctx.globalAlpha*=.4;ctx.fill();});
+  locked('cocoa',()=>{const s=ST.cocoa,x=s.x+sh('cocoa');ctx.fillStyle='#e07a98';rr(x+6,COUNTER_Y-70,s.w-12,66,12);ctx.fill();ctx.fillStyle='#c4587a';rr(x+2,COUNTER_Y-76,s.w-4,12,6);ctx.fill();ctx.fillStyle='#fff3dc';ctx.font='600 12px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText('KAAKAO',x+s.w/2,COUNTER_Y-34);});
+  locked('cream',()=>{const s=ST.cream,x=s.x+sh('cream');ctx.fillStyle='#f7fbf2';rr(x+14,COUNTER_Y-80,s.w-28,76,10);ctx.fill();ctx.fillStyle='#e07a98';ctx.fillRect(x+14,COUNTER_Y-58,s.w-28,14);ctx.fillStyle='#9aa0a8';ctx.fillRect(x+s.w/2-4,COUNTER_Y-94,8,16);});
+  // counter top + front
+  ctx.fillStyle='#a8774f';ctx.fillRect(0,COUNTER_Y,W,18);ctx.fillStyle='#c79563';ctx.fillRect(0,COUNTER_Y,W,4);
+  const cg=ctx.createLinearGradient(0,COUNTER_Y+18,0,H);cg.addColorStop(0,'#6d4632');cg.addColorStop(1,'#4c2f22');ctx.fillStyle=cg;ctx.fillRect(0,COUNTER_Y+18,W,H-COUNTER_Y-18);
+  ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=2;for(let x=0;x<W;x+=64){ctx.beginPath();ctx.moveTo(x,COUNTER_Y+20);ctx.lineTo(x,H);ctx.stroke();}
+  // tray
+  const n=R?R.tray.length:3,sx=640-(n-1)*48;ctx.fillStyle='#3d251c';rr(sx-56,618,(n-1)*96+112,92,20);ctx.fill();ctx.fillStyle='#8a5f42';rr(sx-50,624,(n-1)*96+100,80,16);ctx.fill();
+  for(let i=0;i<n;i++){const x=sx+i*96,y=664;ctx.fillStyle='rgba(0,0,0,.15)';circle(x,y+10,34);ctx.fill();const it=R&&R.tray[i];
+    if(R&&R.sel===i){ctx.strokeStyle='#ffd27a';ctx.lineWidth=4;circle(x,y+2,40);ctx.stroke();}
+    if(it&&!it.busy)drawItem(it,x,y,1);else if(it&&it.busy){ctx.strokeStyle='rgba(255,243,220,.5)';ctx.setLineDash([5,5]);ctx.lineWidth=2;circle(x,y+4,26);ctx.stroke();ctx.setLineDash([]);}}
+  // trash
+  {const s=ST.trash;ctx.fillStyle='#8fbf76';rr(s.x,s.y,s.w,s.h,10);ctx.fill();ctx.fillStyle='#6f9f5a';rr(s.x-4,s.y-8,s.w+8,12,6);ctx.fill();ctx.fillStyle='#f7fbf2';ctx.font='20px sans-serif';ctx.textAlign='center';ctx.fillText('🗑',s.x+s.w/2,s.y+44);}
+  // oven
+  {const s=ST.oven,o=R&&R.oven;ctx.fillStyle='#2b2530';rr(s.x,s.y,s.w,s.h,12);ctx.fill();ctx.fillStyle=o?'#ffb15a':'#4a3f50';rr(s.x+14,s.y+16,s.w-60,s.h-32,8);ctx.fill();
+    if(o){ctx.globalAlpha=.6+.3*Math.sin(perfT*8);ctx.fillStyle='#ffd27a';rr(s.x+14,s.y+16,s.w-60,s.h-32,8);ctx.fill();ctx.globalAlpha=1;drawItem({kind:'food',f:o.f},s.x+(s.w-60)/2+14,s.y+s.h/2,.55);
+      ctx.fillStyle='#ffd27a';ctx.fillRect(s.x+14,s.y+s.h-12,(s.w-60)*(o.t/o.dur),5);}
+    ctx.fillStyle='#9aa0a8';for(let i=0;i<2;i++){circle(s.x+s.w-24,s.y+28+i*36,9);ctx.fill();}
+    ctx.fillStyle='rgba(255,243,220,.85)';ctx.font='600 13px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText(o?'Paistuu…':'UUNI',s.x+(s.w-60)/2+14,s.y+s.h-20+(o?0:-18));}
+  // jobs in progress: cup on machine + progress ring
+  if(R)for(const k in R.jobs){const j=R.jobs[k],s=ST[k];if(!j)continue;const x=s.x+s.w/2,y=COUNTER_Y-18;drawItem(j.item,x,y,.8);
+    ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=6;circle(x,y-48,14);ctx.stroke();ctx.strokeStyle='#7be08a';ctx.beginPath();ctx.arc(x,y-48,14,-Math.PI/2,-Math.PI/2+TAU*(j.t/j.dur));ctx.stroke();}
+  // hover label
+  if(R&&R.hover&&ST[R.hover]&&!R.paused){const s=ST[R.hover];const y=(s.y||stationTop(R.hover))-14;label(s.name+(stationOk(R.hover)?'':' (kaupasta)'),s.x+s.w/2,y);}
+}
+function caseRows(){const r=['puusti'];if(has('keksi'))r.push('keksi');if(has('piirakka'))r.push('piirakka');return r;}
+function label(t,x,y){ctx.font='600 15px Fredoka,sans-serif';const w=ctx.measureText(t).width+20;x=clamp(x,w/2+4,W-w/2-4);ctx.fillStyle='rgba(29,18,32,.85)';rr(x-w/2,y-24,w,26,13);ctx.fill();ctx.fillStyle='#fff3dc';ctx.textAlign='center';ctx.fillText(t,x,y-6);}
+
+/* ---------- cats ---------- */
+function drawCatFace(x,y,s,L){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle=L.body;ctx.beginPath();ctx.moveTo(-20,-6);ctx.lineTo(-16,-30);ctx.lineTo(-4,-16);ctx.lineTo(4,-16);ctx.lineTo(16,-30);ctx.lineTo(20,-6);ctx.fill();circle(0,0,22);ctx.fill();
+  if(L.pattern==='calico'){ctx.fillStyle=L.dark;ctx.beginPath();ctx.arc(-9,-8,10,0,TAU);ctx.fill();ctx.fillStyle='#2b2530';ctx.beginPath();ctx.arc(11,-10,7,0,TAU);ctx.fill();}
+  if(L.pattern==='siamese'){ctx.fillStyle=L.dark;ctx.beginPath();ctx.ellipse(0,6,12,10,0,0,TAU);ctx.fill();}
+  ctx.fillStyle=L.eyes;circle(-8,-2,4);ctx.fill();circle(8,-2,4);ctx.fill();ctx.fillStyle='#111';circle(-8,-2,2);ctx.fill();circle(8,-2,2);ctx.fill();ctx.fillStyle='#e07a98';ctx.beginPath();ctx.moveTo(-3,5);ctx.lineTo(3,5);ctx.lineTo(0,8);ctx.fill();ctx.restore();}
+function drawCat(c){const L=c.look;ctx.save();ctx.translate(c.x,c.y-c.z);const s=c.state,dir=c.dir;ctx.scale(dir,1);
+  const t=perfT;const walk=s==='walk';const leg=walk?Math.sin(c.t*12):0;
+  // shadow
+  ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,0,30,6,0,0,TAU);ctx.fill();
+  if(s==='sleep'){ // curled up
+    ctx.fillStyle=L.body;ctx.beginPath();ctx.ellipse(0,-14,30,16,0,0,TAU);ctx.fill();
+    if(L.pattern==='tabby'){ctx.strokeStyle=L.dark;ctx.lineWidth=3;for(let i=-2;i<=2;i++){ctx.beginPath();ctx.arc(i*9,-26,7,.3,2.6);ctx.stroke();}}
+    if(L.pattern==='calico'){ctx.fillStyle=L.dark;ctx.beginPath();ctx.ellipse(-10,-20,10,7,0,0,TAU);ctx.fill();ctx.fillStyle='#2b2530';ctx.beginPath();ctx.ellipse(10,-14,7,6,0,0,TAU);ctx.fill();}
+    ctx.fillStyle=L.body;circle(20,-16,13);ctx.fill();ctx.beginPath();ctx.moveTo(12,-24);ctx.lineTo(15,-36);ctx.lineTo(22,-26);ctx.moveTo(24,-27);ctx.lineTo(31,-34);ctx.lineTo(31,-21);ctx.fill();
+    if(L.pattern==='siamese'){ctx.fillStyle=L.dark;circle(24,-13,7);ctx.fill();}
+    ctx.strokeStyle='#2b2530';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(17,-16,3,.2,Math.PI-.2);ctx.stroke();ctx.beginPath();ctx.arc(25,-16,3,.2,Math.PI-.2);ctx.stroke();
+    ctx.strokeStyle=L.body;ctx.lineWidth=8;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-26,-8);ctx.quadraticCurveTo(-10,4,14,-4);ctx.stroke();
+    ctx.scale(dir,1);ctx.fillStyle='rgba(255,243,220,.8)';ctx.font='600 14px Fredoka,sans-serif';ctx.fillText('z',dir*30,-38-((t*10)%10));ctx.restore();return;}
+  // tail
+  ctx.strokeStyle=L.body;ctx.lineWidth=7;ctx.lineCap='round';const tw=Math.sin(t*2+c.tail)*.5;ctx.beginPath();ctx.moveTo(-24,-22);ctx.bezierCurveTo(-40,-30,-42+tw*10,-52,-30+tw*14,-62);ctx.stroke();
+  if(L.pattern==='siamese'){ctx.strokeStyle=L.dark;ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-38+tw*6,-46);ctx.quadraticCurveTo(-40+tw*10,-56,-30+tw*14,-62);ctx.stroke();}
+  // legs
+  ctx.fillStyle=L.body;const sit=s==='sit';
+  if(sit){ctx.beginPath();ctx.ellipse(-6,-22,22,24,0,0,TAU);ctx.fill();ctx.fillRect(8,-20,7,20);ctx.fillRect(16,-20,7,20);}
+  else{for(const [lx,ph] of [[-18,0],[-10,Math.PI],[10,Math.PI],[18,0]]){const sw=walk?Math.sin(c.t*12+ph)*5:0;ctx.fillRect(lx+sw-3,-16,7,16);}
+    ctx.beginPath();ctx.ellipse(0,-24,28,13,0,0,TAU);ctx.fill();}
+  if(L.pattern==='tabby'){ctx.strokeStyle=L.dark;ctx.lineWidth=3;for(let i=-2;i<=1;i++){ctx.beginPath();if(sit)ctx.arc(-6+i*6,-34,8,.2,1.4);else ctx.arc(i*10,-36,8,.4,2.4);ctx.stroke();}}
+  if(L.pattern==='calico'){ctx.fillStyle=L.dark;ctx.beginPath();ctx.ellipse(-8,sit?-30:-28,10,7,.3,0,TAU);ctx.fill();ctx.fillStyle='#2b2530';ctx.beginPath();ctx.ellipse(10,sit?-16:-26,6,5,0,0,TAU);ctx.fill();}
+  ctx.fillStyle=L.belly;ctx.beginPath();ctx.ellipse(sit?6:4,sit?-14:-18,sit?9:14,sit?14:5,0,0,TAU);ctx.fill();
+  // head
+  const hx=sit?12:26,hy=sit?-50:-38,bob=walk?Math.sin(c.t*12)*1.2:Math.sin(t*1.5+c.tail)*.8;
+  ctx.save();ctx.translate(hx,hy+bob);ctx.rotate((c.heartsT>0?Math.sin(t*10)*.08:0));
+  ctx.fillStyle=L.body;ctx.beginPath();ctx.moveTo(-14,-6);ctx.lineTo(-12,-24);ctx.lineTo(-3,-12);ctx.lineTo(4,-12);ctx.lineTo(12,-24);ctx.lineTo(15,-6);ctx.fill();circle(0,0,16);ctx.fill();
+  ctx.fillStyle='#f2a2b8';ctx.beginPath();ctx.moveTo(-11,-10);ctx.lineTo(-11,-19);ctx.lineTo(-6,-12);ctx.fill();ctx.beginPath();ctx.moveTo(11,-10);ctx.lineTo(11,-19);ctx.lineTo(6,-12);ctx.fill();
+  if(L.pattern==='calico'){ctx.fillStyle=L.dark;ctx.beginPath();ctx.arc(-6,-6,7,0,TAU);ctx.fill();}
+  if(L.pattern==='siamese'){ctx.fillStyle=L.dark;ctx.beginPath();ctx.ellipse(3,5,10,8,0,0,TAU);ctx.fill();}
+  if(L.pattern==='tabby'){ctx.strokeStyle=L.dark;ctx.lineWidth=2;for(const dx of[-4,0,4]){ctx.beginPath();ctx.moveTo(dx,-15);ctx.lineTo(dx,-9);ctx.stroke();}}
+  const blink=c.blink<.12||c.heartsT>0;
+  if(blink){ctx.strokeStyle='#2b2530';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-1,0,3,Math.PI+.3,-.3);ctx.stroke();ctx.beginPath();ctx.arc(8,0,3,Math.PI+.3,-.3);ctx.stroke();}
+  else{ctx.fillStyle=L.eyes;circle(-1,-1,3.6);ctx.fill();circle(8,-1,3.6);ctx.fill();ctx.fillStyle='#111';ctx.fillRect(-1.6,-4,1.6,6);ctx.fillRect(7.4,-4,1.6,6);}
+  ctx.fillStyle='#e07a98';ctx.beginPath();ctx.moveTo(10,5);ctx.lineTo(14,5);ctx.lineTo(12,8);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1;for(const k of[-1,1]){ctx.beginPath();ctx.moveTo(14,6);ctx.lineTo(24,6+k*3);ctx.stroke();}
+  ctx.restore();ctx.restore();
+  // name when hovered
+  if(R&&R.hoverCat===c){label(c.look.name,c.x,c.y-c.z-(c.state==='sleep'?50:72));}}
+
+/* ---------- customers ---------- */
+const SKIN=['#f2c7a5','#e0ac85','#c68a5e','#8d5a3b','#f6d7bf','#a86f4c'],HAIR=['#2b1d17','#5e3b2e','#c9733a','#e9c56a','#1d1220','#8a5f42','#b8b0aa','#e07a98'],SHIRT=['#7fb3d5','#b7d99a','#f2a2b8','#ffd27a','#c9a2e0','#e9876a','#7ec2b0','#d6d0c8'];
+function drawCustomer(c){ctx.save();ctx.translate(c.x,c.y);const walk=c.state==='walkin'||c.state==='leave'||c.state==='toSeat';const bob=walk?Math.abs(Math.sin(c.t*9))*-4:Math.sin(perfT*1.6+c.seed)*1.2;ctx.translate(0,bob);
+  const sitting=c.state==='seated';if(sitting)ctx.translate(0,22);
+  // legs and body
+  if(!sitting){const lw=walk?Math.sin(c.t*9)*5:0;ctx.fillStyle='#3d3550';rr(-22+lw,-34,17,34,6);ctx.fill();rr(5-lw,-34,17,34,6);ctx.fill();ctx.fillStyle='#2b2530';rr(-24+lw,-6,21,8,4);ctx.fill();rr(3-lw,-6,21,8,4);ctx.fill();}
+  ctx.fillStyle=c.shirt;rr(-30,-118,60,92,24);ctx.fill();ctx.fillStyle='rgba(0,0,0,.08)';rr(-30,-60,60,34,16);ctx.fill();
+  // arms
+  ctx.strokeStyle=c.shirt;ctx.lineWidth=13;ctx.lineCap='round';const wave=c.happyT>0?Math.sin(perfT*14)*.6:0;
+  ctx.beginPath();ctx.moveTo(-24,-100);ctx.lineTo(-34,-62);ctx.stroke();ctx.beginPath();ctx.moveTo(24,-100);ctx.lineTo(34+wave*6,-62-(c.happyT>0?40:0));ctx.stroke();
+  ctx.fillStyle=c.skin;circle(-34,-58,7);ctx.fill();circle(34+wave*6,-58-(c.happyT>0?40:0),7);ctx.fill();
+  // head
+  ctx.fillStyle=c.skin;circle(0,-146,30);ctx.fill();
+  ctx.fillStyle=c.hair;const hs=c.hairStyle;
+  if(hs===0){ctx.beginPath();ctx.arc(0,-150,32,Math.PI,0);ctx.fill();ctx.fillRect(-32,-152,10,36);ctx.fillRect(22,-152,10,36);}
+  else if(hs===1){ctx.beginPath();ctx.arc(0,-152,31,Math.PI*1.05,-.05);ctx.fill();circle(0,-184,14);ctx.fill();}
+  else if(hs===2){ctx.beginPath();ctx.arc(0,-152,31,Math.PI*1.1,-.1);ctx.fill();}
+  else if(hs===3){for(let i=0;i<9;i++){circle(-26+i*6.5,-170+Math.abs(i-4)*3,10);ctx.fill();}}
+  else{ctx.fillStyle=c.shirt;ctx.beginPath();ctx.arc(0,-156,31,Math.PI,0);ctx.fill();ctx.fillRect(-4,-160,40,8);}
+  // face
+  const mood=c.state==='wait'?c.pat/c.patMax:1;const happy=c.happyT>0||c.state==='seated'||c.state==='toSeat';
+  ctx.fillStyle='#2b1d17';if(happy){ctx.strokeStyle='#2b1d17';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(-10,-146,4,Math.PI+.4,-.4);ctx.stroke();ctx.beginPath();ctx.arc(10,-146,4,Math.PI+.4,-.4);ctx.stroke();}
+  else{circle(-10,-146,3.2);ctx.fill();circle(10,-146,3.2);ctx.fill();}
+  ctx.fillStyle='rgba(224,122,152,.45)';circle(-18,-136,5);ctx.fill();circle(18,-136,5);ctx.fill();
+  ctx.strokeStyle='#2b1d17';ctx.lineWidth=2.5;ctx.beginPath();if(happy||mood>.55)ctx.arc(0,-136,7,.3,Math.PI-.3);else if(mood>.25){ctx.moveTo(-6,-132);ctx.lineTo(6,-132);}else ctx.arc(0,-126,7,Math.PI+.4,-.4);ctx.stroke();
+  if(c.state==='leave'&&c.sad){ctx.fillStyle='#9fd2ff';ctx.beginPath();ctx.ellipse(-12,-138,2.5,4,0,0,TAU);ctx.fill();}
+  // drink in hand when seated
+  if(sitting&&c.items)drawItem(c.items[0],34,-60,.55);
+  ctx.restore();
+  // order bubble
+  if(c.state==='wait'){drawBubble(c);}}
+function drawBubble(c){const n=c.order.length,w=Math.max(96,n*62+24),x=c.x,y=c.y-250;ctx.save();
+  ctx.fillStyle='#f7fbf2';rr(x-w/2,y-46,w,82,18);ctx.fill();ctx.beginPath();ctx.moveTo(x-10,y+36);ctx.lineTo(x,y+52);ctx.lineTo(x+10,y+36);ctx.fill();
+  c.order.forEach((o,i)=>{const ix=x-(n-1)*31+i*62,iy=y-4;ctx.globalAlpha=o.done?.3:1;
+    if(o.k==='pet'){drawCatFace(ix,iy,.6,CAT_LOOKS.pulla);ctx.font='16px sans-serif';ctx.textAlign='center';ctx.fillText('💕',ix+18,iy-12);}
+    else drawItem(o.k in DRINKS?{kind:'cup',c:o.k}:{kind:'food',f:o.k},ix,iy,.62);
+    if(o.done){ctx.globalAlpha=1;ctx.fillStyle='#8fbf76';ctx.font='700 22px Fredoka,sans-serif';ctx.textAlign='center';ctx.fillText('✓',ix+18,iy-10);}ctx.globalAlpha=1;});
+  // patience bar
+  const p=clamp(c.pat/c.patMax,0,1);ctx.fillStyle='#e6efe0';rr(x-w/2+14,y+22,w-28,8,4);ctx.fill();ctx.fillStyle=p>.5?'#8fbf76':p>.25?'#ffd27a':'#e07a98';rr(x-w/2+14,y+22,(w-28)*p,8,4);ctx.fill();
+  ctx.restore();}
+
+/* ================= game logic ================= */
+function patienceMul(){return 1+(has('kasvit')?.1:0)+G.rep*.03;}
+function tipMul(){return 1+(has('valot')?.1:0);}
+function orderFor(){const drinks=['kahvi','latte'];if(has('tee'))drinks.push('tee');if(has('kaakao'))drinks.push('kaakao');if(has('kaakao')&&has('kerma'))drinks.push('kaakaok');if(has('taide'))drinks.push('kissalatte','kissalatte');
+  const foods=caseRows();const o=[{k:pick(drinks),done:false}];const r=Math.random();
+  if(r<.45+G.day*.02)o.push({k:pick(foods),done:false});
+  if(G.day>=2&&Math.random()<.18)o.push({k:'pet',done:false});
+  if(G.day>=4&&Math.random()<.15)o.splice(1,0,{k:pick(drinks),done:false});
+  return o.slice(0,3);}
+function spawnCustomer(){const free=SPOTS.filter((x,i)=>!R.customers.some(c=>c.spot===i&&c.state!=='leave'&&c.state!=='toSeat'&&c.state!=='seated'));if(!free.length)return;
+  const spot=SPOTS.indexOf(pick(free));const pm=(42+Math.random()*12-Math.min(12,G.day*1.2))*patienceMul();
+  R.customers.push({x:-40,y:FLOOR_Y+10,spot,state:'walkin',t:0,seed:Math.random()*10,skin:pick(SKIN),hair:pick(HAIR),shirt:pick(SHIRT),hairStyle:Math.floor(Math.random()*5),order:orderFor(),pat:pm,patMax:pm,happyT:0,items:[],paid:0});
+  SND.bell();}
+function trayFree(){return R.tray.findIndex(s=>!s);}
+function addToTray(it){const i=trayFree();if(i<0){toast('Tarjotin on täynnä. Tarjoile tai heitä jotain roskiin.');SND.wrong();return -1;}R.tray[i]=it;R.sel=i;SND.pop();return i;}
+function useStation(k){const s=ST[k];
+  if(!stationOk(k)){toast(s.name+' löytyy kaupasta päivän jälkeen.');shakeIt(k);return;}
+  if(k==='cups'){addToTray({kind:'cup',c:'empty'});return;}
+  if(k==='trash'){if(R.sel>=0&&R.tray[R.sel]&&!R.tray[R.sel].busy){R.tray[R.sel]=null;R.sel=-1;SND.click();}else toast('Valitse ensin tarjottimelta, mitä heität pois.');return;}
+  if(k==='oven'){if(R.oven){shakeIt(k);return;}const rows=caseRows();const f=rows.slice().sort((a,b)=>R.stock[a]-R.stock[b])[0];R.oven={f,t:0,dur:has('uuni')?4.5:6.5};SND.click();return;}
+  if(k==='case'){return;}
+  if(R.jobs[k]){shakeIt(k);return;}
+  // find a cup for this machine
+  let idx=-1;const ok=i=>R.tray[i]&&!R.tray[i].busy&&R.tray[i].kind==='cup'&&R.tray[i].c===s.in;
+  if(R.sel>=0&&ok(R.sel))idx=R.sel;else idx=R.tray.findIndex((_,i)=>ok(i));
+  if(idx<0&&s.in==='empty'){idx=addToTray({kind:'cup',c:'empty'});if(idx<0)return;}
+  if(idx<0){toast(s.name+': tarvitset '+(s.in==='kahvi'?'kupin kahvia':s.in==='kaakao'?'kupin kaakaota':'latten')+' tarjottimelta.');shakeIt(k);SND.wrong();return;}
+  const it=R.tray[idx];it.busy=true;const fast=has('kone')&&(k==='coffee'||k==='milk')?.66:1;R.jobs[k]={slot:idx,item:it,t:0,dur:s.dur*fast,out:s.out};if(R.sel===idx)R.sel=-1;
+  if(k==='coffee')SND.hiss(s.dur*fast);else if(k==='milk')SND.hiss(s.dur*fast*.8);else SND.pour();}
+function takeFood(row){const f=caseRows()[row];if(!f)return;if(R.stock[f]<=0){toast(FOODS[f].name+' on loppu. Paista lisää uunissa.');SND.wrong();return;}if(addToTray({kind:'food',f})>=0)R.stock[f]--;}
+function shakeIt(k){R.shake[k]=1;}
+function serve(c,idx){const it=R.tray[idx];if(!it||it.busy)return false;const key=itemKey(it);const o=c.order.find(o=>!o.done&&o.k===key);
+  if(!o){SND.wrong();toast('Tämä asiakas ei tilannut tuota.');return false;}
+  o.done=true;c.items.push(it);R.tray[idx]=null;if(R.sel===idx)R.sel=-1;SND.pop();floatText('💗',c.x,c.y-260);checkDone(c);return true;}
+function checkDone(c){if(!c.order.every(o=>o.done))return;
+  const base=c.order.reduce((s,o)=>s+(o.k==='pet'?0:(DRINKS[o.k]||FOODS[o.k]).price),0);const p=clamp(c.pat/c.patMax,0,1);
+  const cat=CATS.some(k=>k.state!=='sleep'&&Math.abs(k.x-c.x)<180&&k.y>FLOOR_Y-20)?.15:0;
+  const tip=Math.round((base*(.08+p*.32+cat+R.petBoost*.1))*tipMul()*10)/10;
+  G.money+=base+tip;R.earned+=base;R.tips+=tip;R.served++;G.served++;G.love+=1;
+  G.rep=clamp(G.rep+(p>.5?.05:.02)*(has('taulut')?1.4:1),1,5);
+  c.happyT=1.2;c.state='done';c.t=0;SND.cash();floatText('+'+fmt(base+tip)+' €',c.x,c.y-200,'#ffd27a');
+  if(p>.7){floatText('Ihana kahvila!',c.x,c.y-290,'#b7d99a');}}
+function floatText(t,x,y,col){R.floats.push({t,x,y,col:col||'#fff3dc',life:1.6});}
+function toast(t){if(!t)return;const el=$('toast');el.textContent=t;el.style.opacity=1;clearTimeout(toast.tm);toast.tm=setTimeout(()=>el.style.opacity=0,2200);}
+function petCat(c){if(c.heartsT>0)return;c.heartsT=1.4;c.love++;G.love++;
+  const pb=has('matto')?1.3:1;R.petBoost=Math.min(1.5,R.petBoost+.35*pb);
+  for(const cu of R.customers)if(cu.state==='wait'){cu.pat=Math.min(cu.patMax,cu.pat+4*pb);const o=cu.order.find(o=>o.k==='pet'&&!o.done);if(o){o.done=true;floatText('💕',cu.x,cu.y-260);checkDone(cu);}}
+  for(let i=0;i<6;i++)R.parts.push({x:c.x+rand(-20,30)*c.dir,y:c.y-c.z-50,vx:rand(-30,30),vy:rand(-90,-40),life:1.2,ch:'♥'});
+  if(Math.random()<.5)SND.meow(c.id==='tuhka'?1.25:c.id==='morri'?.85:1);else SND.purr();
+  if(c.state==='walk'&&Math.random()<.5){c.state='sit';c.t=rand(2,5);}}
+
+function update(dt){perfT+=dt;if(!R||R.paused)return;
+  for(const k in R.shake)R.shake[k]=Math.max(0,R.shake[k]-dt*3);
+  if(R.phase==='day'){R.t+=dt;if(R.t>=R.len&&!R.closing){R.closing=true;toast('Kahvila sulkeutuu. Palvele vielä jonossa olevat.');}}
+  R.petBoost=Math.max(0,R.petBoost-dt*.08);
+  // spawn
+  if(!R.closing){R.spawnT-=dt;if(R.spawnT<=0){R.spawnT=clamp(13-G.day*.7-G.rep*.6,4.5,13)*rand(.75,1.25);spawnCustomer();}}
+  // machines
+  for(const k in R.jobs){const j=R.jobs[k];if(!j)continue;j.t+=dt;if(j.t>=j.dur){j.item.c=j.out;j.item.busy=false;R.jobs[k]=null;SND.pop();if(R.sel<0)R.sel=j.slot;}}
+  if(R.oven){R.oven.t+=dt;if(R.oven.t>=R.oven.dur){const f=R.oven.f;R.stock[f]=Math.min(12,R.stock[f]+(has('uuni')?5:3));R.oven=null;SND.oven();floatText(FOODS[f].name+' valmis',ST.oven.x+60,ST.oven.y-10);}}
+  // customers
+  for(const c of R.customers){c.t+=dt;c.happyT=Math.max(0,c.happyT-dt);
+    if(c.state==='walkin'){const tx=SPOTS[c.spot];c.x+=Math.sign(tx-c.x)*Math.min(Math.abs(tx-c.x),150*dt);if(Math.abs(tx-c.x)<1){c.state='wait';c.t=0;}}
+    else if(c.state==='wait'){const catNear=CATS.some(k=>Math.abs(k.x-c.x)<160&&k.y>FLOOR_Y-20);c.pat-=dt*(catNear?.7:1)*(1-Math.min(.5,R.petBoost*.3));
+      if(c.pat<=0){c.state='leave';c.sad=true;R.lost++;G.rep=clamp(G.rep-.15,1,5);SND.sad();floatText('Liian kauan…',c.x,c.y-250,'#f2a2b8');}}
+    else if(c.state==='done'){if(c.t>1){const seat=R.seats.find(s=>!s.c);if(seat&&Math.random()<.65){seat.c=c;c.seat=seat;c.state='toSeat';}else c.state='leave';}}
+    else if(c.state==='toSeat'){const tx=c.seat.x;c.x+=Math.sign(tx-c.x)*Math.min(Math.abs(tx-c.x),130*dt);if(Math.abs(tx-c.x)<1){c.state='seated';c.t=0;c.sitFor=rand(7,14);c.y=c.seat.y;}}
+    else if(c.state==='seated'){if(c.t>c.sitFor){c.seat.c=null;c.seat=null;c.state='leave';c.y=FLOOR_Y+10;}}
+    else if(c.state==='leave'){c.x-=150*dt;}}
+  R.customers=R.customers.filter(c=>c.x>-80);
+  // cats
+  for(const c of CATS){c.t-=dt;c.blink-=dt;if(c.blink<0)c.blink=rand(2,5);c.heartsT=Math.max(0,c.heartsT-dt);
+    if(c.state==='walk'){const d=c.tx-c.x;c.dir=d>0?1:-1;c.x+=Math.sign(d)*Math.min(Math.abs(d),60*dt);
+      if(Math.abs(d)<2){const r=Math.random();if(r<.35){c.state='sit';c.t=rand(3,7);}else if(r<.55){c.state='sleep';c.t=rand(8,16);}else if(r<.75){const p=pick(PERCHES.filter(p=>!CATS.some(o=>o!==c&&o.perch===p)));if(p){c.perch=p;c.state='jump';c.t=0;c.from={x:c.x,y:c.y};}else c.tx=rand(360,920);}else c.tx=rand(has('matto')?420:340,has('matto')?860:940);}}
+    else if(c.state==='jump'){c.t+=dt*2;const k=Math.min(1,c.t),p=c.perch;c.x=lerp(c.from.x,p.x,k);c.y=lerp(c.from.y,p.y,k);c.z=Math.sin(k*Math.PI)*60;c.dir=p.x>c.from.x?1:-1;if(k>=1){c.z=0;c.state=Math.random()<.6?'sleep':'sit';c.t=rand(8,18);}}
+    else if(c.state==='down'){}
+    else if(c.t<=0){if(c.perch){c.from={x:c.x,y:c.y};c.perch=null;c.state='down';c.t=0;c.tx=rand(360,920);}else{c.state='walk';c.t=0;c.tx=has('matto')&&Math.random()<.5?rand(470,810):rand(340,940);}}
+    if(c.state==='down'){c.t+=dt*2;const k=Math.min(1,c.t);c.y=lerp(c.from.y,FLOOR_Y,k);c.x=lerp(c.from.x,c.from.x+40*c.dir,k);c.z=Math.sin(k*Math.PI)*40;if(k>=1){c.z=0;c.state='walk';c.t=0;}}
+    if(c.state==='walk')c.t+=dt*2;}
+  for(const p of R.parts){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=20*dt;}R.parts=R.parts.filter(p=>p.life>0);
+  for(const f of R.floats){f.life-=dt;f.y-=30*dt;}R.floats=R.floats.filter(f=>f.life>0);
+  // end of day
+  if(R.closing&&R.customers.length===0&&R.phase==='day'){R.phase='summary';endDay();}
+  hud();}
+
+/* ================= input ================= */
+function toGame(e){return{x:(e.clientX-OX)/SC,y:(e.clientY-OY)/SC};}
+function hitStation(p){for(const k in ST){const s=ST[k];const top=s.y||stationTop(k),bot=s.h?(s.y+s.h):COUNTER_Y+4;if(p.x>=s.x&&p.x<=s.x+s.w&&p.y>=top&&p.y<=bot)return k;}return null;}
+function hitTray(p){const n=R.tray.length,sx=640-(n-1)*48;for(let i=0;i<n;i++){if(Math.hypot(p.x-(sx+i*96),p.y-664)<40)return i;}return -1;}
+function hitCustomer(p){for(const c of R.customers){if(c.state!=='wait')continue;if(Math.abs(p.x-c.x)<46&&p.y>c.y-300&&p.y<c.y-10)return c;}return null;}
+function hitCat(p){for(let i=CATS.length-1;i>=0;i--){const c=CATS[i];if(Math.abs(p.x-c.x)<40&&p.y>c.y-c.z-70&&p.y<c.y-c.z+8)return c;}return null;}
+function caseRowAt(p){const s=ST.case;if(p.x<s.x||p.x>s.x+s.w||p.y<470||p.y>COUNTER_Y)return -1;const i=Math.floor((COUNTER_Y-p.y)/38);return i<caseRows().length?i:-1;}
+cv.addEventListener('pointerdown',e=>{initAudio();if(!R||R.paused||R.phase!=='day')return;const p=toGame(e);
+  const cat=hitCat(p);if(cat){petCat(cat);return;}
+  const cu=hitCustomer(p);if(cu){const wants=i=>{const it=R.tray[i];return it&&!it.busy&&cu.order.some(o=>!o.done&&o.k===itemKey(it));};if(R.sel>=0&&wants(R.sel)){serve(cu,R.sel);}else{const i=R.tray.findIndex((_,i)=>wants(i));if(i>=0)serve(cu,i);else{SND.wrong();toast(cu.order.filter(o=>!o.done).map(o=>o.k==='pet'?'kissan silitys':(DRINKS[o.k]||FOODS[o.k]).name).join(' + ')+', kiitos!');}}return;}
+  const ti=hitTray(p);if(ti>=0){if(R.tray[ti]&&!R.tray[ti].busy){R.sel=R.sel===ti?-1:ti;SND.click();}return;}
+  const row=caseRowAt(p);if(row>=0){takeFood(row);return;}
+  const st=hitStation(p);if(st){useStation(st);return;}
+  R.sel=-1;});
+cv.addEventListener('pointermove',e=>{if(!R)return;const p=toGame(e);R.hover=hitStation(p);R.hoverCat=hitCat(p);const cu=hitCustomer(p);cv.style.cursor=(R.hover&&stationOk(R.hover))||R.hoverCat||cu||hitTray(p)>=0?'pointer':'default';});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&R&&R.phase==='day'){setPause(!R.paused);}
+  if(!R||R.paused||R.phase!=='day')return;const n=parseInt(e.key,10);if(n>=1&&n<=R.tray.length){const i=n-1;if(R.tray[i]&&!R.tray[i].busy){R.sel=R.sel===i?-1:i;SND.click();}}});
+
+/* ================= screens ================= */
+function hud(){if(!R)return;const t=clamp(R.t/R.len,0,1),mins=9*60+Math.round(t*8*60/5)*5;$('hClock').textContent=Math.floor(mins/60)+'.'+String(mins%60).padStart(2,'0');
+  $('hMoney').textContent=fmt(G.money)+' €';$('hStars').textContent=G.rep.toFixed(1).replace('.',',');$('hLove').textContent=G.love;}
+function show(id,on){$(id).classList.toggle('hidden',!on);}
+function setPause(on){if(!R)return;R.paused=on;show('pause',on);if(on)$('bResume').focus();}
+function startDay(){newDay();show('title',false);show('summary',false);show('shop',false);show('hud',true);show('hudBtns',true);
+  const t=$('tip');t.classList.remove('hidden');t.textContent=G.day===1?'Klikkaa kahvikonetta, niin kuppi tulee mukaan. Klikkaa sitten asiakasta, niin tilaus lähtee hänelle. Silitä kissoja klikkaamalla.':'Päivä '+G.day+' alkaa. Asiakkaita tulee nyt vähän tiheämmin.';
+  setTimeout(()=>t.classList.add('hidden'),G.day===1?14000:5000);save();}
+function endDay(){show('hud',false);show('hudBtns',false);$('tip').classList.add('hidden');$('toast').style.opacity=0;
+  const rate=R.served+R.lost?R.served/(R.served+R.lost):1;
+  $('sTitle').textContent='Päivä '+G.day+' valmis';$('sNote').textContent=R.served===0?'Hiljainen päivä. Huomenna tulee taas asiakkaita.':rate>.9?'Kaikki lähtivät hymyillen. Kissatkin ovat ylpeitä.':rate>.6?'Hyvä päivä! Muutama asiakas ei jaksanut odottaa.':'Kiireinen päivä. Kauppa auttaa: isompi tarjotin ja kasvit.';
+  $('sLines').innerHTML=`<div><span>Asiakkaita palveltu</span><b>${R.served}</b></div><div><span>Lähti jonosta</span><b>${R.lost}</b></div><div><span>Myynti</span><b>${fmt(R.earned)} €</b></div><div><span>Tipit</span><b>${fmt(R.tips)} €</b></div><div><span>Maine</span><b>${G.rep.toFixed(1).replace('.',',')} ⭐</b></div><div class="tot"><span>Kassassa</span><b>${fmt(G.money)} €</b></div>`;
+  G.best=Math.max(G.best,R.served);G.day++;save();show('summary',true);$('bToShop').focus();}
+let shopTab='menu';
+function openShop(){show('summary',false);show('shop',true);renderShop();$('bNextDay').textContent='Avaa päivä '+G.day;}
+function renderShop(){$('shMoney').textContent=fmt(G.money)+' €';
+  const tabs=[['menu','Menu'],['cat','Kissat'],['decor','Sisustus'],['gear','Laitteet']];const tb=$('shTabs');tb.innerHTML='';
+  for(const[id,l]of tabs){const b=document.createElement('button');b.className='tab';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(id===shopTab));b.textContent=l;b.onclick=()=>{shopTab=id;renderShop();};tb.appendChild(b);}
+  const gr=$('shGrid');gr.innerHTML='';
+  for(const it of SHOP.filter(s=>s.kind===shopTab)){const owned=it.kind==='cat'?G.cats.includes(it.id):has(it.id);const locked=it.needs&&!has(it.needs);
+    const c=document.createElement('div');c.className='card'+(owned?' owned':'');const cvs=document.createElement('canvas');cvs.width=380;cvs.height=200;c.appendChild(cvs);drawPreview(cvs,it);
+    const h=document.createElement('h3');h.textContent=it.name;const p=document.createElement('p');p.textContent=locked?'Osta ensin '+SHOP.find(s=>s.id===it.needs).name.toLowerCase()+'.':it.desc;c.append(h,p);
+    const f=document.createElement('div');f.className='foot';const pr=document.createElement('span');pr.className=owned?'own':'price';pr.textContent=owned?(it.kind==='cat'?'Asuu kahvilassa':'Omistat'):fmt(it.price)+' €';const b=document.createElement('button');
+    const isWall=it.id==='mint'||it.id==='rose';
+    if(owned&&isWall){b.textContent=G.wall===it.id?'Käytössä':'Käytä';b.disabled=G.wall===it.id;b.onclick=()=>{G.wall=it.id;save();renderShop();};}
+    else if(owned){b.textContent=it.kind==='cat'?'Rakas':'Ostettu';b.disabled=true;}
+    else{b.textContent=it.kind==='cat'?'Adoptoi':'Osta';b.disabled=locked||G.money<it.price;b.onclick=()=>{if(G.money<it.price)return;G.money-=it.price;if(it.kind==='cat')G.cats.push(it.id);else G.owned[it.id]=true;if(isWall)G.wall=it.id;initAudio();SND.cash();if(it.kind==='cat')setTimeout(()=>SND.meow(),250);save();renderShop();};}
+    f.append(pr,b);c.appendChild(f);gr.appendChild(c);}
+  if(shopTab==='decor'){const c=document.createElement('div');c.className='card'+(G.wall==='plum'?' owned':'');const cvs=document.createElement('canvas');cvs.width=380;cvs.height=200;c.appendChild(cvs);drawPreview(cvs,{kind:'decor',id:'plum'});
+    const h=document.createElement('h3');h.textContent='Luumunvärinen seinä';const p=document.createElement('p');p.textContent='Alkuperäinen seinäväri.';const f=document.createElement('div');f.className='foot';const pr=document.createElement('span');pr.className='own';pr.textContent='Omistat';const b=document.createElement('button');b.textContent=G.wall==='plum'?'Käytössä':'Käytä';b.disabled=G.wall==='plum';b.onclick=()=>{G.wall='plum';save();renderShop();};f.append(pr,b);c.append(h,p,f);gr.appendChild(c);}}
+function drawPreview(cvs,it){const g=cvs.getContext('2d');const sv=ctx;
+  g.save();g.fillStyle=it.kind==='cat'?'#f1e9f3':it.kind==='menu'?'#fff3dc':it.kind==='gear'?'#e6efe0':'#f1e9f3';g.fillRect(0,0,cvs.width,cvs.height);
+  // reuse the game's drawing functions on the preview canvas
+  ctxProxy(g,()=>{g.translate(cvs.width/2,cvs.height/2+10);
+    if(it.kind==='cat'){const c={look:CAT_LOOKS[it.id],x:0,y:50,z:0,dir:1,state:'sit',t:0,blink:2,tail:1,heartsT:0};g.scale(1.6,1.6);g.translate(0,-30);drawCat(c);}
+    else if(it.kind==='menu'){const m={tee:{kind:'cup',c:'tee'},keksi:{kind:'food',f:'keksi'},kaakao:{kind:'cup',c:'kaakao'},kerma:{kind:'cup',c:'kaakaok'},piirakka:{kind:'food',f:'piirakka'},taide:{kind:'cup',c:'kissalatte'}}[it.id];drawItem(m,0,0,2);}
+    else if(it.id==='mint'||it.id==='rose'||it.id==='plum'){const w=WALLS[it.id];g.fillStyle=w[0];g.fillRect(-190,-110,380,220);g.fillStyle=w[1];g.fillRect(-190,10,380,100);drawCatFace(0,-10,1.2,CAT_LOOKS.pulla);}
+    else if(it.id==='kasvit'){plant(-40,50,1.6);plant(50,50,1.3);}
+    else if(it.id==='valot'){for(let i=0;i<=14;i++){const a=i/14;g.fillStyle=['#ffd27a','#f2a2b8','#b7d99a','#9fd2ff'][i%4];circle(-150+a*300,-30+Math.sin(a*Math.PI)*40,8);g.fill();}}
+    else if(it.id==='matto'){g.fillStyle='#f2a2b8';g.beginPath();g.ellipse(0,30,150,40,0,0,TAU);g.fill();const c={look:CAT_LOOKS.morri,x:0,y:40,z:0,dir:1,state:'sleep',t:0,blink:2,tail:1,heartsT:0};drawCat(c);}
+    else if(it.id==='taulut'){portrait(-60,-10,'pulla');portrait(60,-10,'nuppu');}
+    else if(it.id==='kone'){g.fillStyle='#d7dde3';rr(-55,-80,110,150,14);g.fill();g.fillStyle='#2b2530';rr(-35,-62,70,24,6);g.fill();g.fillStyle='#ffd27a';g.font='600 16px Fredoka,sans-serif';g.textAlign='center';g.fillText('TURBO',0,-45);drawItem({kind:'cup',c:'kahvi'},0,40,1.2);}
+    else if(it.id==='tarjotin'||it.id==='tarjotin2'){g.fillStyle='#8a5f42';rr(-170,-40,340,80,18);g.fill();for(let i=0;i<4;i++)drawItem(i%2?{kind:'food',f:'puusti'}:{kind:'cup',c:'latte'},-120+i*80,0,.8);}
+    else if(it.id==='uuni'){g.fillStyle='#2b2530';rr(-110,-60,220,120,14);g.fill();g.fillStyle='#ffb15a';rr(-90,-40,150,80,8);g.fill();drawItem({kind:'food',f:'puusti'},-15,0,1);}
+  });g.restore();}
+// draw functions use the global ctx; swap it temporarily for previews
+function ctxProxy(g,fn){const real=ctx;ctx=g;try{fn();}finally{ctx=real;}}
+
+/* ================= main loop ================= */
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);render();requestAnimationFrame(frame);}
+function render(){const c=ctx;c.setTransform(DPR,0,0,DPR,0,0);c.fillStyle='#1d1220';c.fillRect(0,0,cv.width,cv.height);c.setTransform(DPR*SC,0,0,DPR*SC,DPR*OX,DPR*OY);
+  c.save();c.beginPath();c.rect(0,0,W,H);c.clip();
+  drawRoom();
+  const ents=[];if(R){for(const cu of R.customers)ents.push({y:cu.state==='seated'?cu.y-30:cu.y,d:()=>drawCustomer(cu)});}
+  for(const k of CATS)ents.push({y:k.perch&&k.perch.kind==='window'?0:k.y+1,d:()=>drawCat(k)});
+  ents.sort((a,b)=>a.y-b.y);for(const e of ents)if(e.y<1)e.d();
+  // window cats go above the room, customers/cats on the floor behind the counter
+  for(const e of ents)if(e.y>=1)e.d();
+  drawStations();
+  if(R){for(const p of R.parts){c.globalAlpha=clamp(p.life,0,1);c.fillStyle='#e07a98';c.font='22px Fredoka,sans-serif';c.textAlign='center';c.fillText(p.ch,p.x,p.y);}c.globalAlpha=1;
+    for(const f of R.floats){c.globalAlpha=clamp(f.life,0,1);c.font='700 22px Fredoka,sans-serif';c.textAlign='center';c.lineWidth=5;c.strokeStyle='rgba(29,18,32,.7)';c.strokeText(f.t,f.x,f.y);c.fillStyle=f.col;c.fillText(f.t,f.x,f.y);}c.globalAlpha=1;
+    if(R.sel>=0&&R.tray[R.sel]){const it=R.tray[R.sel];label(itemName(it)+': klikkaa asiakasta',640,610);}
+    if(R.t>R.len*.85&&!R.closing){c.fillStyle='rgba(255,210,122,'+(.15+.1*Math.sin(perfT*4))+')';c.fillRect(0,0,W,6);}}
+  c.restore();}
+
+/* ================= buttons ================= */
+$('bStart').onclick=()=>{initAudio();const n=$('cafeName').value.trim();if(n)G.name=n.slice(0,24);buildCats();startDay();};
+$('bReset').onclick=()=>{if(!confirmReset())return;G=freshSave();G.name=$('cafeName').value.trim()||G.name;save();CATS=[];buildCats();$('bReset').classList.add('hidden');$('bStart').textContent='Avaa kahvila';};
+function confirmReset(){const b=$('bReset');if(b.dataset.armed){delete b.dataset.armed;return true;}b.dataset.armed='1';b.textContent='Varmasti? Klikkaa uudestaan';setTimeout(()=>{delete b.dataset.armed;b.textContent='Aloita alusta';},3000);return false;}
+$('bToShop').onclick=openShop;
+$('bNextDay').onclick=()=>{startDay();};
+$('bResume').onclick=()=>setPause(false);
+$('bQuitDay').onclick=()=>{setPause(false);R.closing=true;R.t=R.len;for(const c of R.customers)if(c.state==='wait'){c.state='leave';}};
+$('bPause').onclick=()=>setPause(true);
+$('bMusic').onclick=()=>{initAudio();musicOn=!musicOn;saveSettings();applyAudio();};
+$('bSound').onclick=()=>{initAudio();soundOn=!soundOn;saveSettings();applyAudio();};
+
+/* ================= start ================= */
+try{document.fonts.load('30px "Gochi Hand"');document.fonts.load('600 16px Fredoka');}catch(e){}
+const hadSave=load();
+$('cafeName').value=G.name;
+if(hadSave&&G.day>1){$('bStart').textContent='Jatka päivästä '+G.day;$('bReset').classList.remove('hidden');}
+buildCats();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

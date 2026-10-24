@@ -105,6 +105,26 @@
       ]
     },
     {
+      "id": "kissakahvila",
+      "name": "Kissakahvila",
+      "type": "html",
+      "path": "kissakahvila/index.html",
+      "cover": "kissakahvila/cover.jpg",
+      "version": "1.0",
+      "endButton": "bottom-left",
+      "tags": [
+        "Cozy",
+        "Cats",
+        "Simulator",
+        "Singleplayer"
+      ],
+      "description": "Run a small cat café. Brew coffee, lattes, tea and cocoa, add latte art and whipped cream, serve buns and pies, and keep the customers smiling. Pet the café cats to cheer up waiting guests. After each day, spend your earnings on new drinks, more cats and decorations. The game is in Finnish.",
+      "controls": "Mouse: click stations, tray items, customers and cats",
+      "updates": [
+        "New game: Kissakahvila, a cozy cat café where you brew drinks, serve customers and pet the cats"
+      ]
+    },
+    {
       "id": "fuzzling",
       "name": "Grow a Fuzzling",
       "type": "html",
