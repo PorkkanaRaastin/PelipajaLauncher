@@ -1453,7 +1453,7 @@ function makeMedKit(){const g=new THREE.Group();const b=(w,h,d,m,x,y,z)=>{const 
   b(.28,.14,.2,medWhite,0,.07,0);b(.03,.1,.04,ammoDark,-.06,.19,0);b(.03,.1,.04,ammoDark,.06,.19,0);b(.15,.02,.04,ammoDark,0,.245,0);
   b(.1,.012,.03,redCross,0,.147,0);b(.03,.012,.1,redCross,0,.147,0);b(.07,.03,.008,redCross,0,.08,.102);b(.022,.07,.008,redCross,0,.08,.102);
   pickGlow(g,new THREE.Color(.3,1,.5),.9);return g;}
-function dropPickup(x,z,seed,force){const r=seeded(seed);if(!force&&r()>.8)return;x+=lerp(-.5,.5,r());z+=lerp(-.5,.5,r());if(blocked(x,z))return;const med=r()<.35;const m=med?makeMedKit():makeAmmoBox();m.position.set(x,.02,z);m.rotation.y=r()*6;scene.add(m);pickups.push({m,med,x,z});}
+function dropPickup(x,z,seed,force){const r=seeded(seed);if(!force&&r()>.8)return;x+=lerp(-.5,.5,r());z+=lerp(-.5,.5,r());if(blocked(x,z))return;const med=r()<.35;const m=med?makeMedKit():makeAmmoBox();m.position.set(x,.02,z);m.rotation.y=r()*6;scene.add(m);pickups.push({m,med,x,z,age:0});}
 
 /* ================= bots (host-simulated) ================= */
 const BOTW=[0,0,1,1,2,4];
@@ -2303,6 +2303,8 @@ function update(dt,now){
   assignT-=dt;if(assignT<=0){assignT=.25;assignLamps();}
   for(const s of lightSlots){if(!s.lamp){s.l.intensity=0;continue;}s.k=Math.min(1,s.k+dt*7);s.l.intensity=LT.int*DARK.lamp*s.lamp.on*s.k;}
   if(inMatch()&&mode==='coop'&&amHost())updateBots(dt);else for(const b of bots)if(b.dead||!playing)poseHuman(b.h,dt,{alert:b.alert,speed:0});
+  /* loot on the ground disappears after a minute (blinks for the last 6 s) */
+  for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];p.age+=dt;if(p.age>=60){scene.remove(p.m);pickups.splice(i,1);continue;}p.m.visible=p.age<54||Math.floor(p.age*6)%2===0;}
   for(const p of pickups){p.m.rotation.y+=dt*.9;p.m.position.y=.03+Math.sin(now*.003+p.x*3)*.018;const gl=p.m.userData.glow;if(gl)gl.material.opacity=.4+Math.sin(now*.005+p.z*2)*.18;}
   if(NET){updateRemotes(dt,now);if(state!=='menu')sendPresence(now);}
   for(const q of parts){if(q.life<=0)continue;q.life-=dt;q.v.y-=q.g*dt;q.m.position.addScaledVector(q.v,dt);if(q.m.position.y<.01){q.m.position.y=.01;q.v.multiplyScalar(.25);}if(q.life<=0)q.m.visible=false;}
