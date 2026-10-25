@@ -26,7 +26,7 @@
       "type": "html",
       "path": "zombiecam/index.html",
       "cover": "zombiecam/cover.jpg",
-      "version": "1.2.1",
+      "version": "1.3",
       "endButton": "bottom-left",
       "tags": [
         "Shooter",
@@ -34,9 +34,13 @@
         "Online",
         "Multiplayer"
       ],
-      "description": "A bodycam-style zombie shooter. Fight off waves of zombies alone or with a squad of up to eight friends, or turn on each other in a private match. You play online with your Pelipaja username: add friends by their username and invite them to your squad. The game is in Finnish. Made by knh19.",
+      "description": "A bodycam-style zombie shooter. Fight off waves of zombies alone or with a squad of up to eight friends. You play online with your Pelipaja username: add friends by their username and invite them to your squad. Made by knh19.",
       "controls": "WASD move, mouse look, left click shoot, right click aim, R reload, 1 / 2 / wheel switch weapon, Shift run, C / Ctrl crouch, Ctrl while running slide, Q / E lean, F weapon light, Tab scoreboard",
       "updates": [
+        "New main menu that looks like a live bodycam feed: channel menu on the left, target photos, and a Start recording button",
+        "The game is now fully in English",
+        "Matches are always co-op against the zombies, alone or with friends. The private versus mode has been removed from the menu",
+        "New cover image in Pelipaja",
         "Ammo boxes and medkits on the ground disappear after a minute. They blink for the last few seconds",
         "New character skins: buy outfits for your officer, from SWAT and hazmat suits to glowing legendary gear. Friends see them in the lobby and in game",
         "14 new weapon skins, the best ones costing up to 150 000 coins, and a goal bar in the shop that shows how close you are to the next one",
