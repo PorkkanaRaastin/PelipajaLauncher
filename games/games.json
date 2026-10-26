@@ -26,7 +26,7 @@
       "type": "html",
       "path": "zombiecam/index.html",
       "cover": "zombiecam/cover.jpg",
-      "version": "1.4",
+      "version": "1.4.1",
       "endButton": "bottom-left",
       "tags": [
         "Shooter",
@@ -37,6 +37,8 @@
       "description": "A bodycam-style zombie shooter. Fight off waves of zombies alone or with a squad of up to eight friends. You play online with your Pelipaja username: add friends by their username and invite them to your squad. Made by knh19.",
       "controls": "WASD move, mouse look, left click shoot, right click aim, R reload, 1 / 2 / wheel switch weapon, Shift run, C / Ctrl crouch, Ctrl while running slide, Q / E lean, F weapon light, Tab scoreboard",
       "updates": [
+        "Ultra: the Service Tunnel now has big separate pipes everywhere: thick pipes along the walls, pipe runs under the ceiling, risers with valves and single fittings",
+        "Fixed the selected target photo being cut off at the edge of the menu",
         "New Ultra graphics option (Settings > Detail): realistic Poly Haven textures on floors and walls",
         "Ultra adds real 3D props: military crate stacks, barrels, covered cars, office desks, sofas, plants, pipes and lamps",
         "Ultra ammo boxes use a real ammo crate model",

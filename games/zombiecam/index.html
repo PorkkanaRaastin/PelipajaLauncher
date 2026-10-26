@@ -348,7 +348,7 @@ body:has(#menu:not([hidden])) #c{filter:grayscale(.88) contrast(1.22) brightness
 .bc #friends li.fempty{font-size:12px;color:var(--odim);letter-spacing:.04em;line-height:1.5}
 .bc .status{font-size:12px;color:var(--odim);line-height:1.5;letter-spacing:.04em;min-height:0}
 .bc .colR{position:absolute;top:128px;bottom:84px;right:64px;width:min(480px,38vw);display:flex;flex-direction:column;gap:16px;min-height:0}
-.bc .colR .pane{display:grid;gap:10px;min-height:0;overflow:auto;align-content:start;scrollbar-width:thin}
+.bc .colR .pane{display:grid;gap:10px;min-height:0;overflow:auto;align-content:start;scrollbar-width:thin;padding:10px;margin:-10px}
 .bc .maps{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
 .bc .mp{all:unset;cursor:pointer;position:relative;aspect-ratio:3/4;background:#111 center/cover;filter:grayscale(1) contrast(1.15) brightness(.85);outline:1.5px solid var(--oline);transition:filter .15s}
 .bc .mp span{position:absolute;left:6px;bottom:4px;font:11px var(--mono);letter-spacing:.1em;text-shadow:0 0 4px #000}
@@ -357,7 +357,7 @@ body:has(#menu:not([hidden])) #c{filter:grayscale(.88) contrast(1.22) brightness
 .bc .mp:disabled{cursor:default;opacity:.55}.bc .mp[aria-pressed="true"]:disabled{opacity:1}
 .bc .mp:focus-visible{outline:2px dashed var(--osd);outline-offset:3px}
 .bc .mapname{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:8px 0 14px}
-.bc .mapname b{font:46px/.9 var(--big);letter-spacing:.04em;font-weight:400;text-transform:uppercase}
+.bc .mapname b{white-space:nowrap;font:46px/.9 var(--big);letter-spacing:.04em;font-weight:400;text-transform:uppercase}
 .bc .mapname span{font-size:13px;color:var(--odim);text-align:right;letter-spacing:.06em;line-height:1.45;max-width:220px}
 .bc .seg{border:1.5px solid var(--oline);border-radius:0}
 .bc .seg button{font:14px var(--mono);letter-spacing:.16em;padding:11px 3px;color:var(--odim)}
@@ -949,7 +949,7 @@ function loadUltra(){if(ULTRA.loading)return ULTRA.loading;
     const L=new THREE.GLTFLoader();L.setMeshoptDecoder(MeshoptDecoder);
     for(const[k,b]of Object.entries(ZC_ULTRA.glb)){const g=await new Promise((res,rej)=>L.parse(zcB64(b),'',res,rej));
       g.scene.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;for(const m of[].concat(o.material)){if(m.map)m.map.anisotropy=MAXANI;m.envMapIntensity=0;}});
-      g.scene.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(g.scene);ULTRA.tpl[k]={obj:g.scene,bb,size:bb.getSize(new THREE.Vector3())};
+      g.scene.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(g.scene);ULTRA.tpl[k]={obj:g.scene,bb,size:bb.getSize(new THREE.Vector3())};if(k==='pipes')uSplitPipes(g.scene);
       await new Promise(r=>setTimeout(r,0));}
     ULTRA.ready=true;})();
   return ULTRA.loading;}
@@ -970,6 +970,17 @@ function uPlace(name,x,z,ry,o){const t=ULTRA.tpl[name];if(!t||!world)return null
   g.traverse(m=>{if(!m.isMesh)return;m.userData.mat=o.mat||'wood';m.userData.ultra=1;if(!o.nohit)statics.push(m);});world.add(g);return g;}
 // footprint half-sizes of a model after a turn of ry (any angle, conservative)
 function uHalf(name,ry,s){const t=ULTRA.tpl[name];s=s||1;const hx=t.size.x/2*s,hz=t.size.z/2*s,c=Math.abs(Math.cos(ry)),n=Math.abs(Math.sin(ry));return[hx*c+hz*n,hx*n+hz*c];}
+// the Poly Haven pipe kit is split into single pieces: centred on the origin, pipe axis along y, front towards +z
+function uSplitPipes(root){ULTRA.pipe={};root.updateMatrixWorld(true);root.traverse(o=>{if(!o.isMesh)return;const m=/pipe0*(\d+)$/.exec(o.name);if(!m)return;
+  const bb=new THREE.Box3().setFromObject(o),c=bb.getCenter(new THREE.Vector3());
+  ULTRA.pipe[+m[1]]={geo:o.geometry,mat:o.material,base:new THREE.Matrix4().makeTranslation(-c.x,-c.y,-c.z).multiply(o.matrixWorld),size:bb.getSize(new THREE.Vector3())};});}
+// pipe placements are collected and drawn as one instanced mesh per piece. rot: 'h' along the wall, 'x'/'z' along a world axis, else upright
+function uPipeSet(){const L=[];const E=new THREE.Euler(),Q=new THREE.Quaternion();
+  return{add(n,x,y,z,ry,rot,sr,len){const P=ULTRA.pipe&&ULTRA.pipe[n];if(!P)return;E.set(rot==='z'?Math.PI/2:0,rot==='x'||rot==='z'?0:ry,rot==='h'||rot==='x'?Math.PI/2:0,'YXZ');Q.setFromEuler(E);
+      L.push({n,m:new THREE.Matrix4().compose(V3(x,y,z),Q,V3(sr,len?len/P.size.y:sr,sr)).multiply(P.base)});},
+    depth(n,sr){const P=ULTRA.pipe&&ULTRA.pipe[n];return P?P.size.z*sr:0;},
+    build(){const by={};L.forEach(e=>(by[e.n]=by[e.n]||[]).push(e.m));for(const n in by){const P=ULTRA.pipe[n],im=new THREE.InstancedMesh(P.geo,P.mat,by[n].length);
+      by[n].forEach((m,k)=>im.setMatrixAt(k,m));im.receiveShadow=true;im.userData.ultra=1;world.add(im);}}};}
 const holeTex=canvasTex(64,(g)=>{const gr=g.createRadialGradient(32,32,0,32,32,30);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.18,'rgba(5,5,5,1)');gr.addColorStop(.26,'rgba(150,145,135,.85)');gr.addColorStop(.55,'rgba(110,105,95,.35)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
   g.strokeStyle='rgba(10,10,10,.6)';g.lineWidth=1;for(let i=0;i<6;i++){const a=Math.random()*6.28;g.beginPath();g.moveTo(32,32);g.lineTo(32+Math.cos(a)*rand(10,26),32+Math.sin(a)*rand(10,26));g.stroke();}});
 const bloodTex=canvasTex(128,(g)=>{g.fillStyle='rgba(70,4,4,.95)';g.beginPath();g.arc(64,64,rand(16,24),0,7);g.fill();
@@ -1183,12 +1194,25 @@ function loadMap(idx){
       const cov=addCover(c.x,c.z,vert?.06:S/2,vert?S/2:.06,0,'glass');const G2={id:'g'+(gi++),type:'shatter',mesh:gm,cover:cov,state:0,cell:c.j*GW+c.i};gm.userData.glass=G2;glasses.push(G2);});
   }
   // basement pipes
-  if(MAP.theme==='basement'){const pc=floorCells;const pim=new THREE.InstancedMesh(new THREE.CylinderGeometry(.06,.06,S,8),M(0x4a4038,.55,.5),pc.length*2);let k=0;
+  if(MAP.theme==='basement'&&!U){const pc=floorCells;const pim=new THREE.InstancedMesh(new THREE.CylinderGeometry(.06,.06,S,8),M(0x4a4038,.55,.5),pc.length*2);let k=0;
     pc.forEach(c=>{for(const dz of[-.32,.3]){q.setFromAxisAngle(V3(0,0,1),Math.PI/2);p.set(c.x,WALLH-.16-(dz>0?.1:0),c.z+dz);m.compose(p,q,sc);pim.setMatrixAt(k++,m);}});world.add(pim);}
   if(MAP.theme==='warehouse'||MAP.theme==='garage'){const bc=floorCells.filter(c=>c.i%2===0);const beam=new THREE.InstancedMesh(new THREE.BoxGeometry(.32,.34,S),M(0x26272a,.7,.4),bc.length);bc.forEach((c,k)=>{m.makeTranslation(c.x,WALLH-.17,c.z);beam.setMatrixAt(k,m);});world.add(beam);}
   if(U){const th=MAP.theme,on=n=>!!ULTRA.tpl[n];
     if((th==='garage'||th==='warehouse')&&on('concrete_road_barrier_02'))wallSpots(rng,th==='garage'?5:3,false).forEach((w,k)=>{const n=k%2&&on('concrete_road_barrier')?'concrete_road_barrier':'concrete_road_barrier_02';const t=ULTRA.tpl[n],x=w.x-w.d[0]*(-t.bb.min.z+.08),z=w.z-w.d[1]*(-t.bb.min.z+.08);if(blocked(x,z))return;uPlace(n,x,z,w.ry,{mat:'concrete'});const[hx,hz]=uHalf(n,w.ry);addCover(x,z,hx,hz,t.size.y);});
-    if(th==='basement'){if(on('modular_industrial_pipes_01'))wallSpots(rng,9,false).forEach(w=>uOnWall('modular_industrial_pipes_01',w,1.05,{mat:'metal'}));
+    if(th==='basement'){if(ULTRA.pipe){const ps=uPipeSet(),fl=(i,j)=>i>=0&&j>=0&&i<GW&&j<GH&&G[j][i]!=='#';
+        // big pipes under the ceiling, following the corridors
+        floorCells.forEach(c=>{if(fl(c.i-1,c.j)||fl(c.i+1,c.j))ps.add(2,c.x,WALLH-.2,c.z+S*.2,0,'x',1.35,S);
+          if(fl(c.i,c.j-1)||fl(c.i,c.j+1))ps.add(2,c.x-S*.2,WALLH-.52,c.z,0,'z',1.1,S);});
+        // thick pipe running low along the walls, broken where something stands against the wall
+        const lr=1.7,lo=ps.depth(2,lr)/2+.02;
+        floorCells.forEach(c=>[[1,0],[-1,0],[0,1],[0,-1]].forEach(d=>{if(fl(c.i+d[0],c.j+d[1]))return;const x=c.x+d[0]*(S/2-lo),z=c.z+d[1]*(S/2-lo);
+          for(let t=-.45;t<=.45;t+=.15)if(blocked(x+d[1]*t*S,z+d[0]*t*S))return;ps.add(2,x,.24,z,Math.atan2(-d[0],-d[1]),'h',lr,S);}));
+        // floor-to-ceiling risers, some with a valve
+        wallSpots(rng,8,false).forEach(w=>{const sr=1.4,o=ps.depth(2,sr)/2+.02;ps.add(2,w.x-w.d[0]*o,WALLH/2,w.z-w.d[1]*o,w.ry,'',sr,WALLH);
+          if(rng()<.6){const ov=ps.depth(8,sr)/2+.02;ps.add(8,w.x-w.d[0]*ov,rand(.9,1.4),w.z-w.d[1]*ov,w.ry,'',sr);}});
+        // single fittings on the walls: bends, tees and crosses
+        wallSpots(rng,7,false).forEach((w,k)=>{const n=[3,4,5,6,7,1][k%6],sr=1.4,o=ps.depth(n,sr)/2+.02;ps.add(n,w.x-w.d[0]*o,1.25,w.z-w.d[1]*o,w.ry,'',sr);});
+        ps.build();}
       if(on('utility_box_02'))wallSpots(rng,3,false).forEach(w=>{const t=ULTRA.tpl.utility_box_02,x=w.x-w.d[0]*(-t.bb.min.z+.02),z=w.z-w.d[1]*(-t.bb.min.z+.02);if(blocked(x,z))return;uPlace('utility_box_02',x,z,w.ry,{mat:'metal'});const[hx,hz]=uHalf('utility_box_02',w.ry);addCover(x,z,hx,hz,1.12);});}
     if((th==='office'||th==='apartment')&&on('potted_plant_02'))wallSpots(rng,th==='office'?6:3,false).forEach(w=>{const x=w.x-w.d[0]*.45,z=w.z-w.d[1]*.45;if(!blocked(x,z))uPlace('potted_plant_02',x,z,rng()*6,{mat:'fabric',nohit:true});});
     if(th!=='apartment'&&on('industrial_wall_lamp'))wallSpots(rng,th==='office'?0:6,false).forEach(w=>uOnWall('industrial_wall_lamp',w,2.05,{mat:'metal',nohit:true}));
